@@ -40,18 +40,18 @@ posities = [
      "geoogst": 11.20, "dagrange": 4.8, "take_profit_pct": 5.5, "actief": True,
      "koers": 0.47, "waarde": 188.00, "budget": 200.0, "winst": -12.00, "netto_winst": -12.00,
      "rendement": -6.0, "doel_eur": 11.03, "netto_doel": 11.0, "voortgang": 0, "status": "MONITORING"},
-    {"coin": "DOT", "icoon": "", "ingelegd": 0.0, "plafond": 150.0, "op_slot": False,
+    {"coin": "DOT", "icoon": "", "ingelegd": 100.0, "plafond": 150.0, "op_slot": False,
      "geoogst": 0.0, "dagrange": 6.2, "take_profit_pct": 11.0, "actief": True,
-     "koers": 3.95, "waarde": 0.0, "budget": 100.0, "winst": -100.0, "netto_winst": -100.0,
-     "rendement": -100.0, "doel_eur": 11.03, "netto_doel": 11.0, "voortgang": 0, "status": "MONITORING"},
+     "koers": 3.95, "waarde": 102.00, "budget": 100.0, "winst": 2.00, "netto_winst": 2.00,
+     "rendement": 2.0, "doel_eur": 11.03, "netto_doel": 11.0, "voortgang": 18, "status": "MONITORING"},
 ]
 
-# Totaal = alle euro's (250 vrij + 50 pot + 110 dalpot) + hoofdlijst 606,60
+# Totaal = alle euro's (250 vrij + 50 pot + 110 dalpot) + hoofdlijst 708,60
 # + reserve 55,00 + pot belegd 195,18 + dalpot belegd 198,40.
 portfolio = {
-    "totaal": 1465.18,
+    "totaal": 1567.18,
     "cash": 250.00,
-    "belegd": 606.60,
+    "belegd": 708.60,
     "reserve": 55.00,
     "reserves": [
         {"munt": "BTC", "waarde": 40.00, "actief": False},
@@ -154,7 +154,23 @@ def api_data():
 
 @app.route("/api/historie")
 def api_historie():
-    return jsonify({"bereik": "dag", "punten": []})
+    # Verzonnen, rustig stijgend verloop dat eindigt op de huidige totale waarde.
+    import math
+    import time
+    bereik = request.args.get("bereik", "dag")
+    dagen = {"dag": 1, "maand": 30, "kwartaal": 90, "alles": 120}.get(bereik, 1)
+    aantal = 96
+    nu = time.time()
+    eind = portfolio["totaal"]
+    punten = []
+    for i in range(aantal + 1):
+        f = i / aantal
+        golf = math.sin(f * 9.0) * 6.0 + math.sin(f * 23.0) * 2.5
+        waarde = eind - (1 - f) * 18.0 * dagen ** 0.5 + golf * (1 - f * 0.6)
+        punten.append({"t": nu - (1 - f) * dagen * 86400, "totaal": round(waarde, 2),
+                       "cash": portfolio["cash"], "belegd": portfolio["belegd"]})
+    punten[-1]["totaal"] = eind
+    return jsonify({"bereik": bereik, "punten": punten})
 
 
 @app.route("/activiteit")
@@ -194,9 +210,21 @@ def api_rendement():
         "bereik": request.args.get("bereik", "week"),
         "totaal_winst": 66.30, "aantal_oogsten": 6, "gemiddelde": 11.05,
         "totaal_fees": 0.17, "naar_btc": 33.15,
-        "reeks": [{"periode": "2026-09-27", "winst": 22.10, "aantal": 2}],
-        "top_munten": [{"munt": "SOL", "winst": 33.00, "aantal": 3, "actief": True}],
-        "aantal_munten": 1,
+        "reeks": [
+            {"periode": "2026-09-21", "winst": 11.02, "aantal": 1},
+            {"periode": "2026-09-22", "winst": 0.0, "aantal": 0},
+            {"periode": "2026-09-23", "winst": 11.10, "aantal": 1},
+            {"periode": "2026-09-24", "winst": 11.05, "aantal": 1},
+            {"periode": "2026-09-25", "winst": 0.0, "aantal": 0},
+            {"periode": "2026-09-26", "winst": 11.03, "aantal": 1},
+            {"periode": "2026-09-27", "winst": 22.10, "aantal": 2},
+        ],
+        "top_munten": [
+            {"munt": "SOL", "winst": 33.00, "aantal": 3, "actief": True},
+            {"munt": "LINK", "winst": 22.10, "aantal": 2, "actief": True},
+            {"munt": "ADA", "winst": 11.20, "aantal": 1, "actief": True},
+        ],
+        "aantal_munten": 3,
     })
 
 
