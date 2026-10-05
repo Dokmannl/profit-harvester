@@ -1,0 +1,32 @@
+# Geheimen
+.env
+
+# Live geld-administratie en gegevens van de gebruiker
+bot_live_config.json
+bot_state.json
+bot_trades_db.json
+bot_historie.json
+coin_iconen.json
+demo_*.json
+*.tmp
+
+# Logbestanden
+*.log
+*.log.*
+backup_log.txt
+
+# Back-ups
+Backup/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Editor / systeem
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Beheren — Profit Harvester</title>
+<meta name="theme-color" content="#0a0e14">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e14;
+  --surface:  #121822;
+  --surface2: #182231;
+  --line:     #24303f;
+  --text:     #e8eef5;
+  --dim:      #8496a8;
+  --dimmer:   #5d6e80;
+  --up:       #35c491;
+  --down:     #e8654f;
+  --gold:     #f2b53b;
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --r:        14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+body {
+  background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 24px 18px 92px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 700px; margin: 0 auto; }
+
+.kop { text-align: center; margin-bottom: 18px; }
+.kop h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ic { width: 16px; height: 16px; flex-shrink: 0; }
+.paneelkop { display: flex; align-items: center; gap: 8px; }
+.paneelkop .ic { width: 15px; height: 15px; flex-shrink: 0; }
+
+.navbalk {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex;
+  max-width: 700px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+  box-shadow: 0 -6px 20px -10px rgba(0,0,0,.5);
+}
+.navbalk a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 4px 6px;
+  color: var(--dimmer);
+  text-decoration: none;
+  font-size: 0.66rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s, background .15s;
+}
+.navbalk a svg { width: 21px; height: 21px; }
+.navbalk a.actief { color: var(--gold); }
+.navbalk a:hover { background: var(--surface2); color: var(--text); }
+.navbalk a.actief:hover { color: var(--gold); }
+
+.banner {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--goldsoft, rgba(242,181,59,.09));
+  border: 1px solid rgba(242,181,59,.3);
+  color: var(--gold);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 0.85rem; font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.paneel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.paneelkop {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
+}
+
+.paneel.tema-hoofdlijst { border-left: 3px solid var(--gold); }
+.paneel.tema-hoofdlijst .paneelkop { background: rgba(242,181,59,.08); color: var(--gold); }
+.paneel.tema-pot { border-left: 3px solid #3d6ea8; }
+.paneel.tema-pot .paneelkop { background: rgba(61,110,168,.1); color: #7aa9db; }
+.paneel.tema-dalpot { border-left: 3px solid var(--down); }
+.paneel.tema-dalpot .paneelkop { background: rgba(232,101,79,.09); color: var(--down); }
+.paneel.tema-reserve { border-left: 3px solid var(--gold); }
+.paneel.tema-reserve .paneelkop { background: rgba(242,181,59,.08); color: var(--gold); }
+.actie-uitleg b { color: var(--dim); font-weight: 700; }
+
+.actierij {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 15px 18px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.actierij:last-child { border-bottom: none; }
+
+.actie-titel { font-weight: 700; font-size: 0.92rem; }
+.actie-uitleg { font-size: 0.78rem; color: var(--dimmer); margin-top: 2px; }
+
+.actie-form { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
+.actie-form select, .actie-form input {
+  font: inherit; font-size: 0.85rem;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--text); padding: 8px 10px;
+}
+.actie-form input[type="number"], .actie-form input[type="text"] { width: 96px; }
+.actie-form select { max-width: 120px; }
+
+button {
+  font: inherit; font-size: 0.85rem; font-weight: 600;
+  color: var(--text); background: var(--surface2);
+  border: 1px solid var(--line); border-radius: 9px;
+  padding: 8px 14px; cursor: pointer;
+  transition: background .15s, border-color .15s;
+  white-space: nowrap;
+}
+button:hover { background: #1f2c3d; border-color: #33475d; }
+button.hoofd {
+  background: linear-gradient(145deg, var(--gold), #dd9c1f);
+  border-color: #dd9c1f; color: #1a1206;
+}
+button.hoofd:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); }
+button.gevaar { background: rgba(232,101,79,.14); border-color: rgba(232,101,79,.35); color: var(--down); }
+button.gevaar:hover { background: rgba(232,101,79,.22); }
+
+.geenmunten { padding: 20px 18px; text-align: center; color: var(--dimmer); font-size: 0.85rem; }
+
+.onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
+.onderbalk form { margin: 0; }
+a.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); text-decoration: none;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+a.plat:hover { background: var(--surface2); color: var(--text); }
+button.plat { background: none; border-color: transparent; color: var(--dim); font-weight: 500; }
+button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+
+/* ---------------- bevestigingspop-up ---------------- */
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(5,8,13,.72);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 50;
+}
+.modaal {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  max-width: 380px; width: 100%;
+}
+.modaal h3 { font-size: 1rem; margin-bottom: 8px; }
+.modaal p { font-size: 0.88rem; color: var(--dim); margin-bottom: 18px; line-height: 1.5; }
+.modaal .knoppen { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 560px) {
+  .actierij { flex-direction: column; align-items: stretch; }
+  .actie-form { width: 100%; }
+  .actie-form select, .actie-form input { flex: 1; min-width: 0; }
+  .actie-form button { flex-shrink: 0; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kop">
+    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>Beheren</h1>
+  </div>
+
+  <div class="banner" id="banner" {% if not verwerkt %}hidden{% endif %}>
+    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.5 2.5 5-5.6"/></svg>{% if reserve_melding %}{{ reserve_melding }}{% else %}Verwerkt — bekijk Telegram voor het resultaat.{% endif %}
+  </div>
+
+  <div class="paneel tema-hoofdlijst">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>Hoofdlijst</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Alles Aanvullen</div>
+        <div class="actie-uitleg">Koopt bij binnen budget en dip-regels, op basis van vrije cash.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/aanvullen"
+            data-bevestig="Alle hoofdlijst-munten laten aanvullen binnen budget en dip-regels?">
+        <button type="submit" class="hoofd">Uitvoeren</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Handmatig Afromen</div>
+        <div class="actie-uitleg">Verkoop nu de winst van één munt, ongeacht de trailing stop.</div>
+      </div>
+      {% if hoofdlijst_munten %}
+      <form class="actie-form" method="post" action="/beheren/afromen" data-bevestig-template="De winst van {} nu afromen?">
+        <select name="munt">
+          {% for m in hoofdlijst_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <button type="submit">Afromen</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen hoofdlijst-munten.</div>
+      {% endif %}
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Munt Toevoegen</div>
+        <div class="actie-uitleg">Nieuwe munt aan de hoofdlijst toevoegen met een budget.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/munt-toevoegen"
+            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de hoofdlijst met budget €{}?">
+        <input type="text" name="munt" placeholder="Munt (bv. SOL)" autocomplete="off" required>
+        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <button type="submit">Toevoegen</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Munt Verwijderen</div>
+        <div class="actie-uitleg">Stopt met het volgen van deze munt in de hoofdlijst.</div>
+      </div>
+      {% if hoofdlijst_munten %}
+      <form class="actie-form" method="post" action="/beheren/munt-verwijderen" data-bevestig-template="{} verwijderen uit de hoofdlijst? De munt blijft gewoon in je wallet staan.">
+        <select name="munt">
+          {% for m in hoofdlijst_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="gevaar">Verwijderen</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen hoofdlijst-munten.</div>
+      {% endif %}
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Budget Wijzigen</div>
+        <div class="actie-uitleg">Past het toegewezen budget van een bestaande munt aan.</div>
+      </div>
+      {% if hoofdlijst_munten %}
+      <form class="actie-form" method="post" action="/beheren/budget-wijzigen"
+            data-bevestig-fields="munt,bedrag" data-bevestig-template="Budget van {} wijzigen naar €{}?">
+        <select name="munt">
+          {% for m in hoofdlijst_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <input type="number" name="bedrag" placeholder="Nieuw €" min="5" step="0.01" required>
+        <button type="submit">Opslaan</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen hoofdlijst-munten.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="paneel tema-reserve">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg>Reserve</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Reservemunt</div>
+        <div class="actie-uitleg">Nieuwe afgeroomde winst gaat naar <b>{{ reserve_actief }}</b>. Na een wissel blijft je
+          bestaande reserve staan en telt mee in je totale waarde. {{ reserve_keuzes | join(" en ") }} kunnen niet in de hoofdlijst, pot of dalpot.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/reserve-munt"
+            data-bevestig-fields="munt" data-bevestig-template="Nieuwe afgeroomde winst voortaan naar {} laten gaan?">
+        <select name="munt">
+          {% for m in reserve_keuzes %}<option value="{{ m }}"{% if m == reserve_actief %} selected{% endif %}>{{ m }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="hoofd">Opslaan</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="paneel tema-pot">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Pot Storten</div>
+        <div class="actie-uitleg">Boekt vrije cash toe aan de pot, zonder dat er iets op Bitvavo verandert.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/pot-storten"
+            data-bevestig-fields="bedrag" data-bevestig-template="€{} storten in de pot?">
+        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <button type="submit" class="hoofd">Storten</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Pot Opnemen</div>
+        <div class="actie-uitleg">Haalt niet-belegde pot-cash terug naar je vrije cash.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/pot-opnemen"
+            data-bevestig-fields="bedrag" data-bevestig-template="€{} uit de pot opnemen?">
+        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <button type="submit">Opnemen</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Pot Munt Toevoegen</div>
+        <div class="actie-uitleg">Voeg zelf een munt toe aan de pot, in plaats van de bot te laten kiezen.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/pot-munt-toevoegen"
+            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de pot met budget €{}?">
+        <input type="text" name="munt" placeholder="Munt (bv. AVAX)" autocomplete="off" required>
+        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <button type="submit">Toevoegen</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Pot Munt Budget Ophogen</div>
+        <div class="actie-uitleg">Verhoogt het budget van een bestaande pot-munt en koopt meteen het verschil bij. Alleen verhogen, niet verlagen.</div>
+      </div>
+      {% if pot_munten %}
+      <form class="actie-form" method="post" action="/beheren/pot-munt-budget-verhogen"
+            data-bevestig-fields="munt,budget" data-bevestig-template="Budget van {} ophogen naar €{} (koopt meteen het verschil bij)?">
+        <select name="munt">
+          {% for m in pot_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <input type="number" name="budget" placeholder="Nieuw €" min="5" step="0.01" required>
+        <button type="submit" class="hoofd">Ophogen</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen pot-munten.</div>
+      {% endif %}
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Pot Munt Verwijderen</div>
+        <div class="actie-uitleg">Verkoopt deze pot-munt volledig en zet de opbrengst terug in pot-cash.</div>
+      </div>
+      {% if pot_munten %}
+      <form class="actie-form" method="post" action="/beheren/pot-munt-verwijderen" data-bevestig-template="{} verwijderen uit de pot? Wordt volledig verkocht, de opbrengst blijft in de pot-cash.">
+        <select name="munt">
+          {% for m in pot_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="gevaar">Verwijderen</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen pot-munten.</div>
+      {% endif %}
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Munt Uitsluiten</div>
+        <div class="actie-uitleg">De pot mag deze munt nooit meer zelf kiezen (nogmaals typen heft het weer op).</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/munt-uitsluiten"
+            data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de pot (of weer toestaan als al uitgesloten)?">
+        <input type="text" name="munt" placeholder="Munt (bv. XRP)" autocomplete="off" required>
+        <button type="submit">Uitsluiten</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Pot Nu Laten Kiezen</div>
+        <div class="actie-uitleg">Meteen proberen een nieuwe munt te kiezen, niet wachten op het uur.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/pot-kies-nu"
+            data-bevestig="De pot meteen laten proberen een nieuwe munt te kiezen (als er ruimte en cash is)?">
+        <button type="submit" class="hoofd">Kies nu</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="paneel tema-pot">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot-instellingen</div>
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Algemene instellingen</div>
+        <div class="actie-uitleg">Geldt voor nieuw gekozen munten. Bestaande pot-munten pas je apart aan via
+          "Pot Munt Budget Ophogen" hierboven.</div>
+      </div>
+    </div>
+    <form class="actie-form" method="post" action="/beheren/pot-instellingen"
+          data-bevestig-fields="max_munten,budget_per_munt,winstdoel_eur,trailing_pct"
+          data-bevestig-template="Pot-instellingen opslaan: max {} munten, €{} budget per nieuwe munt, €{} winstdoel, {}% trailing?"
+          style="padding:0 18px 18px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+      <label style="font-size:0.78rem; color:var(--dimmer);">Max. munten<br>
+        <input type="number" name="max_munten" value="{{ pot_instellingen.max_munten }}" min="1" max="10" step="1" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Budget per nieuwe munt (€)<br>
+        <input type="number" name="budget_per_munt" value="{{ pot_instellingen.budget_per_munt }}" min="5" step="0.01" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Winstdoel (€)<br>
+        <input type="number" name="winstdoel_eur" value="{{ pot_instellingen.winstdoel_eur }}" min="1" step="0.01" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Trailing (%)<br>
+        <input type="number" name="trailing_pct" value="{{ pot_instellingen.trailing_pct }}" min="0.1" max="10" step="0.1" required>
+      </label>
+      <button type="submit" class="hoofd">Opslaan</button>
+    </form>
+  </div>
+
+  <div class="paneel tema-dalpot">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Storten</div>
+        <div class="actie-uitleg">Boekt vrije cash toe aan de dalpot, zonder dat er iets op Bitvavo verandert.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-storten"
+            data-bevestig-fields="bedrag" data-bevestig-template="€{} storten in de dalpot?">
+        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <button type="submit" class="hoofd">Storten</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Opnemen</div>
+        <div class="actie-uitleg">Haalt niet-belegde dalpot-cash terug naar je vrije cash.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-opnemen"
+            data-bevestig-fields="bedrag" data-bevestig-template="€{} uit de dalpot opnemen?">
+        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <button type="submit">Opnemen</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Munt Toevoegen</div>
+        <div class="actie-uitleg">Voeg zelf een munt toe aan de dalpot, in plaats van de bot te laten kiezen.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-munt-toevoegen"
+            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de dalpot met budget €{}?">
+        <input type="text" name="munt" placeholder="Munt (bv. XRP)" autocomplete="off" required>
+        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <button type="submit">Toevoegen</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Munt Verwijderen</div>
+        <div class="actie-uitleg">Verkoopt deze dalpot-munt volledig en zet de opbrengst terug in dalpot-cash.</div>
+      </div>
+      {% if dalpot_munten %}
+      <form class="actie-form" method="post" action="/beheren/dalpot-munt-verwijderen" data-bevestig-template="{} verwijderen uit de dalpot? Wordt volledig verkocht, de opbrengst blijft in de dalpot-cash.">
+        <select name="munt">
+          {% for m in dalpot_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="gevaar">Verwijderen</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen dalpot-munten.</div>
+      {% endif %}
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Munt Uitsluiten</div>
+        <div class="actie-uitleg">De dalpot mag deze munt nooit meer zelf kiezen (nogmaals typen heft het weer op).</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-munt-uitsluiten"
+            data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de dalpot (of weer toestaan als al uitgesloten)?">
+        <input type="text" name="munt" placeholder="Munt (bv. XRP)" autocomplete="off" required>
+        <button type="submit">Uitsluiten</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Nu Laten Kiezen</div>
+        <div class="actie-uitleg">Meteen proberen de grootste 24u-daler te kiezen, niet wachten op het uur.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-kies-nu"
+            data-bevestig="De dalpot meteen laten proberen een nieuwe munt te kiezen (als er ruimte en cash is)?">
+        <button type="submit" class="hoofd">Kies nu</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="paneel tema-dalpot">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot-instellingen</div>
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Algemene instellingen</div>
+        <div class="actie-uitleg">Geldt voor nieuw gekozen munten. Bestaande dalpot-munten pas je apart aan.</div>
+      </div>
+    </div>
+    <form class="actie-form" method="post" action="/beheren/dalpot-instellingen"
+          data-bevestig-fields="max_munten,budget_per_munt,winstdoel_eur,trailing_pct"
+          data-bevestig-template="Dalpot-instellingen opslaan: max {} munten, €{} budget per nieuwe munt, €{} winstdoel, {}% trailing?"
+          style="padding:0 18px 18px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+      <label style="font-size:0.78rem; color:var(--dimmer);">Max. munten<br>
+        <input type="number" name="max_munten" value="{{ dalpot_instellingen.max_munten }}" min="1" max="10" step="1" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Budget per nieuwe munt (€)<br>
+        <input type="number" name="budget_per_munt" value="{{ dalpot_instellingen.budget_per_munt }}" min="5" step="0.01" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Winstdoel (€)<br>
+        <input type="number" name="winstdoel_eur" value="{{ dalpot_instellingen.winstdoel_eur }}" min="1" step="0.01" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Trailing (%)<br>
+        <input type="number" name="trailing_pct" value="{{ dalpot_instellingen.trailing_pct }}" min="0.1" max="10" step="0.1" required>
+      </label>
+      <button type="submit" class="hoofd">Opslaan</button>
+    </form>
+  </div>
+
+  <div class="onderbalk">
+    <button type="button" class="plat" onclick="location.reload()">Ververs</button>
+    <a href="/help" class="plat">Help</a>
+    <form method="post" action="/logout" id="uitlogFormulier">
+      <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
+    </form>
+  </div>
+</div>
+
+<nav class="navbalk">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    Dashboard
+  </a>
+  <a href="/potten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
+    Potten
+  </a>
+  <a href="/rendement">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    Rendement
+  </a>
+  <a href="/beheren" class="actief">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
+    Beheren
+  </a>
+  <a href="/activiteit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>
+    Activiteit
+  </a>
+</nav>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="modaal">
+    <h3>Weet je het zeker?</h3>
+    <p id="modaalTekst"></p>
+    <div class="knoppen">
+      <button type="button" id="modaalAnnuleer">Annuleren</button>
+      <button type="button" id="modaalBevestig" class="hoofd">Bevestigen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var overlay = document.getElementById("overlay");
+  var tekstEl = document.getElementById("modaalTekst");
+  var btnBevestig = document.getElementById("modaalBevestig");
+  var btnAnnuleer = document.getElementById("modaalAnnuleer");
+  var wachtendFormulier = null;
+
+  function bouwTekst(form) {
+    if (form.dataset.bevestigFields) {
+      var velden = form.dataset.bevestigFields.split(",");
+      var waarden = velden.map(function (naam) {
+        var el = form.elements[naam.trim()];
+        return el ? el.value : "";
+      });
+      var sjabloon = form.dataset.bevestigTemplate || "Weet je het zeker?";
+      waarden.forEach(function (w) { sjabloon = sjabloon.replace("{}", w); });
+      return sjabloon;
+    }
+    if (form.dataset.bevestigTemplate) {
+      var select = form.querySelector("select");
+      return form.dataset.bevestigTemplate.replace("{}", select ? select.value : "");
+    }
+    return form.dataset.bevestig || "Weet je het zeker?";
+  }
+
+  document.querySelectorAll(".actie-form").forEach(function (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!form.reportValidity()) { return; }
+      wachtendFormulier = form;
+      tekstEl.textContent = bouwTekst(form);
+      overlay.hidden = false;
+    });
+  });
+
+  btnAnnuleer.addEventListener("click", function () {
+    overlay.hidden = true;
+    wachtendFormulier = null;
+  });
+
+  btnBevestig.addEventListener("click", function () {
+    overlay.hidden = true;
+    if (wachtendFormulier) {
+      wachtendFormulier.submit();
+      wachtendFormulier = null;
+    }
+  });
+
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) {
+      overlay.hidden = true;
+      wachtendFormulier = null;
+    }
+  });
+})();
+</script>
+</body>
+</html>

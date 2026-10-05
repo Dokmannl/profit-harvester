@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Uitleg — Profit Harvester</title>
+<meta name="theme-color" content="#0a0e14">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e14;
+  --surface:  #121822;
+  --surface2: #182231;
+  --line:     #24303f;
+  --text:     #e8eef5;
+  --dim:      #8496a8;
+  --dimmer:   #5d6e80;
+  --up:       #35c491;
+  --down:     #e8654f;
+  --gold:     #f2b53b;
+  --goldsoft: rgba(242, 181, 59, .09);
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --r:        14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 24px 18px 92px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 760px; margin: 0 auto; }
+
+.kop { text-align: center; margin-bottom: 18px; }
+.kop h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ic { width: 15px; height: 15px; flex-shrink: 0; vertical-align: -2px; }
+.kop h1 .ic { width: 17px; height: 17px; }
+
+.navbalk {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex;
+  max-width: 760px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+  box-shadow: 0 -6px 20px -10px rgba(0,0,0,.5);
+}
+.navbalk a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 4px 6px;
+  color: var(--dimmer);
+  text-decoration: none;
+  font-size: 0.66rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s, background .15s;
+}
+.navbalk a svg { width: 21px; height: 21px; }
+.navbalk a.actief { color: var(--gold); }
+.navbalk a:hover { background: var(--surface2); color: var(--text); }
+.navbalk a.actief:hover { color: var(--gold); }
+
+.onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
+.onderbalk form { margin: 0; }
+button.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); cursor: pointer;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+button.plat:hover { background: var(--surface2); color: var(--text); }
+
+.intro {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  font-size: 0.92rem;
+  color: var(--dim);
+}
+.intro strong { color: var(--text); }
+
+.inhoud {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.inhoud h2 { font-size: 0.8rem; color: var(--dimmer); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 10px; }
+.inhoud ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.inhoud a { display: inline-flex; align-items: center; gap: 6px; color: var(--gold); text-decoration: none; font-size: 0.87rem; font-weight: 600; }
+.inhoud a:hover { text-decoration: underline; }
+
+.paneel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+  scroll-margin-top: 16px;
+}
+.paneelkop {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;
+  display: flex; align-items: center; gap: 8px;
+}
+.paneelinhoud { padding: 4px 20px 18px; }
+.paneelinhoud p { margin: 10px 0; color: var(--text); font-size: 0.9rem; }
+.paneelinhoud p.dim { color: var(--dim); }
+
+.term {
+  margin: 14px 0;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.term .naam { display: flex; align-items: center; gap: 6px; font-weight: 700; color: var(--gold); font-size: 0.88rem; margin-bottom: 4px; }
+.term .wat { font-size: 0.87rem; color: var(--text); }
+
+.knopuitleg {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.knopuitleg:last-child { border-bottom: none; }
+.knopnaam {
+  flex-shrink: 0; min-width: 150px;
+  font-weight: 700; font-size: 0.86rem;
+  background: var(--surface2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 5px 10px; text-align: center;
+  height: fit-content;
+}
+.knopnaam.gevaar { color: var(--down); border-color: rgba(232,101,79,.35); }
+.knopnaam.hoofd { color: var(--gold); border-color: rgba(242,181,59,.35); }
+.knoptekst { font-size: 0.87rem; color: var(--dim); }
+.knoptekst b { color: var(--text); }
+
+.let-op {
+  margin-top: 14px;
+  background: rgba(232,101,79,.1);
+  border: 1px solid rgba(232,101,79,.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.let-op b { color: var(--down); }
+
+.tip {
+  margin-top: 14px;
+  background: var(--goldsoft);
+  border: 1px solid rgba(242,181,59,.3);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.tip b { color: var(--gold); }
+
+code {
+  background: var(--surface2);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 0.85em;
+  color: var(--gold);
+}
+
+/* lijsten, stappen en tabellen in de uitleg */
+.intro .opsom, .paneelinhoud .opsom { margin: 8px 0 8px 18px; }
+.opsom li, .stappen li { margin: 4px 0; }
+.stappen { margin: 8px 0 8px 20px; font-size: 0.9rem; }
+.wat .stappen, .wat .opsom { font-size: 0.87rem; }
+table.regels { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85rem; }
+table.regels th { text-align: left; color: var(--dimmer); font-weight: 600; font-size: 0.78rem; padding: 4px 8px 6px 0; }
+table.regels td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line); vertical-align: top; color: var(--text); }
+table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
+.groepkop { margin: 22px 0 4px !important; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.paneelinhoud a, .intro a, .tip a { color: var(--gold); }
+.slotje {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; color: var(--down);
+  border: 1px solid rgba(232,101,79,.35); background: rgba(232,101,79,.12); border-radius: 5px; padding: 0 6px;
+}
+.intro .tip { margin-top: 12px; }
+.donatie { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.donatie .adres { word-break: break-all; font-size: 0.82rem; padding: 4px 8px; flex: 1; min-width: 0; }
+.donatie .kopieer { padding: 5px 12px; border-color: var(--line); }
+
+@media (max-width: 560px) {
+  .inhoud ul { grid-template-columns: 1fr; }
+  .knopuitleg { flex-direction: column; gap: 4px; }
+  .knopnaam { min-width: 0; width: fit-content; }
+  table.regels td:first-child { white-space: normal; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+{# Bedragen en percentages op z'n Nederlands: €11 of €5,50, 1% of 0,6%. #}
+{% macro eur(x) -%}
+{%- if x == x|round(0) -%}&euro;{{ '{:,.0f}'.format(x).replace(',', '.') }}{%- else -%}&euro;{{ '{:,.2f}'.format(x).replace(',', 'X').replace('.', ',').replace('X', '.') }}{%- endif -%}
+{%- endmacro %}
+{% macro pct(x) -%}
+{%- if x == x|round(0) -%}{{ x|int }}%{%- else -%}{{ ('%g' % x).replace('.', ',') }}%{%- endif -%}
+{%- endmacro %}
+{% set ic_hoofd %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>{% endset %}
+{% set ic_pot %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>{% endset %}
+{% set ic_dal %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>{% endset %}
+{% set ic_reserve %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg>{% endset %}
+{% set ic_start %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg>{% endset %}
+{% set ic_dash %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>{% endset %}
+{% set ic_potten %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>{% endset %}
+{% set ic_grafiek %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,17 9,11 13,15 21,6"/><polyline points="15,6 21,6 21,12"/></svg>{% endset %}
+{% set ic_rendement %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>{% endset %}
+{% set ic_activiteit %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>{% endset %}
+{% set ic_beheren %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>{% endset %}
+{% set ic_telegram %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg>{% endset %}
+{% set ic_demo %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v5L5 19a1.5 1.5 0 0 0 1.4 2h11.2A1.5 1.5 0 0 0 19 19l-5-11V3"/></svg>{% endset %}
+{% set ic_slot %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>{% endset %}
+{% set ic_vraag %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.3 9.3a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.2 1-1.2 2"/><circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none"/></svg>{% endset %}
+
+  <div class="kop">
+    <h1>{{ ic_vraag }}Uitleg</h1>
+  </div>
+
+  <div class="intro">
+    <strong>Profit Harvester</strong> bewaakt dag en nacht je munten op Bitvavo en bestaat uit drie delen:
+    <ul class="opsom">
+      <li><strong>Hoofdlijst</strong>: jouw eigen munten, elk met een budget. Stijgt een munt genoeg, dan
+        verkoopt de bot automatisch <strong>alleen de winst</strong>; je budget blijft belegd.</li>
+      <li><strong>Pot</strong>: een apart potje waarin de bot <strong>zelf</strong> beweeglijke munten kiest,
+        koopt en verkoopt.</li>
+      <li><strong>Dalpot</strong>: een apart potje waarin de bot <strong>zelf</strong> de grootste daler van de
+        dag koopt en verkoopt zodra die herstelt.</li>
+    </ul>
+    Van de winst uit de hoofdlijst gaat {{ pct(h.reserve_pct) }} naar je <strong>reserve</strong>
+    ({{ h.reserve_keuzes | join(" of ") }}, nu {{ h.reserve_actief }}). De bot koopt <strong>nooit vanzelf</strong>
+    voor de hoofdlijst (dat doe jij met een knop) en heeft <strong>geen stop-loss</strong>: een munt die daalt,
+    blijft liggen tot hij terugkomt.
+    {% if h.demo %}
+    <div class="tip"><b>Demo-modus staat aan.</b> Alles werkt met echte koersen van Bitvavo, maar met nepgeld:
+      er worden geen echte orders geplaatst. Zie <a href="#demo">Demo-modus</a>.</div>
+    {% endif %}
+  </div>
+
+  <div class="inhoud">
+    <h2>Inhoud</h2>
+    <ul>
+      <li><a href="#start">{{ ic_start }}Snel aan de slag</a></li>
+      <li><a href="#hoofdlijst">{{ ic_hoofd }}De Hoofdlijst</a></li>
+      <li><a href="#pot">{{ ic_pot }}De Pot</a></li>
+      <li><a href="#dalpot">{{ ic_dal }}De Dalpot</a></li>
+      <li><a href="#reserve">{{ ic_reserve }}De Reserve (BTC / ETH)</a></li>
+      <li><a href="#dashboard">{{ ic_dash }}Het Dashboard</a></li>
+      <li><a href="#potten">{{ ic_potten }}De Potten-pagina</a></li>
+      <li><a href="#grafiek">{{ ic_grafiek }}De grafiek</a></li>
+      <li><a href="#rendement">{{ ic_rendement }}Rendement</a></li>
+      <li><a href="#activiteit">{{ ic_activiteit }}Activiteit</a></li>
+      <li><a href="#beheren">{{ ic_beheren }}De Beheren-pagina</a></li>
+      <li><a href="#telegram">{{ ic_telegram }}Telegram &amp; e-mail</a></li>
+      <li><a href="#demo">{{ ic_demo }}Demo-modus</a></li>
+      <li><a href="#veilig">{{ ic_slot }}Inloggen &amp; veiligheid</a></li>
+      <li><a href="#vragen">{{ ic_vraag }}Veelgestelde vragen</a></li>
+      {% if h.donatie %}<li><a href="#steun"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Steun dit project</a></li>{% endif %}
+    </ul>
+  </div>
+
+  <!-- ===================== SNEL AAN DE SLAG ===================== -->
+  <div class="paneel" id="start">
+    <div class="paneelkop">{{ ic_start }}Snel aan de slag</div>
+    <div class="paneelinhoud">
+      <ol class="stappen">
+        <li><b>Munten toevoegen.</b> Ga naar <i>Beheren → Hoofdlijst → Munt Toevoegen</i> en geef per munt een
+          budget op, bijvoorbeeld <code>SOL</code> met {{ eur(250.0) }}. Heb je die munt al op Bitvavo, dan telt
+          de bot je bestaande saldo gewoon mee.</li>
+        <li><b>Kopen.</b> Druk op <i>Alles Aanvullen</i>. De bot koopt bij in munten die onder hun budget staan,
+          volgens de regels hieronder. Een nieuwe munt die je nog niet hebt, staat 100% onder budget.</li>
+        <li><b>Pot en dalpot vullen</b> (optioneel). Kies <i>Pot Storten</i> en/of <i>Dalpot Storten</i> met een
+          bedrag. Vanaf dan kiest en handelt de bot daar zelf.</li>
+        <li><b>Reserve kiezen.</b> Bij <i>Beheren → Reserve</i> kies je of afgeroomde winst naar BTC of ETH gaat.</li>
+        <li><b>Volgen.</b> Op het dashboard, de Potten-pagina en via Telegram zie je wat de bot doet. Verder hoef
+          je niets te doen: verkopen gaat vanzelf.</li>
+      </ol>
+      <div class="tip"><b>Eerst oefenen?</b> Start de bot in <a href="#demo">demo-modus</a>. Dan werkt alles
+        precies hetzelfde, maar met nepgeld.</div>
+    </div>
+  </div>
+
+  <!-- ===================== HOOFDLIJST ===================== -->
+  <div class="paneel" id="hoofdlijst">
+    <div class="paneelkop">{{ ic_hoofd }}De Hoofdlijst</div>
+    <div class="paneelinhoud">
+      <p>De hoofdlijst is je eigen portefeuille: munten die jij kiest, elk met een <b>budget</b>. Het budget is
+        het bedrag dat je in die munt wilt hebben. De bot vergelijkt steeds de <b>actuele waarde</b> van je saldo
+        in die munt met dat budget.</p>
+
+      <div class="term">
+        <div class="naam">Verkopen: automatisch, alleen de winst</div>
+        <div class="wat">
+          <ol class="stappen">
+            <li>Elke munt heeft een <b>winstdoel</b> in euro's. Nieuwe munten krijgen {{ eur(h.hoofd_doel) }} netto
+              (na {{ pct(h.fee_pct) }} handelskosten), met een minimum van {{ eur(h.min_winst) }}.</li>
+            <li>Is de waarde <b>budget + winstdoel</b> of meer, dan gaat de munt naar <b>"Volgt de top"</b>. De bot
+              onthoudt vanaf nu de hoogste koers.</li>
+            <li>Stijgt de koers verder, dan wacht de bot. Zakt de koers <b>1%</b> (de "trailing stop", per munt
+              instelbaar) onder de hoogste koers, dan verkoopt hij <b>alleen het deel boven je budget</b>.</li>
+            <li>Je budget blijft belegd en de munt begint opnieuw. Dit herhaalt zich zo vaak als de munt stijgt.</li>
+          </ol>
+          Valt de waarde tijdens "Volgt de top" ver terug (meer dan 2× de trailing onder het budget), of blijft er na
+          de terugval minder dan {{ eur(h.min_winst) }} winst over, dan stopt het volgen en begint de munt opnieuw.
+        </div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Waar gaat de winst heen?</div>
+        <div class="wat">{{ pct(h.reserve_pct) }} van de netto winst wordt direct omgezet naar je
+          <a href="#reserve">reservemunt</a> (nu <b>{{ h.reserve_actief }}</b>). De rest blijft als vrije cash op je
+          rekening, om bij te kopen of in een pot te storten.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Kopen: alleen als jij op "Alles Aanvullen" drukt</div>
+        <div class="wat">De bot koopt nooit vanzelf voor de hoofdlijst. Druk je op <i>Alles Aanvullen</i>, dan
+          bekijkt hij per munt hoe ver de waarde onder het budget staat, en koopt in <b>lagen</b>:
+          <table class="regels">
+            <tr><th>Waarde onder budget</th><th>De bot koopt</th></tr>
+            {% for laag in h.lagen %}
+            <tr><td>{{ pct(laag) }} of meer</td>
+                <td>{% if loop.last %}het hele tekort{% else %}{{ loop.index }}/{{ h.lagen|length }} van het tekort{% endif %}</td></tr>
+            {% endfor %}
+          </table>
+          Minder dan {{ pct(h.lagen[0]) }} onder budget? Dan koopt hij niets: dat is te dicht bij je budget.
+        </div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Remmen bij het kopen</div>
+        <div class="wat">
+          <ul class="opsom">
+            {% if h.wacht_op_bodem %}
+            <li><b>Wachten op een bodem:</b> daalt de koers nog, dan wacht de bot. Hij koopt pas als de koers minstens
+              {{ pct(h.trailing_buy) }} boven de laagste koers van de laatste 6 uur staat. In Telegram zie je dan
+              "daalt nog, wacht op een bodem".</li>
+            {% endif %}
+            <li><b>Inlegplafond:</b> per munt legt de bot in totaal nooit meer in dan {{ h.max_inleg|string|replace('.', ',') }}× het
+              budget. Is dat bereikt, dan staat de munt <b>op slot</b> voor aanvullen.</li>
+            <li><b>Alleen vrije cash:</b> geld dat in de pot of dalpot zit, wordt nooit gebruikt.</li>
+            <li><b>Fees:</b> de bot koopt iets meer dan het tekort, zodat de handelskosten de positie niet onder
+              budget laten eindigen.</li>
+            <li><b>Minimum:</b> Bitvavo accepteert geen orders onder ongeveer {{ eur(h.min_order) }}.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="let-op">
+        <b>Geen stop-loss.</b> Daalt een munt, dan grijpt de bot niet in. Hij wacht tot de waarde weer boven budget +
+        winstdoel komt. Dat kan lang duren, en soms gebeurt het niet.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== POT ===================== -->
+  <div class="paneel" id="pot">
+    <div class="paneelkop">{{ ic_pot }}De Pot</div>
+    <div class="paneelinhoud">
+      <p>De pot is een apart potje geld waarin de bot <b>helemaal zelf</b> handelt: munten kiezen, kopen,
+        bijkopen en verkopen. Dit is het actievere, risicovollere deel.</p>
+
+      <div class="term">
+        <div class="naam">Geld erin: Pot Storten</div>
+        <div class="wat">Storten en opnemen zijn <b>boekingen</b>: er verandert niets op Bitvavo. Je geeft alleen
+          aan welk deel van je vrije cash voor de pot is. Na het storten probeert de bot direct een munt te kiezen.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Munten kiezen</div>
+        <div class="wat">Elk uur zoekt de bot munten als er een plek vrij is (maximaal <b>{{ h.pot_max }}</b>
+          tegelijk) en genoeg pot-cash (minimaal {{ eur(h.pot_min_order) }}). Een munt komt in aanmerking als:
+          <ul class="opsom">
+            <li>er in 24 uur minimaal {{ eur(h.pot_min_volume) }} in wordt verhandeld (liquide genoeg),</li>
+            <li>de gemiddelde dagbeweging tussen {{ pct(h.pot_atr_min) }} en {{ pct(h.pot_atr_max) }} ligt (niet te
+              saai, niet te wild),</li>
+            <li>hij niet al in de hoofdlijst staat, niet uitgesloten is en geen reservemunt is.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Kopen en bijkopen</div>
+        <div class="wat">Een gekozen munt wordt <b>meteen</b> gekocht voor het budget per munt
+          ({{ eur(h.pot_budget) }}). Zakt de koers daarna, dan mag de bot <b>zelf bijkopen</b>, met deze remmen:
+          <ul class="opsom">
+            <li>nooit meer dan {{ h.max_inleg|string|replace('.', ',') }}× het budget per munt,</li>
+            <li>per munt maximaal één bijkoop per {{ h.pot_cooldown|int }} uur,</li>
+            <li>samen maximaal {{ eur(h.pot_per_dag) }} per dag.</li>
+          </ul>
+          Dit is de enige plek waar de bot uit zichzelf bijkoopt.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Verkopen</div>
+        <div class="wat">Winstdoel {{ eur(h.pot_doel) }} netto per munt, trailing {{ pct(h.pot_trail) }}. Anders dan bij
+          de hoofdlijst verkoopt de pot de <b>hele positie</b>. Alles (inleg + winst) gaat terug naar de
+          <b>pot-cash</b>, niet naar je reserve. Daarna kiest de bot binnen het uur een nieuwe munt.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Noodstop</div>
+        <div class="wat">Is de pot in totaal meer dan {{ pct(h.pot_noodstop) }} minder waard dan je erin hebt gestort,
+          dan stopt het bijkopen. Verkopen gaat gewoon door. Herstelt de pot, dan gaat bijkopen vanzelf weer aan. Je
+          ziet dit als "noodstop actief" op de Potten-pagina.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Uitsluiten</div>
+        <div class="wat">Munten op de uitsluitlijst kiest de pot nooit zelf.
+          {% if h.pot_uitgesloten %}Nu uitgesloten: <b>{{ h.pot_uitgesloten | join(", ") }}</b>.{% else %}Er zijn nu geen
+          munten uitgesloten.{% endif %} {{ h.reserve_keuzes | join(" en ") }} zijn als reservemunt altijd uitgesloten.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DALPOT ===================== -->
+  <div class="paneel" id="dalpot">
+    <div class="paneelkop">{{ ic_dal }}De Dalpot</div>
+    <div class="paneelinhoud">
+      <p>De dalpot werkt als de pot, maar kiest bewust de munt die de laatste 24 uur <b>het hardst gedaald</b>
+        is, in de hoop dat die herstelt. Volledig apart: eigen cash, eigen munten, eigen instellingen.</p>
+
+      <div class="term">
+        <div class="naam">Munten kiezen</div>
+        <div class="wat">Elk uur, als er een plek vrij is (maximaal <b>{{ h.dalpot_max }}</b>) en genoeg cash.
+          Er is <b>geen eis aan handelsvolume</b>, dus er kan ook een dun verhandelde munt tussen zitten. Overgeslagen
+          worden: munten in de hoofdlijst of pot, munten die je al buiten de bot om hebt, reservemunten, en munten op
+          de uitsluitlijst{% if h.dalpot_uitgesloten %} (nu: {{ h.dalpot_uitgesloten | join(", ") }}){% endif %}.
+          Een munt die net verkocht of verwijderd is, wordt {{ h.dalpot_herkoop|int }} uur niet opnieuw gekozen.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Kopen en verkopen</div>
+        <div class="wat">Koopt in één keer het budget per munt ({{ eur(h.dalpot_budget) }}), zonder bijkopen.
+          Verkoopt de <b>hele positie</b> bij {{ eur(h.dalpot_doel) }} netto winst en {{ pct(h.dalpot_trail) }}
+          trailing. Alles gaat terug naar de dalpot-cash.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Noodstop</div>
+        <div class="wat">Is de dalpot meer dan {{ pct(h.dalpot_noodstop) }} minder waard dan gestort, dan koopt hij
+          geen nieuwe munten meer tot hij herstelt. Verkopen gaat gewoon door.</div>
+      </div>
+
+      <div class="let-op">
+        <b>Hoger risico dan de pot.</b> Een dalende munt kopen kan een "vallend mes vangen" zijn: soms herstelt hij,
+        soms blijft hij zakken. Er is geen stop-loss. Bitvavo kan een munt ook van het platform halen; die kan de bot
+        dan niet meer verkopen.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== RESERVE ===================== -->
+  <div class="paneel" id="reserve">
+    <div class="paneelkop">{{ ic_reserve }}De Reserve (BTC / ETH)</div>
+    <div class="paneelinhoud">
+      <p>Telkens als de hoofdlijst winst afroomt, gaat {{ pct(h.reserve_pct) }} daarvan direct naar een
+        <b>reservemunt</b>: echte crypto in plaats van euro's die stilliggen. Zo bouw je langzaam een spaarpot op
+        in {{ h.reserve_keuzes | join(" en/of ") }}.</p>
+
+      <div class="term">
+        <div class="naam">Kiezen en wisselen</div>
+        <div class="wat">Bij <i>Beheren → Reserve</i> kies je naar welke munt <b>nieuwe</b> winst gaat. Je kunt
+          bijvoorbeeld de ene maand BTC kiezen en de andere maand ETH. Bij een wissel wordt er <b>niets verkocht of
+          omgezet</b>: je bestaande reserve blijft gewoon staan.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Wat telt mee?</div>
+        <div class="wat">Je <b>hele saldo</b> in {{ h.reserve_keuzes | join(" en ") }} telt als reserve, ook de munt die
+          niet actief is. Op het dashboard staat per munt een regel ("Afgeroomd naar BTC", "Afgeroomd naar ETH"),
+          en beide tellen mee in je totale waarde.</div>
+      </div>
+
+      <div class="let-op">
+        <b>{{ h.reserve_keuzes | join(" en ") }} kunnen niet in de hoofdlijst, pot of dalpot.</b> Bitvavo geeft maar één
+        saldo per munt. Stond zo'n munt ook in een lijst, dan zou de bot hem dubbel tellen en je reserve als
+        "winst" kunnen verkopen. De bot weigert dat daarom, en waarschuwt bij het opstarten als het toch zo is.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <div class="paneel" id="dashboard">
+    <div class="paneelkop">{{ ic_dash }}Het Dashboard</div>
+    <div class="paneelinhoud">
+      <div class="term">
+        <div class="naam">Totale waarde</div>
+        <div class="wat">Alles samen: vrije cash + hoofdlijst + reserve (BTC én ETH) + pot + dalpot. Dit hoort, op
+          een paar cent na, gelijk te zijn aan je totaal op Bitvavo. Munten die je buiten de bot om hebt, tellen niet mee.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Vrije cash</div>
+        <div class="wat">Euro's die nergens aan vastzitten: hiermee wordt aangevuld. Een grijs regeltje
+          ("+ €X in pot", "+ €X in dalpot") toont geld dat wel op je rekening staat, maar al voor een pot is.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Belegd</div>
+        <div class="wat">De actuele waarde van je hoofdlijst-munten. De grijze regeltjes tonen wat er daarnaast
+          in de pot en dalpot belegd is.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Afgeroomd naar BTC / ETH</div>
+        <div class="wat">De actuele waarde van je reserve, per munt. Heb je er twee, dan heeft de munt waar nieuwe
+          winst naartoe gaat het label <b>actief</b>. Zie <a href="#reserve">De Reserve</a>.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Posities: de status per munt</div>
+        <div class="wat">
+          <table class="regels">
+            <tr><td><b>Nog niet gekocht</b></td><td>De munt staat in de lijst, maar je hebt er nog niets van.</td></tr>
+            <tr><td><b>Onder budget</b></td><td>De waarde is lager dan je budget. Aanvullen kan, volgens de lagen.</td></tr>
+            <tr><td><b>Onderweg</b></td><td>Boven budget, nog niet bij het winstdoel. De balk toont hoe ver.</td></tr>
+            <tr><td><b>Volgt de top</b></td><td>Winstdoel gehaald. De bot verkoopt bij een terugval van de trailing.</td></tr>
+            <tr><td><span class="slotje">op slot</span></td><td>Inlegplafond bereikt: deze munt wordt niet meer aangevuld.</td></tr>
+          </table>
+          Tik op een munt voor meer: budget, ingelegd, geoogst en de koers. Met <i>Zoek munt</i> filter je de lijst,
+          en met <i>Naar doel / Winst / Waarde</i> sorteer je.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== POTTEN ===================== -->
+  <div class="paneel" id="potten">
+    <div class="paneelkop">{{ ic_potten }}De Potten-pagina</div>
+    <div class="paneelinhoud">
+      <p>Hier zie je de pot en de dalpot naast elkaar: totale waarde, cash en de munten die erin zitten, met
+        dezelfde statussen als op het dashboard. Bij pot-munten staat ook wanneer de bot weer mag bijkopen
+        ("Kan nu bijkopen", "Kan weer bijkopen om HH:MM" of "Inlegplafond bereikt"). Staat er
+        <b>noodstop actief</b>, dan koopt die pot tijdelijk niet bij. De pagina ververst zichzelf.</p>
+    </div>
+  </div>
+
+  <!-- ===================== GRAFIEK ===================== -->
+  <div class="paneel" id="grafiek">
+    <div class="paneelkop">{{ ic_grafiek }}De grafiek</div>
+    <div class="paneelinhoud">
+      <p>Het verloop van je totale waarde: <i>Vandaag</i>, <i>Maand</i>, <i>3 maanden</i> of <i>Alles</i>. De bot
+        slaat elke 5 minuten een punt op voor de afgelopen 48 uur, en elk uur een punt voor de lange termijn. Na het
+        starten duurt het dus een paar minuten voor de eerste punten verschijnen. Beweeg of tik op de lijn voor het
+        bedrag op dat moment.</p>
+    </div>
+  </div>
+
+  <!-- ===================== RENDEMENT ===================== -->
+  <div class="paneel" id="rendement">
+    <div class="paneelkop">{{ ic_rendement }}Rendement</div>
+    <div class="paneelinhoud">
+      <p>Een winstoverzicht per periode (<i>Vandaag</i>, <i>Week</i>, <i>Maand</i> of <i>Alles</i>): totaal geoogst,
+        aantal oogsten, gemiddelde per oogst en betaalde fees. Daarnaast een staafdiagram van het verloop en de best
+        presterende munten. Alles komt uit hetzelfde logboek als de Activiteit-pagina.</p>
+      <p class="dim">"Totaal geoogst" telt alleen verkopen met winst. Het omzetten naar je reserve telt niet nog eens
+        als winst: dat is geld dat al geoogst was.</p>
+    </div>
+  </div>
+
+  <!-- ===================== ACTIVITEIT ===================== -->
+  <div class="paneel" id="activiteit">
+    <div class="paneelkop">{{ ic_activiteit }}Activiteit</div>
+    <div class="paneelinhoud">
+      <p>Het logboek van de laatste 100 orders, nieuwste bovenaan, met tijd, munt, bedrag en bron. De pagina ververst
+        elke 30 seconden. De bron vertelt wie of wat de order deed:</p>
+      <table class="regels">
+        <tr><td><b>automatisch afgeroomd</b></td><td>de bot verkocht winst uit de hoofdlijst</td></tr>
+        <tr><td><b>handmatig afgeroomd</b></td><td>jij drukte op Afromen, of verwijderde een pot-munt</td></tr>
+        <tr><td><b>aangevuld</b></td><td>gekocht via Alles Aanvullen</td></tr>
+        <tr><td><b>pot, automatisch</b></td><td>de pot kocht of verkocht zelf</td></tr>
+        <tr><td><b>dalpot, automatisch</b></td><td>de dalpot kocht of verkocht zelf</td></tr>
+        <tr><td><b>omgezet naar reserve</b></td><td>winst omgezet naar BTC of ETH</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================== BEHEREN ===================== -->
+  <div class="paneel" id="beheren">
+    <div class="paneelkop">{{ ic_beheren }}De Beheren-pagina</div>
+    <div class="paneelinhoud">
+      <p class="dim">Elke actie vraagt eerst om bevestiging. Het resultaat zie je in Telegram, of bovenaan de pagina.</p>
+
+      <p class="groepkop">{{ ic_hoofd }}Hoofdlijst</p>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Alles Aanvullen</div>
+        <div class="knoptekst">Koopt bij in munten onder budget, volgens de <a href="#hoofdlijst">lagen en remmen</a>.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Handmatig Afromen</div>
+        <div class="knoptekst">Verkoopt <b>nu</b> de winst van één munt, zonder op de trailing te wachten. Alleen als
+          er minstens {{ eur(h.min_winst) }} netto winst is. De reserve-regel geldt ook hier.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Munt Toevoegen</div>
+        <div class="knoptekst">Nieuwe munt met budget. Krijgt een vast winstdoel van {{ eur(h.hoofd_doel) }} en 1%
+          trailing. Reservemunten en munten die al in de pot staan, worden geweigerd.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam gevaar">Munt Verwijderen</div>
+        <div class="knoptekst">De bot stopt met deze munt. Er wordt <b>niets verkocht</b>: je munten blijven op
+          Bitvavo staan, maar tellen niet meer mee op het dashboard.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Budget Wijzigen</div>
+        <div class="knoptekst">Ander budget voor een bestaande munt. Er wordt niets gekocht of verkocht; dat gebeurt
+          pas bij Aanvullen of bij de volgende oogst. Een lopende "Volgt de top" begint opnieuw. Let op: het winstdoel
+          is opgeslagen als percentage van het budget, dus bij een dubbel budget wordt ook het doel in euro's dubbel.</div>
+      </div>
+
+      <p class="groepkop">{{ ic_reserve }}Reserve</p>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Reservemunt</div>
+        <div class="knoptekst">Kies {{ h.reserve_keuzes | join(" of ") }} voor nieuwe afgeroomde winst. Bestaande reserve
+          blijft staan. Zie <a href="#reserve">De Reserve</a>.</div>
+      </div>
+
+      <p class="groepkop">{{ ic_pot }}Pot</p>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Pot Storten</div>
+        <div class="knoptekst">Boekt vrije cash naar de pot (niets op Bitvavo). Daarna kiest de bot direct een munt.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Pot Opnemen</div>
+        <div class="knoptekst">Haalt niet-belegde pot-cash terug naar vrije cash. Het belegde deel kun je zo niet opnemen.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Pot Munt Toevoegen</div>
+        <div class="knoptekst">Kies zelf een munt voor de pot. Wordt meteen gekocht voor het opgegeven budget.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Pot Munt Budget Ophogen</div>
+        <div class="knoptekst">Hoger budget voor een pot-munt; het verschil wordt meteen bijgekocht. Verlagen kan niet,
+          want daarvoor zou de bot moeten verkopen.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam gevaar">Pot Munt Verwijderen</div>
+        <div class="knoptekst">Verkoopt de munt <b>volledig</b> tegen de actuele koers; alles gaat terug naar de pot-cash.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Munt Uitsluiten</div>
+        <div class="knoptekst">De pot kiest deze munt nooit zelf. Nog een keer dezelfde munt invullen = weer toestaan.
+          Zit de munt op dat moment in de pot, dan wordt hij verwijderd.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Pot Nu Laten Kiezen</div>
+        <div class="knoptekst">Laat de bot meteen zoeken, in plaats van te wachten op de controle van elk uur.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Pot-instellingen</div>
+        <div class="knoptekst">Max. aantal munten, budget per nieuwe munt, winstdoel en trailing. Geldt voor
+          <b>nieuwe</b> munten, niet voor munten die al in de pot zitten.</div>
+      </div>
+
+      <p class="groepkop">{{ ic_dal }}Dalpot</p>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Dalpot Storten / Opnemen</div>
+        <div class="knoptekst">Zelfde als bij de pot: boekingen tussen vrije cash en dalpot-cash.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Dalpot Munt Toevoegen</div>
+        <div class="knoptekst">Kies zelf een munt; wordt meteen gekocht voor het volle budget.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam gevaar">Dalpot Munt Verwijderen</div>
+        <div class="knoptekst">Verkoopt de munt volledig; alles terug naar de dalpot-cash. Wordt daarna
+          {{ h.dalpot_herkoop|int }} uur niet opnieuw gekozen.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Dalpot Munt Uitsluiten</div>
+        <div class="knoptekst">De dalpot kiest deze munt nooit zelf. Nog een keer invullen = weer toestaan.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam hoofd">Dalpot Nu Laten Kiezen</div>
+        <div class="knoptekst">Laat de bot meteen de grootste daler zoeken.</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Dalpot-instellingen</div>
+        <div class="knoptekst">Max. aantal munten, budget per nieuwe munt, winstdoel en trailing, voor nieuwe munten.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TELEGRAM & E-MAIL ===================== -->
+  <div class="paneel" id="telegram">
+    <div class="paneelkop">{{ ic_telegram }}Telegram &amp; e-mail</div>
+    <div class="paneelinhoud">
+      <p>Telegram stuurt je <b>meldingen</b>: winst afgeroomd, "Volgt de top", een pot die koopt of verkoopt, een
+        noodstop, een reservewissel en foutmeldingen. Je kunt de bot er ook mee bedienen via de knoppen
+        onderin, of met deze commando's:</p>
+      <table class="regels">
+        <tr><td><code>/status</code></td><td>live stand per munt</td></tr>
+        <tr><td><code>/overzicht</code></td><td>totaal, verdeling en winst</td></tr>
+        <tr><td><code>/aanvullen</code></td><td>Alles Aanvullen</td></tr>
+        <tr><td><code>/afromen</code></td><td>Handmatig Afromen (de bot vraagt welke munt)</td></tr>
+        <tr><td><code>/handelen</code></td><td>menu met munten toevoegen, verwijderen en budgetten</td></tr>
+        <tr><td><code>/beheren</code></td><td>je munten met budget en winstdoel</td></tr>
+        <tr><td><code>/pot</code></td><td>pot-status en pot-menu</td></tr>
+        <tr><td><code>/potkiezen</code></td><td>Pot Nu Laten Kiezen</td></tr>
+        <tr><td><code>/mail</code></td><td>e-mailrapport nu versturen</td></tr>
+        <tr><td><code>/menu</code></td><td>terug naar het hoofdmenu</td></tr>
+      </table>
+      <p class="dim">Alleen op de website: Pot Munt Budget Ophogen, Pot-instellingen, de hele Dalpot en het wisselen
+        van de reservemunt. Meldingen daarover krijg je wel in Telegram.</p>
+
+      <div class="term">
+        <div class="naam">Dagelijks e-mailrapport</div>
+        <div class="wat">Elke dag na 20:00 (Nederlandse tijd) stuurt de bot een overzicht per e-mail: cash, verdeling,
+          reserve en alle posities. Werkt alleen als e-mail is ingesteld; anders krijg je daarover een melding in
+          Telegram.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== DEMO ===================== -->
+  <div class="paneel" id="demo">
+    <div class="paneelkop">{{ ic_demo }}Demo-modus</div>
+    <div class="paneelinhoud">
+      <p>In demo-modus draait de bot <b>precies hetzelfde</b>, met echte koersen van Bitvavo, maar met een
+        <b>nep-saldo</b>. Orders worden nagebootst tegen de actuele koop- en verkoopprijs, inclusief fees. Er gaat
+        geen echt geld om, en er is geen Bitvavo-sleutel nodig.</p>
+      <ul class="opsom">
+        <li>Je herkent hem aan <b>"Bitvavo · DEMO"</b> bovenaan het dashboard, en aan <b>🧪 [DEMO]</b> voor elk
+          Telegram-bericht.</li>
+        <li>Demo-gegevens staan in aparte bestanden. Stap je over naar echt, dan begin je met een schone administratie.</li>
+        <li>Aan- en uitzetten gaat in het instellingenbestand (<code>.env</code>) met <code>DEMO_MODUS=1</code> of
+          <code>0</code>, en <code>DEMO_STARTKAPITAAL</code> voor het nepgeld. Daarna de bot herstarten.</li>
+      </ul>
+      {% if h.demo %}<div class="tip"><b>De demo-modus staat nu aan.</b></div>{% endif %}
+    </div>
+  </div>
+
+  <!-- ===================== VEILIGHEID ===================== -->
+  <div class="paneel" id="veilig">
+    <div class="paneelkop">{{ ic_slot }}Inloggen &amp; veiligheid</div>
+    <div class="paneelinhoud">
+      <ul class="opsom">
+        <li><b>Wachtwoord:</b> het dashboard is beveiligd met het wachtwoord uit <code>DASHBOARD_TOKEN</code> in
+          <code>.env</code> (minimaal 16 tekens). Je blijft 30 dagen ingelogd op hetzelfde apparaat.</li>
+        <li><b>Blokkade:</b> na {{ h.login_pogingen }} foute pogingen wordt inloggen {{ h.login_lockout_min }} minuten
+          geblokkeerd.</li>
+        <li><b>Bitvavo-sleutel:</b> geef de API-sleutel alleen de rechten <i>Bekijken</i> en <i>Handelen</i>. Zet
+          <i>Opnemen</i> nooit aan: dan kan niemand via de bot geld van je account halen.</li>
+        <li><b>Op je telefoon:</b> open het dashboard in je browser en kies "Toevoegen aan beginscherm". Dan werkt het
+          als een app.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===================== VRAGEN ===================== -->
+  <div class="paneel" id="vragen">
+    <div class="paneelkop">{{ ic_vraag }}Veelgestelde vragen</div>
+    <div class="paneelinhoud">
+      <div class="term">
+        <div class="naam">Ik druk op Alles Aanvullen, maar er wordt niets gekocht.</div>
+        <div class="wat">Meestal staat de munt minder dan {{ pct(h.lagen[0]) }} onder budget, daalt hij nog (wachten op
+          een bodem), is het inlegplafond bereikt, of is er te weinig vrije cash (pot- en dalpotgeld telt niet mee).
+          Telegram vertelt per munt waarom.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Mijn munt staat op "Volgt de top", maar er wordt niet verkocht.</div>
+        <div class="wat">De bot wacht tot de koers de trailing (bijvoorbeeld 1%) onder de hoogste koers zakt. Zolang de
+          koers stijgt of maar weinig terugvalt, wacht hij.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Het dashboard wijkt een paar euro af van Bitvavo.</div>
+        <div class="wat">Munten die je buiten de bot om hebt (niet in een lijst en geen reserve), en kleine restjes
+          ("dust"), tellen niet mee. Ook rekent de bot met de laatste koers; Bitvavo soms met een andere prijs.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Kan ik BTC of ETH in de hoofdlijst zetten?</div>
+        <div class="wat">Nee, dat zijn reservemunten. Zie <a href="#reserve">De Reserve</a>.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Wat gebeurt er als de bot even uit staat?</div>
+        <div class="wat">Niets gaat verloren: alle gegevens staan in bestanden en je munten staan gewoon op Bitvavo. Na
+          het herstarten gaat hij verder waar hij was. Alleen een stijging en daling tijdens de pauze heeft hij gemist.</div>
+      </div>
+    </div>
+  </div>
+
+  {% if h.donatie %}
+  <div class="paneel" id="steun">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Steun dit project</div>
+    <div class="paneelinhoud">
+      <p>Profit Harvester is gratis. Heb je er iets aan, dan wordt een kleine donatie erg gewaardeerd.</p>
+      {% for munt, adres in h.donatie.items() %}
+      <div class="term">
+        <div class="naam">{{ {"BTC": "Bitcoin (BTC)", "ETH": "Ethereum (ETH)", "SOL": "Solana (SOL)"}.get(munt, munt) }}</div>
+        <div class="wat donatie">
+          <code class="adres" id="adres-{{ munt }}">{{ adres }}</code>
+          <button type="button" class="plat kopieer" data-doel="adres-{{ munt }}">Kopiëren</button>
+        </div>
+      </div>
+      {% endfor %}
+      <p class="dim">Controleer het adres altijd goed en stuur elke munt alleen naar het eigen adres: BTC via het
+        Bitcoin-netwerk, ETH via het Ethereum-netwerk, SOL via het Solana-netwerk.</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="let-op" style="margin-bottom:16px">
+    <b>Geen financieel advies.</b> Profit Harvester is software die jouw eigen instellingen uitvoert. Handelen in
+    crypto is risicovol en je kunt (een deel van) je inleg verliezen. Resultaten uit het verleden bieden geen garantie
+    voor de toekomst. Gebruik op eigen risico.
+  </div>
+
+
+  <div class="onderbalk">
+    <button type="button" class="plat" onclick="location.reload()">Ververs</button>
+    <form method="post" action="/logout" id="uitlogFormulier">
+      <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
+    </form>
+  </div>
+</div>
+
+<nav class="navbalk">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    Dashboard
+  </a>
+  <a href="/potten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
+    Potten
+  </a>
+  <a href="/rendement">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    Rendement
+  </a>
+  <a href="/beheren">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
+    Beheren
+  </a>
+  <a href="/activiteit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>
+    Activiteit
+  </a>
+</nav>
+<script>
+  // Kopieerknop bij de donatie-adressen
+  document.querySelectorAll(".kopieer").forEach(function (knop) {
+    knop.addEventListener("click", function () {
+      var tekst = document.getElementById(knop.dataset.doel).textContent.trim();
+      var klaar = function () {
+        knop.textContent = "Gekopieerd ✓";
+        setTimeout(function () { knop.textContent = "Kopiëren"; }, 2000);
+      };
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(tekst).then(klaar);
+      } else {
+        var veld = document.createElement("textarea");
+        veld.value = tekst;
+        document.body.appendChild(veld);
+        veld.select();
+        try { document.execCommand("copy"); klaar(); } catch (e) {}
+        veld.remove();
+      }
+    });
+  });
+</script>
+</body>
+</html>

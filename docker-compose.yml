@@ -1,0 +1,17 @@
+services:
+  profit_harvester:
+    build: .
+    container_name: profit_harvester_bot
+    restart: always
+    env_file:
+      - .env
+    environment:
+      # Binnen de container moet het dashboard op alle adressen luisteren,
+      # anders is het van buiten de container niet bereikbaar.
+      DASHBOARD_HOST: 0.0.0.0
+    ports:
+      - "${DASHBOARD_PORT:-5000}:${DASHBOARD_PORT:-5000}"
+    volumes:
+      # De hele map wordt gekoppeld, zodat config, state, trades en logs
+      # bewaard blijven bij een herstart of update van de container.
+      - .:/app

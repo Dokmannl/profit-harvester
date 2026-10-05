@@ -1,0 +1,7 @@
+ccxt>=4.3
+flask>=3.0
+tinydb>=4.8
+python-dotenv>=1.0
+requests>=2.31
+# Tijdzonegegevens voor Europe/Amsterdam, ook op een kale Linux-image
+tzdata

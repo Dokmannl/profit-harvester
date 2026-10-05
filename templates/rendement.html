@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Rendement — Profit Harvester</title>
+<meta name="theme-color" content="#0a0e14">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e14;
+  --surface:  #121822;
+  --surface2: #182231;
+  --line:     #24303f;
+  --text:     #e8eef5;
+  --dim:      #8496a8;
+  --dimmer:   #5d6e80;
+  --up:       #35c491;
+  --down:     #e8654f;
+  --gold:     #f2b53b;
+  --goldsoft: rgba(242, 181, 59, .09);
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --r:        14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  padding: 24px 18px 92px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 700px; margin: 0 auto; }
+
+.kop { text-align: center; margin-bottom: 18px; }
+.kop h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ic { width: 16px; height: 16px; flex-shrink: 0; }
+
+.navbalk {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex;
+  max-width: 700px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+  box-shadow: 0 -6px 20px -10px rgba(0,0,0,.5);
+}
+.navbalk a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 4px 6px;
+  color: var(--dimmer);
+  text-decoration: none;
+  font-size: 0.63rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s, background .15s;
+}
+.navbalk a svg { width: 20px; height: 20px; }
+.navbalk a.actief { color: var(--gold); }
+.navbalk a:hover { background: var(--surface2); color: var(--text); }
+.navbalk a.actief:hover { color: var(--gold); }
+
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 5px;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.tabs button {
+  flex: 1;
+  font: inherit; font-size: 0.82rem; font-weight: 600;
+  background: none; border: none; border-radius: 9px;
+  color: var(--dim); padding: 9px 6px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.tabs button[aria-pressed="true"] { background: var(--surface2); color: var(--text); }
+
+.kaarten {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kaart {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+}
+.kaart .etiket { font-size: 0.73rem; color: var(--dim); margin-bottom: 5px; }
+.kaart .groot { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.kaart .groot.op { color: var(--up); }
+.kaart .groot.af { color: var(--down); }
+
+.paneel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.paneelkop {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
+}
+
+.balkenvlak {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 18px 18px 14px;
+  height: 130px;
+}
+.balk {
+  flex: 1;
+  min-width: 4px;
+  background: linear-gradient(180deg, var(--gold), #d38f18);
+  border-radius: 4px 4px 0 0;
+  transition: opacity .15s;
+}
+.balk.leeg { background: var(--surface2); }
+.balklabels {
+  display: flex;
+  gap: 6px;
+  padding: 0 18px 16px;
+  font-size: 0.68rem;
+  color: var(--dimmer);
+}
+.balklabels span { flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.muntrij {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.muntrij:last-child { border-bottom: none; }
+.muntrij .rang {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: grid; place-items: center;
+  font-size: 0.72rem; font-weight: 700; color: var(--dim);
+}
+.muntrij.leeg { opacity: .55; }
+.muntrij.leeg .bedrag { color: var(--dimmer); }
+
+.muntrij.verlopen { box-shadow: inset 3px 0 0 var(--down); background: rgba(232,101,79,.05); }
+.muntrij.verlopen .naam small { color: var(--down); }
+.muntrij .naam { flex: 1; font-weight: 700; }
+.muntrij .naam small { display: block; font-size: 0.73rem; color: var(--dimmer); font-weight: 500; margin-top: 1px; }
+.muntrij .bedrag { font-weight: 700; color: var(--up); }
+.muntrij .bedrag.negatief { color: var(--down); }
+
+.geenmunten { padding: 44px 18px; text-align: center; color: var(--dim); font-size: 0.9rem; }
+
+.onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
+.onderbalk form { margin: 0; }
+a.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); text-decoration: none;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+a.plat:hover { background: var(--surface2); color: var(--text); }
+button.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); cursor: pointer;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+button.plat:hover { background: var(--surface2); color: var(--text); }
+
+@media (max-width: 560px) {
+  .kaarten { grid-template-columns: 1fr 1fr; }
+  .kaart .groot { font-size: 1.2rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kop">
+    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>Rendement</h1>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button type="button" data-bereik="dag">Vandaag</button>
+    <button type="button" data-bereik="week" aria-pressed="true">Week</button>
+    <button type="button" data-bereik="maand">Maand</button>
+    <button type="button" data-bereik="alles">Alles</button>
+  </div>
+
+  <div class="kaarten">
+    <div class="kaart">
+      <div class="etiket">Totaal geoogst</div>
+      <div class="groot op" id="totaalWinst">&euro; 0,00</div>
+    </div>
+    <div class="kaart">
+      <div class="etiket">Aantal oogsten</div>
+      <div class="groot" id="aantalOogsten">0</div>
+    </div>
+    <div class="kaart">
+      <div class="etiket">Gemiddeld per oogst</div>
+      <div class="groot" id="gemiddelde">&euro; 0,00</div>
+    </div>
+    <div class="kaart">
+      <div class="etiket">Fees betaald</div>
+      <div class="groot af" id="totaalFees">&euro; 0,00</div>
+    </div>
+  </div>
+
+  <div class="paneel">
+    <div class="paneelkop">Verloop</div>
+    <div class="balkenvlak" id="balkenVlak"></div>
+    <div class="balklabels" id="balkLabels"></div>
+  </div>
+
+  <div class="paneel">
+    <div class="paneelkop" id="topMuntenKop">Best presterende munten</div>
+    <div id="topMunten"></div>
+  </div>
+
+  <div class="onderbalk">
+    <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <a href="/help" class="plat">Help</a>
+    <form method="post" action="/logout" id="uitlogFormulier">
+      <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
+    </form>
+  </div>
+</div>
+
+<nav class="navbalk">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    Dashboard
+  </a>
+  <a href="/potten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
+    Potten
+  </a>
+  <a href="/rendement" class="actief">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    Rendement
+  </a>
+  <a href="/beheren">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
+    Beheren
+  </a>
+  <a href="/activiteit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>
+    Activiteit
+  </a>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  var geld = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+  var bereik = "week";
+
+  var el = {};
+  ["totaalWinst", "aantalOogsten", "gemiddelde", "totaalFees", "balkenVlak", "balkLabels", "topMunten", "topMuntenKop"].forEach(function (id) {
+    el[id] = document.getElementById(id);
+  });
+
+  function naarLogin() {
+    location.href = "/login?volgende=" + encodeURIComponent(location.pathname);
+  }
+
+  function labelVoorPeriode(periode) {
+    // periode is "YYYY-MM-DD" of "YYYY-MM"
+    var delen = periode.split("-");
+    if (delen.length === 3) {
+      var d = new Date(Number(delen[0]), Number(delen[1]) - 1, Number(delen[2]));
+      return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
+    }
+    var d2 = new Date(Number(delen[0]), Number(delen[1]) - 1, 1);
+    return d2.toLocaleDateString("nl-NL", { month: "short", year: "2-digit" });
+  }
+
+  function tekenBalken(reeks) {
+    el.balkenVlak.textContent = "";
+    el.balkLabels.textContent = "";
+
+    if (!reeks.length) {
+      el.balkenVlak.innerHTML = '<div class="geenmunten" style="padding:20px 0;width:100%;">Nog geen oogsten in deze periode.</div>';
+      return;
+    }
+
+    // Bij "alles" kunnen het veel maanden zijn; toon de laatste 14 punten
+    var punten = reeks.slice(-14);
+    var max = Math.max.apply(null, punten.map(function (p) { return p.winst; }).concat([0.01]));
+
+    punten.forEach(function (p) {
+      var balk = document.createElement("div");
+      var hoogtePct = Math.max(3, (p.winst / max) * 100);
+      balk.className = "balk" + (p.winst <= 0 ? " leeg" : "");
+      balk.style.height = hoogtePct + "%";
+      balk.title = labelVoorPeriode(p.periode) + ": " + geld.format(p.winst) + " (" + p.aantal + " oogst" + (p.aantal === 1 ? "" : "en") + ")";
+      el.balkenVlak.appendChild(balk);
+
+      var label = document.createElement("span");
+      label.textContent = labelVoorPeriode(p.periode);
+      el.balkLabels.appendChild(label);
+    });
+  }
+
+  function tekenTopMunten(top, aantalMunten) {
+    el.topMunten.textContent = "";
+    if (!top.length) {
+      el.topMuntenKop.textContent = "Munten";
+      el.topMunten.innerHTML = '<div class="geenmunten">Nog geen oogsten in deze periode.</div>';
+      return;
+    }
+    el.topMuntenKop.textContent = "Munten (" + aantalMunten + ")";
+    top.forEach(function (m, idx) {
+      var rij = document.createElement("div");
+      var nooitGeoogst = m.aantal === 0;
+      var nietMeerInBezit = m.actief === false;
+      rij.className = "muntrij" + (nooitGeoogst ? " leeg" : "") + (nietMeerInBezit ? " verlopen" : "");
+
+      var subtekst = nooitGeoogst ? "Nog niet geoogst" : (m.aantal + ' oogst' + (m.aantal === 1 ? "" : "en"));
+      if (nietMeerInBezit) { subtekst += " · niet meer in bezit"; }
+
+      var bedragTekst = nooitGeoogst
+        ? geld.format(0)
+        : (m.winst >= 0 ? "+" : "−") + geld.format(Math.abs(m.winst));
+      var bedragKlasse = "bedrag" + (!nooitGeoogst && m.winst < 0 ? " negatief" : "");
+
+      rij.innerHTML =
+        '<div class="rang">' + (nooitGeoogst ? "&mdash;" : (idx + 1)) + '</div>' +
+        '<div class="naam">' + m.munt + '<small>' + subtekst + '</small></div>' +
+        '<div class="' + bedragKlasse + '">' + bedragTekst + '</div>';
+      el.topMunten.appendChild(rij);
+    });
+  }
+
+  function haalRendement() {
+    fetch("/api/rendement?bereik=" + bereik, { headers: { "Accept": "application/json" } })
+      .then(function (r) {
+        if (r.status === 401) { naarLogin(); throw new Error("niet ingelogd"); }
+        if (!r.ok) { throw new Error(r.status); }
+        return r.json();
+      })
+      .then(function (data) {
+        el.totaalWinst.textContent = geld.format(data.totaal_winst || 0);
+        el.totaalWinst.className = "groot " + (data.totaal_winst >= 0 ? "op" : "af");
+        el.aantalOogsten.textContent = data.aantal_oogsten || 0;
+        el.gemiddelde.textContent = geld.format(data.gemiddelde || 0);
+        el.totaalFees.textContent = geld.format(data.totaal_fees || 0);
+        tekenBalken(data.reeks || []);
+        tekenTopMunten(data.top_munten || [], data.aantal_munten || 0);
+      })
+      .catch(function () { /* stil falen */ });
+  }
+
+  document.getElementById("tabs").addEventListener("click", function (e) {
+    var knop = e.target.closest("button");
+    if (!knop) { return; }
+    bereik = knop.dataset.bereik;
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function (b) {
+      b.setAttribute("aria-pressed", String(b === knop));
+    });
+    haalRendement();
+  });
+
+  document.getElementById("knopVernieuw").addEventListener("click", haalRendement);
+
+  haalRendement();
+  setInterval(function () { if (!document.hidden) { haalRendement(); } }, 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { haalRendement(); } });
+})();
+</script>
+</body>
+</html>

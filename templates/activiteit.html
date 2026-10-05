@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Activiteit — Profit Harvester</title>
+<meta name="theme-color" content="#0a0e14">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e14;
+  --surface:  #121822;
+  --surface2: #182231;
+  --line:     #24303f;
+  --text:     #e8eef5;
+  --dim:      #8496a8;
+  --dimmer:   #5d6e80;
+  --up:       #35c491;
+  --down:     #e8654f;
+  --gold:     #f2b53b;
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --r:        14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  padding: 24px 18px 92px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 700px; margin: 0 auto; }
+
+.kop { text-align: center; margin-bottom: 18px; }
+
+.navbalk {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex;
+  max-width: 700px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+  box-shadow: 0 -6px 20px -10px rgba(0,0,0,.5);
+}
+.navbalk a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 4px 6px;
+  color: var(--dimmer);
+  text-decoration: none;
+  font-size: 0.66rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s, background .15s;
+}
+.navbalk a svg { width: 21px; height: 21px; }
+.navbalk a.actief { color: var(--gold); }
+.navbalk a:hover { background: var(--surface2); color: var(--text); }
+.navbalk a.actief:hover { color: var(--gold); }
+.kop h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ic { width: 16px; height: 16px; flex-shrink: 0; }
+
+.paneel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.paneelkop {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
+}
+
+.activiteitrij {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.activiteitrij:last-child { border-bottom: none; }
+
+.activiteitbol { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.activiteitbol.koop { background: #3d6ea8; }
+.activiteitbol.verkoop { background: var(--up); }
+
+.activiteittekst { flex: 1; min-width: 0; }
+.activiteittekst b { font-weight: 700; }
+.activiteittekst small { display: block; font-size: 0.73rem; color: var(--dimmer); margin-top: 2px; }
+
+.activiteitbedrag { font-weight: 700; white-space: nowrap; text-align: right; }
+
+.geenmunten { padding: 44px 18px; text-align: center; color: var(--dim); font-size: 0.9rem; }
+
+.onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
+.onderbalk form { margin: 0; }
+a.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); text-decoration: none;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+a.plat:hover { background: var(--surface2); color: var(--text); }
+button.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); cursor: pointer;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+button.plat:hover { background: var(--surface2); color: var(--text); }
+
+@media (max-width: 560px) {
+  .activiteitrij { padding: 12px 14px; font-size: 0.92rem; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kop">
+    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>Activiteit</h1>
+  </div>
+
+  <div class="paneel">
+    <div class="paneelkop">Laatste 100 orders</div>
+    <div id="activiteitLijst"></div>
+  </div>
+
+  <div class="onderbalk">
+    <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <a href="/help" class="plat">Help</a>
+    <form method="post" action="/logout" id="uitlogFormulier">
+      <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
+    </form>
+  </div>
+</div>
+
+<nav class="navbalk">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    Dashboard
+  </a>
+  <a href="/potten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
+    Potten
+  </a>
+  <a href="/rendement">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    Rendement
+  </a>
+  <a href="/beheren">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
+    Beheren
+  </a>
+  <a href="/activiteit" class="actief">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>
+    Activiteit
+  </a>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  var geld = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+  var lijst = document.getElementById("activiteitLijst");
+
+  var BRON_LABEL = {
+    "automatisch": "automatisch afgeroomd",
+    "handmatig": "handmatig afgeroomd",
+    "aanvullen": "aangevuld",
+    "pot-automatisch": "pot, automatisch",
+    "dalpot-automatisch": "dalpot, automatisch",
+    "reserve-btc": "omgezet naar reserve"
+  };
+
+  function volLabelISO(iso) {
+    if (!iso) { return ""; }
+    var d = new Date(iso);
+    return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " +
+           d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  function activiteitRijHtml(t) {
+    var isVerkoop = t.kant === "verkoop";
+    var werkwoord = isVerkoop ? "Verkocht" : "Gekocht";
+    var bronTekst = BRON_LABEL[t.bron] || t.bron || "";
+    return '' +
+      '<div class="activiteitbol ' + (isVerkoop ? "verkoop" : "koop") + '"></div>' +
+      '<div class="activiteittekst">' +
+        '<b>' + werkwoord + ' ' + (t.munt || "") + '</b>' +
+        '<small>' + bronTekst + ' · ' + volLabelISO(t.tijd) + '</small>' +
+      '</div>' +
+      '<div class="activiteitbedrag">' + geld.format(t.bedrag || 0) + '</div>';
+  }
+
+  function naarLogin() {
+    location.href = "/login?volgende=" + encodeURIComponent(location.pathname);
+  }
+
+  function haalActiviteit() {
+    fetch("/api/trades?limiet=100", { headers: { "Accept": "application/json" } })
+      .then(function (r) {
+        if (r.status === 401) { naarLogin(); throw new Error("niet ingelogd"); }
+        if (!r.ok) { throw new Error(r.status); }
+        return r.json();
+      })
+      .then(function (data) {
+        var trades = data.trades || [];
+        lijst.textContent = "";
+        if (!trades.length) {
+          lijst.innerHTML = '<div class="geenmunten">Nog geen activiteit.</div>';
+          return;
+        }
+        trades.forEach(function (t) {
+          var rij = document.createElement("div");
+          rij.className = "activiteitrij";
+          rij.innerHTML = activiteitRijHtml(t);
+          lijst.appendChild(rij);
+        });
+      })
+      .catch(function () { /* stil falen */ });
+  }
+
+  document.getElementById("knopVernieuw").addEventListener("click", haalActiviteit);
+
+  haalActiviteit();
+  setInterval(function () { if (!document.hidden) { haalActiviteit(); } }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { haalActiviteit(); } });
+})();
+</script>
+</body>
+</html>

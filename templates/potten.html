@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Potten — Profit Harvester</title>
+<meta name="theme-color" content="#0a0e14">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="icon" href="/static/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e14;
+  --surface:  #121822;
+  --surface2: #182231;
+  --line:     #24303f;
+  --text:     #e8eef5;
+  --dim:      #8496a8;
+  --dimmer:   #5d6e80;
+  --up:       #35c491;
+  --down:     #e8654f;
+  --gold:     #f2b53b;
+  --goldsoft: rgba(242, 181, 59, .09);
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --r:        14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+body {
+  background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  padding: 24px 18px 92px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 900px; margin: 0 auto; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+
+.kop { text-align: center; margin-bottom: 18px; }
+.kop h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ic { width: 15px; height: 15px; flex-shrink: 0; vertical-align: -2px; }
+.kop h1 .ic { width: 17px; height: 17px; }
+
+/* ---------------- strategiekaarten ---------------- */
+
+.strategiekaarten {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.strategiekaart {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+.strategiekaart .sk-naam { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--dim); font-weight: 600; margin-bottom: 6px; }
+.strategiekaart .sk-naam svg { width: 14px; height: 14px; flex-shrink: 0; }
+.strategiekaart .sk-waarde { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
+.strategiekaart .sk-sub { font-size: 0.78rem; margin-top: 5px; }
+.strategiekaart .sk-sub.op { color: var(--up); }
+.strategiekaart .sk-sub.af { color: var(--down); }
+.strategiekaart .sk-munten { font-size: 0.73rem; color: var(--dimmer); margin-top: 3px; }
+.strategiekaart.hoofdlijst { border-color: rgba(242,181,59,.3); }
+.strategiekaart.pot { border-color: rgba(61,110,168,.4); }
+.strategiekaart.dalpot { border-color: rgba(232,101,79,.35); }
+
+/* ---------------- panelen (hergebruikt patroon) ---------------- */
+
+.paneel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.paneelkop {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.paneelkop h2 { font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.paneelkop h2 .ic { width: 15px; height: 15px; }
+
+.noodstopchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(232,101,79,.14);
+  color: var(--down);
+  border: 1px solid rgba(232,101,79,.32);
+  border-radius: 99px;
+  padding: 3px 10px;
+  font-size: 0.74rem; font-weight: 600;
+  margin-left: 8px;
+}
+
+.potcijfers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  padding: 2px 18px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.potcijfers .etiket { display: block; font-size: 0.72rem; color: var(--dim); margin-bottom: 3px; }
+.potcijfers strong { font-size: 1.08rem; font-weight: 700; letter-spacing: -0.02em; }
+
+.rij {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, .8fr) minmax(150px, 1.5fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  transition: background .15s;
+  cursor: pointer;
+}
+.pijl { width: 12px; height: 12px; vertical-align: -1px; margin-left: 4px; color: var(--dimmer); flex-shrink: 0; transition: transform .18s ease; }
+.rij.uitgeklapt .pijl { transform: rotate(90deg); }
+.rij:last-child { border-bottom: none; }
+.rij:hover { background: rgba(255,255,255,.017); }
+.rij.klaar { background: var(--goldsoft); box-shadow: inset 3px 0 0 var(--gold); }
+.rij.klaar:hover { background: rgba(242,181,59,.13); }
+
+.logo { width: 30px; height: 30px; border-radius: 50%; object-fit: contain; background: var(--surface2); }
+.valtterug { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--surface2); color: var(--dim); font-size: 0.66rem; font-weight: 700; }
+
+.naam { font-weight: 700; letter-spacing: -0.01em; }
+.naam small { display: none; font-size: 0.73rem; color: var(--dimmer); font-weight: 500; line-height: 1.5; }
+.bedrag { font-weight: 600; }
+.bedrag small { display: none; font-size: 0.73rem; color: var(--dimmer); font-weight: 500; }
+.rij.uitgeklapt .naam small, .rij.uitgeklapt .bedrag small { display: block; }
+
+.winst { font-weight: 700; }
+.winst small { display: block; font-size: 0.73rem; font-weight: 600; opacity: .8; }
+.op { color: var(--up); }
+.af { color: var(--down); }
+.winst.wacht { color: var(--dimmer); font-weight: 600; }
+.winst.wacht small { font-weight: 500; opacity: 1; }
+
+.spoorregel { display: flex; justify-content: space-between; gap: 8px; font-size: 0.73rem; color: var(--dim); margin-bottom: 6px; }
+.spoorregel b { color: var(--gold); font-weight: 600; }
+.spoor { position: relative; height: 6px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.spoor i { position: absolute; inset: 0 auto 0 0; display: block; border-radius: 99px; background: var(--up); transition: width .5s ease; }
+.spoor i.vol { background: linear-gradient(90deg, var(--up), var(--gold)); }
+.spoor.onder { background: rgba(232,101,79,.18); }
+
+.potstatus { margin-top: 7px; font-size: 0.73rem; color: var(--dimmer); }
+.geenmunten { padding: 44px 18px; text-align: center; color: var(--dim); font-size: 0.9rem; }
+
+.onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
+.onderbalk form { margin: 0; }
+
+button {
+  font: inherit; font-size: 0.85rem; font-weight: 600;
+  color: var(--text); background: var(--surface2);
+  border: 1px solid var(--line); border-radius: 9px;
+  padding: 9px 15px; cursor: pointer;
+  transition: background .15s, border-color .15s, transform .08s;
+}
+button:hover:not(:disabled) { background: #1f2c3d; border-color: #33475d; }
+button:active:not(:disabled) { transform: translateY(1px); }
+button.plat { background: none; border-color: transparent; color: var(--dim); font-weight: 500; }
+button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+
+@media (max-width: 700px) {
+  body { padding: 16px 12px 48px; }
+  .strategiekaarten { grid-template-columns: 1fr; }
+  .potcijfers { padding: 2px 14px 14px; gap: 8px; }
+  .potcijfers strong { font-size: 0.95rem; }
+
+  .rij {
+    grid-template-columns: 34px 1fr auto;
+    grid-template-areas:
+      "logo naam  winst"
+      "logo bedr  winst"
+      "spoor spoor spoor";
+    gap: 2px 12px;
+    padding: 15px 15px;
+  }
+  .rij > .logowrap { grid-area: logo; align-self: start; }
+  .rij > .naam     { grid-area: naam; }
+  .rij > .bedrag   { grid-area: bedr; font-size: 0.88rem; }
+  .rij > .winst    { grid-area: winst; text-align: right; }
+  .rij > .voortgang{ grid-area: spoor; margin-top: 11px; }
+}
+
+/* ---------------- navigatiebalk ---------------- */
+
+.navbalk {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex;
+  max-width: 900px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+  box-shadow: 0 -6px 20px -10px rgba(0,0,0,.5);
+}
+.navbalk a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 4px 6px;
+  color: var(--dimmer);
+  text-decoration: none;
+  font-size: 0.66rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s, background .15s;
+}
+.navbalk a svg { width: 21px; height: 21px; }
+.navbalk a.actief { color: var(--gold); }
+.navbalk a:hover { background: var(--surface2); color: var(--text); }
+.navbalk a.actief:hover { color: var(--gold); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kop">
+    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>Potten</h1>
+  </div>
+
+  <div class="strategiekaarten">
+    <div class="strategiekaart hoofdlijst">
+      <div class="sk-naam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>Hoofdlijst</div>
+      <div class="sk-waarde" id="hlWaarde">&euro; 0,00</div>
+      <div class="sk-sub" id="hlWinst"></div>
+      <div class="sk-munten" id="hlMunten"></div>
+    </div>
+    <div class="strategiekaart pot">
+      <div class="sk-naam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot</div>
+      <div class="sk-waarde" id="potWaarde">&euro; 0,00</div>
+      <div class="sk-sub" id="potWinst"></div>
+      <div class="sk-munten" id="potMunten"></div>
+    </div>
+    <div class="strategiekaart dalpot">
+      <div class="sk-naam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot</div>
+      <div class="sk-waarde" id="dalpotWaarde">&euro; 0,00</div>
+      <div class="sk-sub" id="dalpotWinst"></div>
+      <div class="sk-munten" id="dalpotMunten"></div>
+    </div>
+  </div>
+
+  <div class="paneel potpaneel" id="potPaneel" hidden>
+    <div class="paneelkop">
+      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot <span class="noodstopchip" id="potNoodstopChip" hidden>noodstop actief</span></h2>
+    </div>
+    <div class="potcijfers">
+      <div><span class="etiket">Pot totaal</span><strong id="potTotaal">&euro; 0,00</strong></div>
+      <div><span class="etiket">Cash in pot</span><strong id="potCash">&euro; 0,00</strong></div>
+    </div>
+    <div id="potLijst"></div>
+  </div>
+
+  <div class="paneel potpaneel" id="dalpotPaneel" hidden>
+    <div class="paneelkop">
+      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot <span class="noodstopchip" id="dalpotNoodstopChip" hidden>noodstop actief</span></h2>
+    </div>
+    <div class="potcijfers">
+      <div><span class="etiket">Dalpot totaal</span><strong id="dalpotTotaal">&euro; 0,00</strong></div>
+      <div><span class="etiket">Cash in dalpot</span><strong id="dalpotCash">&euro; 0,00</strong></div>
+    </div>
+    <div id="dalpotLijst"></div>
+  </div>
+
+  <div class="onderbalk">
+    <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <a href="/help" class="plat">Help</a>
+    <form method="post" action="/logout" id="uitlogFormulier">
+      <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
+    </form>
+  </div>
+</div>
+
+<nav class="navbalk">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    Dashboard
+  </a>
+  <a href="/potten" class="actief">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
+    Potten
+  </a>
+  <a href="/rendement">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    Rendement
+  </a>
+  <a href="/beheren">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
+    Beheren
+  </a>
+  <a href="/activiteit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>
+    Activiteit
+  </a>
+</nav>
+
+<script>
+(function () {
+  "use strict";
+
+  var VERVERS_MS = 10000;
+  var RESERVE_LOGO = "https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/128/color/";
+
+  var geld = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+  var pct = new Intl.NumberFormat("nl-NL", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  function koersTekst(koers) {
+    if (!koers) { return "&nbsp;"; }
+    var cijfers = koers >= 1 ? 2 : (koers >= 0.01 ? 4 : 8);
+    return "koers € " + new Intl.NumberFormat("nl-NL", {
+      minimumFractionDigits: 2, maximumFractionDigits: cijfers
+    }).format(koers);
+  }
+
+  var el = {};
+  ["hlWaarde", "hlWinst", "hlMunten", "potWaarde", "potWinst", "potMunten",
+   "dalpotWaarde", "dalpotWinst", "dalpotMunten",
+   "potPaneel", "potNoodstopChip", "potTotaal", "potCash", "potLijst",
+   "dalpotPaneel", "dalpotNoodstopChip", "dalpotTotaal", "dalpotCash", "dalpotLijst"
+  ].forEach(function (id) { el[id] = document.getElementById(id); });
+
+  var laatste = null;
+  var uitgeklapt = new Set();
+
+  function zetToggel(rij, coin) {
+    rij.addEventListener("click", function () {
+      if (uitgeklapt.has(coin)) {
+        uitgeklapt.delete(coin);
+        rij.classList.remove("uitgeklapt");
+      } else {
+        uitgeklapt.add(coin);
+        rij.classList.add("uitgeklapt");
+      }
+    });
+  }
+
+  function klem(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+  function logoHtml(p) {
+    var reserve = RESERVE_LOGO + p.coin.toLowerCase() + ".png";
+    var bron = p.icoon || reserve;
+    var stap = p.icoon ? "1" : "2";
+    return '<img class="logo" alt="" loading="lazy" src="' + bron +
+           '" data-coin="' + p.coin + '" data-reserve="' + reserve + '" data-stap="' + stap + '">';
+  }
+
+  function koppelLogo(img) {
+    img.addEventListener("error", function () {
+      if (img.dataset.stap === "1") {
+        img.dataset.stap = "2";
+        img.src = img.dataset.reserve;
+        return;
+      }
+      var blok = document.createElement("div");
+      blok.className = "valtterug";
+      blok.textContent = img.dataset.coin.slice(0, 4);
+      if (img.parentNode) { img.parentNode.replaceChild(blok, img); }
+    });
+  }
+
+  function isKlaar(p) { return p.voortgang >= 100 || p.status === "PUMPING"; }
+
+  function rijHtml(p, klaar, extra) {
+    var winst = p.winst || 0;
+    var tekort = (p.doel_eur || 0) - winst;
+    var breedte = klem(p.voortgang || 0, 0, 100);
+    var nietGekocht = p.waarde !== undefined && p.waarde < 1 && !klaar;
+
+    var links = nietGekocht
+      ? "Nog niet gekocht"
+      : (klaar ? "<b>Volgt de top</b>" : (winst < 0 ? "Onder budget" : "Onderweg"));
+    var rechts = nietGekocht
+      ? "budget " + geld.format(p.budget)
+      : (klaar ? geld.format(winst) + " te oogsten" : "nog " + geld.format(tekort));
+
+    var vulKlasse = klaar ? "vol" : "";
+    var vulBreedte = nietGekocht ? 0 : (winst < 0 ? 0 : breedte);
+    var baanKlasse = (!nietGekocht && winst < 0) ? " onder" : "";
+
+    var toonIngelegd = p.ingelegd > 0 && !nietGekocht && Math.abs(p.ingelegd - p.budget) >= 0.01;
+    var detailRegels = [geld.format(p.budget) + ' budget'];
+    if (toonIngelegd) { detailRegels.push(geld.format(p.ingelegd) + ' ingelegd'); }
+    if (p.geoogst) { detailRegels.push(geld.format(p.geoogst) + ' geoogst'); }
+
+    var winstHtml = nietGekocht
+      ? '<div class="winst wacht">&mdash;<small>wacht op aankoop</small></div>'
+      : '<div class="winst ' + (winst >= 0 ? "op" : "af") + '">' +
+          (winst >= 0 ? "+" : "−") + geld.format(Math.abs(winst)) +
+          '<small>' + (p.rendement >= 0 ? "+" : "−") + pct.format(Math.abs(p.rendement)) + '%</small></div>';
+
+    return '' +
+      '<div class="logowrap">' + logoHtml(p) + '</div>' +
+      '<div class="naam">' + p.coin +
+        '<svg class="pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>' +
+        '<small>' + detailRegels.join('<br>') + '</small></div>' +
+      '<div class="bedrag">' + geld.format(p.waarde) +
+        '<small>' + koersTekst(p.koers) + '</small></div>' +
+      winstHtml +
+      '<div class="voortgang">' +
+        '<div class="spoorregel"><span>' + links + '</span><span>' + rechts + '</span></div>' +
+        '<div class="spoor' + baanKlasse + '"><i class="' + vulKlasse + '" style="width:' + vulBreedte + '%"></i></div>' +
+        (extra || '') +
+      '</div>';
+  }
+
+  function potKoopStatusTekst(p) {
+    if (p.op_slot) { return "Inlegplafond bereikt, geen aankopen meer"; }
+    if (p.kan_kopen_om) { return "Kan weer bijkopen om " + p.kan_kopen_om; }
+    return "Kan nu bijkopen als er een dip is";
+  }
+
+  function potRijHtml(p) {
+    var klaar = isKlaar(p);
+    var status = '<div class="potstatus">' + potKoopStatusTekst(p) + '</div>';
+    return rijHtml(p, klaar, status);
+  }
+
+  function tekenLijst(lijst, posities, magPot) {
+    lijst.textContent = "";
+    if (!posities.length) { return; }
+    posities.forEach(function (p) {
+      var klaar = isKlaar(p);
+      var rij = document.createElement("div");
+      rij.className = "rij" + (klaar ? " klaar" : "") + (uitgeklapt.has(p.coin) ? " uitgeklapt" : "");
+      rij.innerHTML = magPot ? potRijHtml(p) : rijHtml(p, klaar);
+      lijst.appendChild(rij);
+      zetToggel(rij, p.coin);
+      var img = rij.querySelector("img.logo");
+      if (img) { koppelLogo(img); }
+    });
+  }
+
+  function samenvatting(waardeEl, winstEl, muntenEl, totaalWaarde, somWinst, somBudget, aantal) {
+    waardeEl.textContent = geld.format(totaalWaarde);
+    if (somBudget > 0) {
+      var rend = (somWinst / somBudget) * 100;
+      winstEl.className = "sk-sub " + (somWinst >= 0 ? "op" : "af");
+      winstEl.textContent = (somWinst >= 0 ? "+" : "−") + geld.format(Math.abs(somWinst)) +
+        " (" + (rend >= 0 ? "+" : "−") + pct.format(Math.abs(rend)) + "%)";
+    } else {
+      winstEl.textContent = "";
+    }
+    muntenEl.textContent = aantal + " munt" + (aantal === 1 ? "" : "en");
+  }
+
+  function teken(data) {
+    laatste = data;
+    var posities = data.posities || [];
+    var pot = data.pot || { posities: [] };
+    var dalpot = data.dalpot || { posities: [] };
+
+    var hlWaarde = 0, hlWinst = 0, hlBudget = 0;
+    posities.forEach(function (p) {
+      hlWaarde += p.waarde || 0;
+      hlWinst += p.winst || 0;
+      hlBudget += p.budget || 0;
+    });
+    samenvatting(el.hlWaarde, el.hlWinst, el.hlMunten, hlWaarde, hlWinst, hlBudget, posities.length);
+
+    var potWaarde = pot.totaal || 0, potWinst = 0, potBudget = 0;
+    (pot.posities || []).forEach(function (p) { potWinst += p.winst || 0; potBudget += p.budget || 0; });
+    samenvatting(el.potWaarde, el.potWinst, el.potMunten, potWaarde, potWinst, potBudget, (pot.posities || []).length);
+
+    var dalpotWaarde = dalpot.totaal || 0, dalpotWinst = 0, dalpotBudget = 0;
+    (dalpot.posities || []).forEach(function (p) { dalpotWinst += p.winst || 0; dalpotBudget += p.budget || 0; });
+    samenvatting(el.dalpotWaarde, el.dalpotWinst, el.dalpotMunten, dalpotWaarde, dalpotWinst, dalpotBudget, (dalpot.posities || []).length);
+
+    // Pot-paneel
+    var potHeeftData = (pot.posities || []).length > 0 || (pot.cash || 0) > 0 || (pot.gestort || 0) > 0;
+    el.potPaneel.hidden = !potHeeftData;
+    if (potHeeftData) {
+      el.potTotaal.textContent = geld.format(pot.totaal || 0);
+      el.potCash.textContent = geld.format(pot.cash || 0);
+      el.potNoodstopChip.hidden = !pot.noodstop;
+      if (!pot.posities.length) {
+        el.potLijst.innerHTML = '<div class="geenmunten">Nog geen pot-munten.</div>';
+      } else {
+        tekenLijst(el.potLijst, pot.posities, true);
+      }
+    }
+
+    // Dalpot-paneel
+    var dalpotHeeftData = (dalpot.posities || []).length > 0 || (dalpot.cash || 0) > 0 || (dalpot.gestort || 0) > 0;
+    el.dalpotPaneel.hidden = !dalpotHeeftData;
+    if (dalpotHeeftData) {
+      el.dalpotTotaal.textContent = geld.format(dalpot.totaal || 0);
+      el.dalpotCash.textContent = geld.format(dalpot.cash || 0);
+      el.dalpotNoodstopChip.hidden = !dalpot.noodstop;
+      if (!dalpot.posities.length) {
+        el.dalpotLijst.innerHTML = '<div class="geenmunten">Nog geen dalpot-munten.</div>';
+      } else {
+        tekenLijst(el.dalpotLijst, dalpot.posities, false);
+      }
+    }
+  }
+
+  function naarLogin() {
+    location.href = "/login?volgende=" + encodeURIComponent(location.pathname);
+  }
+
+  var bezig = false;
+  function haalData() {
+    if (bezig) { return; }
+    bezig = true;
+    fetch("/api/data", { headers: { "Accept": "application/json" } })
+      .then(function (r) {
+        if (r.status === 401) { naarLogin(); throw new Error("niet ingelogd"); }
+        if (!r.ok) { throw new Error(r.status); }
+        return r.json();
+      })
+      .then(function (data) { teken(data); })
+      .catch(function () { /* stil falen, blijft laatste stand tonen */ })
+      .then(function () { bezig = false; });
+  }
+
+  document.getElementById("knopVernieuw").addEventListener("click", haalData);
+
+  haalData();
+  setInterval(function () { if (!document.hidden) { haalData(); } }, VERVERS_MS);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { haalData(); } });
+})();
+</script>
+</body>
+</html>
