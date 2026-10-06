@@ -2,6 +2,8 @@
 
 **Een gratis, open-source tradingbot voor Bitvavo die je munten laat staan en alleen de winst oogst.**
 
+🌐 **Website met uitleg en screenshots:** https://dokmannl.github.io/profit-harvester/
+
 De meeste tradingbots kopen een munt en verkopen hem later weer helemaal. Profit Harvester werkt andersom: jij kiest je munten en een budget per munt, en de bot verkoopt automatisch **alleen het deel boven je budget** zodra een munt genoeg gestegen is. Je positie blijft staan en kan steeds opnieuw winst opleveren. Een deel van die winst gaat automatisch naar een reserve in **Bitcoin of Ethereum**.
 
 Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (ook als app op je telefoon) en meldingen via Telegram.
