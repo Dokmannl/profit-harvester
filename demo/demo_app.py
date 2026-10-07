@@ -1,5 +1,6 @@
 # Demo van het dashboard met nepdata. Geen verbinding met Bitvavo, geen orders.
 # Starten vanuit de projectmap: python demo/demo_app.py  ->  http://127.0.0.1:5134
+# (andere poort: python demo/demo_app.py 5144)
 import os
 
 from flask import Flask, render_template, jsonify, request, redirect, url_for, send_from_directory
@@ -53,10 +54,8 @@ portfolio = {
     "cash": 250.00,
     "belegd": 708.60,
     "reserve": 55.00,
-    "reserves": [
-        {"munt": "BTC", "waarde": 40.00, "actief": False},
-        {"munt": "ETH", "waarde": 15.00, "actief": True},
-    ],
+    "reserve_verdeling": {"BTC": 40.00, "ETH": 15.00},
+    "reserve_actief": "ETH",
     "gerealiseerd": 66.30,
 }
 
@@ -115,10 +114,10 @@ def beheren():
         pot_instellingen=pot_instellingen,
         dalpot_munten=dalpot_munten,
         dalpot_instellingen=dalpot_instellingen,
-        reserve_keuzes=["BTC", "ETH"],
-        reserve_actief="ETH",
-        reserve_melding=None,
+        reserve_munt="ETH",
+        reserve_munten=("BTC", "ETH"),
         verwerkt=request.args.get("verwerkt"),
+        fout=None,
     )
 
 
@@ -139,6 +138,11 @@ HELP_INSTELLINGEN = {
     "dalpot_noodstop": 25.0, "dalpot_herkoop": 24.0,
     "dalpot_uitgesloten": ["BTC", "DAI", "ETH", "EURC", "USDC", "USDT"],
     "login_pogingen": 5, "login_lockout_min": 15,
+    "donatie": {
+        "BTC": "bc1q0sjsskrmmmtm9zj2vaeady8h37w280xxffve6n",
+        "ETH": "0x798483b4749654Fa0C1bffb95F27d7C401955c24",
+        "SOL": "6Qe6o5FMQUUMifxAdzE75SsekYsFX6Bgft3JGPdmGJRT",
+    },
 }
 
 
@@ -180,18 +184,55 @@ def activiteit_pagina():
 
 @app.route("/api/trades")
 def api_trades():
-    trades = []
-    bronnen = ["automatisch", "handmatig", "pot-automatisch", "dalpot-automatisch", "aanvullen", "reserve-btc"]
-    munten = ["SOL", "LINK", "ADA", "PEPE", "AVAX", "BTC", "HBAR", "ETH", "BONK"]
-    for i in range(35):
-        trades.append({
-            "tijd": f"2026-09-20T{10 + (i % 10):02d}:{(i * 7) % 60:02d}:00+00:00",
-            "munt": munten[i % len(munten)],
-            "kant": "verkoop" if i % 3 else "koop",
-            "bedrag": round(5 + (i * 3.7) % 80, 2),
-            "bron": bronnen[i % len(bronnen)],
-        })
+    # Verzonnen orders van de afgelopen dagen, nieuwste eerst. Ook gebruikt voor
+    # de koop/verkoop-stippen in de grafiek.
+    from datetime import datetime, timedelta, timezone
+    nu = datetime.now(timezone.utc)
+    voorbeelden = [
+        (2.0, "SOL", "verkoop", 11.03, "automatisch"),
+        (2.0, "ETH", "koop", 5.51, "reserve-eth"),
+        (7.5, "HBAR", "koop", 25.00, "pot-automatisch"),
+        (11.0, "PEPE", "koop", 100.00, "dalpot-automatisch"),
+        (11.0, "BONK", "koop", 100.00, "dalpot-automatisch"),
+        (16.0, "LINK", "verkoop", 11.05, "automatisch"),
+        (16.0, "BTC", "koop", 5.52, "reserve-btc"),
+        (21.0, "DOT", "koop", 100.25, "aanvullen"),
+        (30.0, "AVAX", "verkoop", 105.42, "pot-automatisch"),
+        (40.0, "SOL", "verkoop", 11.10, "handmatig"),
+        (40.0, "BTC", "koop", 5.55, "reserve-btc"),
+        (55.0, "ADA", "koop", 50.13, "aanvullen"),
+    ]
+    trades = [{
+        "tijd": (nu - timedelta(hours=uur)).isoformat(timespec="seconds"),
+        "munt": munt, "kant": kant, "bedrag": bedrag,
+        "fee": round(bedrag * 0.0025, 4), "bron": bron,
+    } for uur, munt, kant, bedrag, bron in voorbeelden]
     return jsonify({"trades": trades})
+
+
+# Verzonnen meldingen voor het belletje in het menu.
+import time as _tijd
+_meld = {"gelezen_tot": 0}
+_nu = int(_tijd.time())
+_meld_items = [
+    {"t": _nu - 3600 * 16, "tekst": "💰 WINST AFGEROOMD: LINK\n• Netto na fee: € 11,02\n• Naar BTC omgezet: € 5,51", "niveau": "info"},
+    {"t": _nu - 3600 * 11, "tekst": "📉 Dalpot kocht PEPE en BONK voor € 100,00 per munt", "niveau": "info"},
+    {"t": _nu - 3600 * 5, "tekst": "⚠️ De aankoop van HBAR/EUR is maar gedeeltelijk gelukt (€ 24,10 van € 25,00).", "niveau": "belangrijk"},
+    {"t": _nu - 3600 * 2, "tekst": "💰 WINST AFGEROOMD: SOL\n• Netto na fee: € 11,00\n• Naar ETH omgezet: € 5,50", "niveau": "info"},
+]
+
+
+@app.route("/api/meldingen")
+def api_meldingen():
+    ongelezen = sum(1 for m in _meld_items if m["niveau"] == "belangrijk" and m["t"] > _meld["gelezen_tot"])
+    return jsonify({"meldingen": list(reversed(_meld_items)), "ongelezen_belangrijk": ongelezen,
+                    "gelezen_tot": _meld["gelezen_tot"]})
+
+
+@app.route("/api/meldingen/gelezen", methods=["POST"])
+def api_meldingen_gelezen():
+    _meld["gelezen_tot"] = int(_tijd.time())
+    return jsonify({"ok": True})
 
 
 @app.route("/rendement")
@@ -229,4 +270,7 @@ def api_rendement():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5134, debug=False)
+    # Poort: als argument, via PORT, of standaard 5134.
+    import sys
+    poort = int(sys.argv[1]) if len(sys.argv) > 1 else int(os.environ.get("PORT", "5134"))
+    app.run(host="127.0.0.1", port=poort, debug=False)

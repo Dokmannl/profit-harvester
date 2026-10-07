@@ -33,8 +33,11 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Het risicovolste onderdeel, met een eigen noodstop.
 
 ### 📊 Dashboard en meldingen
-- Webdashboard met totale waarde, grafiek, posities, potten, rendement per periode en een orderlogboek.
-- Alles te bedienen vanaf de **Beheren**-pagina, met een bevestiging bij elke actie.
+- Webdashboard met totale waarde, een grafiek met stippen voor elke aankoop en verkoop, posities, potten en rendement per periode. Op een laptop in twee kolommen.
+- **Activiteit** als sorteerbare tabel met filters op koop/verkoop, bron en munt.
+- Alles te bedienen vanaf de **Beheren**-pagina, met een sprongbalk, inklapbare blokken en een bevestiging met de bedragen erbij bij elke actie.
+- **Meldingen op de site**: een belletje in het menu met alle berichten van de bot, en een rode stip bij belangrijke.
+- **Licht of donker** thema, per apparaat onthouden.
 - **Telegram**: meldingen bij elke oogst en aankoop, en bediening met knoppen en commando's.
 - **Dagelijks e-mailrapport** met je hele portefeuille.
 - Een uitgebreide **uitlegpagina** in het dashboard, die de instellingen toont zoals ze bij jou staan.

@@ -11,6 +11,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var KEY = "thema";
+  function lees() { try { return localStorage.getItem(KEY) === "licht" ? "licht" : "donker"; } catch (e) { return "donker"; } }
+  function zet(t) {
+    document.documentElement.setAttribute("data-thema", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    var c = document.querySelector('meta[name="color-scheme"]');
+    if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
+    var b = document.getElementById("knopThema");
+    if (b) { b.textContent = t === "licht" ? "Donker" : "Licht"; }
+  }
+  zet(lees());
+  document.addEventListener("DOMContentLoaded", function () {
+    zet(lees());
+    var b = document.getElementById("knopThema");
+    if (b) { b.addEventListener("click", function () {
+      var nieuw = lees() === "licht" ? "donker" : "licht";
+      try { localStorage.setItem(KEY, nieuw); } catch (e) {}
+      zet(nieuw);
+    }); }
+  });
+})();
+</script>
 <style>
 :root {
   --bg:       #0a0e14;
@@ -38,7 +63,7 @@ body {
   padding: 24px 18px 92px;
   -webkit-font-smoothing: antialiased;
 }
-.wrap { max-width: 760px; margin: 0 auto; }
+.wrap { max-width: 1280px; margin: 0 auto; }
 
 .kop { text-align: center; margin-bottom: 18px; }
 .kop h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -48,7 +73,7 @@ body {
 .navbalk {
   position: fixed; bottom: 0; left: 0; right: 0;
   display: flex;
-  max-width: 760px; margin: 0 auto;
+  max-width: 1280px; margin: 0 auto;
   background: var(--surface);
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
@@ -198,7 +223,7 @@ table.regels { width: 100%; border-collapse: collapse; margin: 10px 0; font-size
 table.regels th { text-align: left; color: var(--dimmer); font-weight: 600; font-size: 0.78rem; padding: 4px 8px 6px 0; }
 table.regels td { padding: 6px 8px 6px 0; border-top: 1px solid var(--line); vertical-align: top; color: var(--text); }
 table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
-.groepkop { margin: 22px 0 4px !important; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+.knopgroep { margin: 22px 0 4px !important; font-weight: 700; display: flex; align-items: center; gap: 6px; }
 .paneelinhoud a, .intro a, .tip a { color: var(--gold); }
 .slotje {
   display: inline-block; font-size: 0.68rem; font-weight: 700; color: var(--down);
@@ -209,16 +234,64 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
 .donatie .adres { word-break: break-all; font-size: 0.82rem; padding: 4px 8px; flex: 1; min-width: 0; }
 .donatie .kopieer { padding: 5px 12px; border-color: var(--line); }
 
+.donatie { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.donatie .adres { word-break: break-all; font-size: 0.82rem; padding: 4px 8px; flex: 1; min-width: 0; }
+.donatie .kopieer { padding: 5px 12px; border-color: var(--line); }
+
 @media (max-width: 560px) {
   .inhoud ul { grid-template-columns: 1fr; }
   .knopuitleg { flex-direction: column; gap: 4px; }
   .knopnaam { min-width: 0; width: fit-content; }
-  table.regels td:first-child { white-space: normal; }
 }
+.uitleggrid .paneel { break-inside: avoid; }
+@media (min-width: 1100px) {
+  body { padding-left: 28px; padding-right: 28px; }
+  .uitleggrid { column-count: 2; column-gap: 16px; }
+}
+
+/* ---------------- licht thema (schakelaar onderaan) ---------------- */
+html[data-thema="licht"] {
+  --bg: #f3f5f9; --surface: #ffffff; --surface2: #edf1f6; --line: #dbe2ea;
+  --text: #16202b; --dim: #556476; --dimmer: #5f6f80;
+  --up: #0b7d55; --down: #c4402b; --gold: #9a6400; --goldsoft: rgba(154,100,0,.09);
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 26px -16px rgba(16,24,40,.22);
+}
+html[data-thema="licht"] body {
+  background: radial-gradient(1100px 500px at 15% -10%, #e3eaf4 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+html[data-thema="licht"] .skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(16,24,40,.06) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+}
+html[data-thema="licht"] .rij:hover,
+html[data-thema="licht"] table.orders tbody tr:hover td { background: rgba(16,24,40,.03); }
+html[data-thema="licht"] table.orders th,
+html[data-thema="licht"] .groepkop { background: rgba(16,24,40,.035); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,249,.9); }
+html[data-thema="licht"] .overlay { background: rgba(16,24,40,.45); }
+html[data-thema="licht"] button:hover,
+html[data-thema="licht"] button:hover:not(:disabled),
+html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
+html[data-thema="licht"] button.hoofd,
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] button.hoofd:hover,
+html[data-thema="licht"] button.hoofd:hover:not(:disabled),
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
+html[data-thema="licht"] button.bevestig { background: var(--down); border-color: var(--down); color: #fff; }
+html[data-thema="licht"] .paneel.tema-pot .paneelkop,
+html[data-thema="licht"] .soort.koop { color: #2f5f99; }
+html[data-thema="licht"] .sprong.pot { --kleur: #2f5f99; }
+html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,24,40,.07); }
+html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
+html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 </head>
 <body>
 <div class="wrap">
+
+
 
 {# Bedragen en percentages op z'n Nederlands: €11 of €5,50, 1% of 0,6%. #}
 {% macro eur(x) -%}
@@ -281,6 +354,7 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
       <li><a href="#rendement">{{ ic_rendement }}Rendement</a></li>
       <li><a href="#activiteit">{{ ic_activiteit }}Activiteit</a></li>
       <li><a href="#beheren">{{ ic_beheren }}De Beheren-pagina</a></li>
+      <li><a href="#meldingen"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Meldingen &amp; licht/donker</a></li>
       <li><a href="#telegram">{{ ic_telegram }}Telegram &amp; e-mail</a></li>
       <li><a href="#demo">{{ ic_demo }}Demo-modus</a></li>
       <li><a href="#veilig">{{ ic_slot }}Inloggen &amp; veiligheid</a></li>
@@ -491,22 +565,25 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
 
       <div class="term">
         <div class="naam">Kiezen en wisselen</div>
-        <div class="wat">Bij <i>Beheren → Reserve</i> kies je naar welke munt <b>nieuwe</b> winst gaat. Je kunt
-          bijvoorbeeld de ene maand BTC kiezen en de andere maand ETH. Bij een wissel wordt er <b>niets verkocht of
-          omgezet</b>: je bestaande reserve blijft gewoon staan.</div>
+        <div class="wat">Op de Beheren-pagina kies je bij <i>Reserve-munt</i> naar welke munt <b>nieuwe</b> winst gaat.
+          Je kunt bijvoorbeeld de ene maand BTC kiezen en de andere maand ETH. Bij een wissel wordt er <b>niets verkocht
+          of omgezet</b>: je bestaande reserve blijft gewoon staan. Nu actief: <b>{{ h.reserve_actief }}</b>.</div>
       </div>
 
       <div class="term">
         <div class="naam">Wat telt mee?</div>
         <div class="wat">Je <b>hele saldo</b> in {{ h.reserve_keuzes | join(" en ") }} telt als reserve, ook de munt die
           niet actief is. Op het dashboard staat per munt een regel ("Afgeroomd naar BTC", "Afgeroomd naar ETH"),
-          en beide tellen mee in je totale waarde.</div>
+          en beide tellen mee in je totale waarde. In Telegram en het e-mailrapport heet dat bijvoorbeeld
+          "Afgeroomd naar BTC + ETH".</div>
       </div>
 
       <div class="let-op">
         <b>{{ h.reserve_keuzes | join(" en ") }} kunnen niet in de hoofdlijst, pot of dalpot.</b> Bitvavo geeft maar één
         saldo per munt. Stond zo'n munt ook in een lijst, dan zou de bot hem dubbel tellen en je reserve als
-        "winst" kunnen verkopen. De bot weigert dat daarom, en waarschuwt bij het opstarten als het toch zo is.
+        "winst" kunnen verkopen. De bot weigert dat daarom, ook bij de automatische keuze van pot en dalpot, en
+        waarschuwt bij het opstarten als het toch zo is. Om dezelfde reden kun je niet wisselen naar een reservemunt
+        die nog in een lijst staat.
       </div>
     </div>
   </div>
@@ -518,7 +595,8 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
       <div class="term">
         <div class="naam">Totale waarde</div>
         <div class="wat">Alles samen: vrije cash + hoofdlijst + reserve (BTC én ETH) + pot + dalpot. Dit hoort, op
-          een paar cent na, gelijk te zijn aan je totaal op Bitvavo. Munten die je buiten de bot om hebt, tellen niet mee.</div>
+          een paar cent na, gelijk te zijn aan je totaal op Bitvavo. Munten die je buiten de bot om hebt, tellen niet mee.
+          Eronder staat <b>Geoogst</b>: het totaal aan winst dat de bot al heeft afgeroomd.</div>
       </div>
       <div class="term">
         <div class="naam">Vrije cash</div>
@@ -532,8 +610,7 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
       </div>
       <div class="term">
         <div class="naam">Afgeroomd naar BTC / ETH</div>
-        <div class="wat">De actuele waarde van je reserve, per munt. Heb je er twee, dan heeft de munt waar nieuwe
-          winst naartoe gaat het label <b>actief</b>. Zie <a href="#reserve">De Reserve</a>.</div>
+        <div class="wat">De actuele waarde van je reserve, per munt. Zie <a href="#reserve">De Reserve</a>.</div>
       </div>
       <div class="term">
         <div class="naam">Posities: de status per munt</div>
@@ -548,6 +625,12 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
           Tik op een munt voor meer: budget, ingelegd, geoogst en de koers. Met <i>Zoek munt</i> filter je de lijst,
           en met <i>Naar doel / Winst / Waarde</i> sorteer je.</div>
       </div>
+      <div class="term">
+        <div class="naam">Op een laptop of groot scherm</div>
+        <div class="wat">Is je scherm breed genoeg, dan staat de grafiek links en staan de posities rechts. Op een
+          telefoon staat alles onder elkaar. Zolang er nog gegevens worden geladen, zie je een grijze laadbalk in
+          plaats van een leeg vlak.</div>
+      </div>
     </div>
   </div>
 
@@ -558,7 +641,8 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
       <p>Hier zie je de pot en de dalpot naast elkaar: totale waarde, cash en de munten die erin zitten, met
         dezelfde statussen als op het dashboard. Bij pot-munten staat ook wanneer de bot weer mag bijkopen
         ("Kan nu bijkopen", "Kan weer bijkopen om HH:MM" of "Inlegplafond bereikt"). Staat er
-        <b>noodstop actief</b>, dan koopt die pot tijdelijk niet bij. De pagina ververst zichzelf.</p>
+        <b>noodstop actief</b>, dan koopt die pot tijdelijk niet bij. Boven elke lijst staan kolomkoppen (Munt,
+        Waarde, Winst, Voortgang); op een telefoon vallen die weg en staat het compacter. De pagina ververst zichzelf.</p>
     </div>
   </div>
 
@@ -570,6 +654,8 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
         slaat elke 5 minuten een punt op voor de afgelopen 48 uur, en elk uur een punt voor de lange termijn. Na het
         starten duurt het dus een paar minuten voor de eerste punten verschijnen. Beweeg of tik op de lijn voor het
         bedrag op dat moment.</p>
+      <p>Kleine <b>stippen op de lijn</b> laten zien wanneer er gekocht of verkocht is; de legenda onder de grafiek
+        vertelt welke kleur wat is. Beweeg of tik op een stip voor de details, bijvoorbeeld "Gekocht SOL · €25,00".</p>
     </div>
   </div>
 
@@ -589,15 +675,18 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
   <div class="paneel" id="activiteit">
     <div class="paneelkop">{{ ic_activiteit }}Activiteit</div>
     <div class="paneelinhoud">
-      <p>Het logboek van de laatste 100 orders, nieuwste bovenaan, met tijd, munt, bedrag en bron. De pagina ververst
-        elke 30 seconden. De bron vertelt wie of wat de order deed:</p>
+      <p>Het logboek van de laatste 100 orders als <b>tabel</b>: Tijd, Munt, Soort (koop of verkoop), Bron, Fee en
+        Bedrag. Klik op een kolomkop om te sorteren, en filter bovenaan op kopen of verkopen, op bron of op munt.
+        Daarboven staat het totaal dat in die selectie gekocht en verkocht is. Op een telefoon past de tabel in het
+        scherm, zonder zijwaarts te scrollen. De pagina ververst elke 30 seconden. De bron vertelt wie of wat de
+        order deed:</p>
       <table class="regels">
         <tr><td><b>automatisch afgeroomd</b></td><td>de bot verkocht winst uit de hoofdlijst</td></tr>
         <tr><td><b>handmatig afgeroomd</b></td><td>jij drukte op Afromen, of verwijderde een pot-munt</td></tr>
         <tr><td><b>aangevuld</b></td><td>gekocht via Alles Aanvullen</td></tr>
         <tr><td><b>pot, automatisch</b></td><td>de pot kocht of verkocht zelf</td></tr>
         <tr><td><b>dalpot, automatisch</b></td><td>de dalpot kocht of verkocht zelf</td></tr>
-        <tr><td><b>omgezet naar reserve</b></td><td>winst omgezet naar BTC of ETH</td></tr>
+        <tr><td><b>omgezet naar BTC</b> / <b>ETH</b></td><td>winst omgezet naar je reserve</td></tr>
       </table>
     </div>
   </div>
@@ -606,9 +695,20 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
   <div class="paneel" id="beheren">
     <div class="paneelkop">{{ ic_beheren }}De Beheren-pagina</div>
     <div class="paneelinhoud">
-      <p class="dim">Elke actie vraagt eerst om bevestiging. Het resultaat zie je in Telegram, of bovenaan de pagina.</p>
+      <p>Bovenaan staat een <b>sprongbalk</b> (Hoofdlijst, Pot, Dalpot) die blijft staan als je scrolt. Elk blok is
+        <b>in- en uit te klappen</b>; de pagina onthoudt je keuze. De instellingen van pot en dalpot staan standaard
+        dicht, omdat je die zelden nodig hebt. Elke knop heeft een label:</p>
+      <table class="regels">
+        <tr><td><b>boeking</b></td><td>alleen boekhouding, er verandert niets op Bitvavo</td></tr>
+        <tr><td><b>koopt</b></td><td>plaatst een kooporder</td></tr>
+        <tr><td><b>verkoopt</b></td><td>verkoopt echt</td></tr>
+      </table>
+      <p class="dim">Elke actie vraagt eerst om bevestiging, <b>met de bedragen erbij</b>: bijvoorbeeld voor hoeveel er
+        ongeveer verkocht wordt en wat dat ten opzichte van het budget is, of hoeveel pot-cash er na het opnemen
+        overblijft. Klopt er iets niet (te weinig cash, geen winst om af te romen), dan staat er een waarschuwing.
+        Het resultaat zie je daarna in Telegram, bij de meldingen of bovenaan de pagina.</p>
 
-      <p class="groepkop">{{ ic_hoofd }}Hoofdlijst</p>
+      <p class="knopgroep">{{ ic_hoofd }}Hoofdlijst</p>
       <div class="knopuitleg">
         <div class="knopnaam hoofd">Alles Aanvullen</div>
         <div class="knoptekst">Koopt bij in munten onder budget, volgens de <a href="#hoofdlijst">lagen en remmen</a>.</div>
@@ -635,14 +735,14 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
           is opgeslagen als percentage van het budget, dus bij een dubbel budget wordt ook het doel in euro's dubbel.</div>
       </div>
 
-      <p class="groepkop">{{ ic_reserve }}Reserve</p>
+      <p class="knopgroep">{{ ic_reserve }}Reserve</p>
       <div class="knopuitleg">
-        <div class="knopnaam hoofd">Reservemunt</div>
+        <div class="knopnaam hoofd">Reserve-munt</div>
         <div class="knoptekst">Kies {{ h.reserve_keuzes | join(" of ") }} voor nieuwe afgeroomde winst. Bestaande reserve
           blijft staan. Zie <a href="#reserve">De Reserve</a>.</div>
       </div>
 
-      <p class="groepkop">{{ ic_pot }}Pot</p>
+      <p class="knopgroep">{{ ic_pot }}Pot</p>
       <div class="knopuitleg">
         <div class="knopnaam hoofd">Pot Storten</div>
         <div class="knoptekst">Boekt vrije cash naar de pot (niets op Bitvavo). Daarna kiest de bot direct een munt.</div>
@@ -679,7 +779,7 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
           <b>nieuwe</b> munten, niet voor munten die al in de pot zitten.</div>
       </div>
 
-      <p class="groepkop">{{ ic_dal }}Dalpot</p>
+      <p class="knopgroep">{{ ic_dal }}Dalpot</p>
       <div class="knopuitleg">
         <div class="knopnaam hoofd">Dalpot Storten / Opnemen</div>
         <div class="knoptekst">Zelfde als bij de pot: boekingen tussen vrije cash en dalpot-cash.</div>
@@ -708,6 +808,29 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
     </div>
   </div>
 
+  <!-- ===================== MELDINGEN & WEERGAVE ===================== -->
+  <div class="paneel" id="meldingen">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>Meldingen &amp; licht/donker</div>
+    <div class="paneelinhoud">
+      <div class="term">
+        <div class="naam">Meldingen (het belletje)</div>
+        <div class="wat">Alles wat de bot naar Telegram stuurt, staat ook op de site: tik op <b>Meldingen</b> in het
+          menu onderaan. Zo zie je ook zonder Telegram wat er gebeurd is. De laatste 100 berichten worden bewaard.
+          <ul class="opsom">
+            <li>Een bericht met ⚠️, 🚨, ❌ of 🛑 geldt als <b>belangrijk</b> en zet een <b>rode stip</b> op het belletje.</li>
+            <li>Open je het paneel, dan verdwijnt de stip: alles is dan gelezen.</li>
+            <li>Met <i>alleen belangrijk</i> filter je de gewone berichten weg.</li>
+          </ul>
+          De meldingen zijn alleen zichtbaar als je bent ingelogd.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Licht of donker</div>
+        <div class="wat">Onderaan elke pagina staat een knop <b>Licht</b> (of <b>Donker</b>, als het lichte thema aan
+          staat). Standaard is alles donker. Je keuze wordt per apparaat onthouden, ook op de inlogpagina.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===================== TELEGRAM & E-MAIL ===================== -->
   <div class="paneel" id="telegram">
     <div class="paneelkop">{{ ic_telegram }}Telegram &amp; e-mail</div>
@@ -727,8 +850,9 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
         <tr><td><code>/mail</code></td><td>e-mailrapport nu versturen</td></tr>
         <tr><td><code>/menu</code></td><td>terug naar het hoofdmenu</td></tr>
       </table>
-      <p class="dim">Alleen op de website: Pot Munt Budget Ophogen, Pot-instellingen, de hele Dalpot en het wisselen
-        van de reservemunt. Meldingen daarover krijg je wel in Telegram.</p>
+      <p class="dim">Alleen op de website: Pot Munt Budget Ophogen, Pot-instellingen, de hele Dalpot en de
+        Reserve-munt. Meldingen daarover krijg je wel in Telegram, en alle berichten staan ook bij de
+        <a href="#meldingen">meldingen</a> op de site.</p>
 
       <div class="term">
         <div class="naam">Dagelijks e-mailrapport</div>
@@ -832,9 +956,9 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
     voor de toekomst. Gebruik op eigen risico.
   </div>
 
-
   <div class="onderbalk">
     <button type="button" class="plat" onclick="location.reload()">Ververs</button>
+    <button type="button" class="plat" id="knopThema">Licht</button>
     <form method="post" action="/logout" id="uitlogFormulier">
       <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
     </form>
@@ -863,6 +987,135 @@ table.regels td:first-child { white-space: nowrap; padding-right: 14px; }
     Activiteit
   </a>
 </nav>
+<!-- meldingen -->
+<script>
+(function () {
+  "use strict";
+  var nav = document.querySelector(".navbalk");
+  if (!nav) { return; }
+
+  var css = document.createElement("style");
+  css.textContent =
+    ".navbalk a, .navbalk button.navknop { position: relative; }" +
+    ".navbalk button.navknop { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;" +
+    " padding: 7px 4px 6px; color: var(--dimmer); background: none; border: none; font: inherit; font-size: 0.66rem;" +
+    " font-weight: 600; border-radius: 10px; cursor: pointer; transition: color .15s, background .15s; }" +
+    ".navbalk button.navknop svg { width: 21px; height: 21px; }" +
+    ".navbalk button.navknop:hover { background: var(--surface2); color: var(--text); }" +
+    ".navbalk button.navknop.open { color: var(--gold); }" +
+    ".navstip { position: absolute; top: 5px; left: calc(50% + 6px); width: 9px; height: 9px; border-radius: 50%;" +
+    " background: var(--down); box-shadow: 0 0 0 2px var(--surface); }" +
+    ".navstip[hidden] { display: none; }" +
+    ".meldpaneel { position: fixed; z-index: 45; bottom: 74px; right: 14px; width: min(420px, calc(100vw - 28px));" +
+    " max-height: min(60vh, 520px); display: flex; flex-direction: column; background: var(--surface);" +
+    " border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }" +
+    ".meldpaneel[hidden] { display: none; }" +
+    ".meldkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px;" +
+    " border-bottom: 1px solid var(--line); font-weight: 700; font-size: 0.92rem; }" +
+    ".meldkop label { font-weight: 500; font-size: 0.76rem; color: var(--dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }" +
+    ".meldlijst { overflow-y: auto; }" +
+    ".meld { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 0.84rem; line-height: 1.45;" +
+    " border-left: 3px solid transparent; white-space: pre-line; word-break: break-word; }" +
+    ".meld:last-child { border-bottom: none; }" +
+    ".meld.belangrijk { border-left-color: var(--down); background: rgba(232,101,79,.07); }" +
+    ".meld small { display: block; color: var(--dimmer); font-size: 0.7rem; margin-bottom: 2px; }" +
+    ".meldleeg { padding: 28px 16px; text-align: center; color: var(--dim); font-size: 0.86rem; }";
+  document.head.appendChild(css);
+
+  var knop = document.createElement("button");
+  knop.type = "button";
+  knop.className = "navknop";
+  knop.id = "navMeldingen";
+  knop.setAttribute("aria-label", "Meldingen");
+  knop.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+    'Meldingen<i class="navstip" hidden></i>';
+  nav.appendChild(knop);
+  var stip = knop.querySelector(".navstip");
+
+  var paneel = document.createElement("div");
+  paneel.className = "meldpaneel";
+  paneel.hidden = true;
+  paneel.setAttribute("role", "dialog");
+  paneel.setAttribute("aria-label", "Meldingen");
+  paneel.innerHTML =
+    '<div class="meldkop"><span>Meldingen</span>' +
+    '<label><input type="checkbox" id="meldAlleenBelangrijk"> Alleen belangrijk</label></div>' +
+    '<div class="meldlijst" id="meldLijst"></div>';
+  document.body.appendChild(paneel);
+  var lijst = paneel.querySelector("#meldLijst");
+  var alleenBelangrijk = paneel.querySelector("#meldAlleenBelangrijk");
+
+  var laatsteData = null;
+
+  function tijdTekst(t) {
+    var d = new Date(t * 1000), nu = new Date();
+    var tijd = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === nu.toDateString()) { return "Vandaag " + tijd; }
+    return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " + tijd;
+  }
+
+  function teken() {
+    lijst.textContent = "";
+    var items = (laatsteData && laatsteData.meldingen) || [];
+    if (alleenBelangrijk.checked) { items = items.filter(function (m) { return m.niveau === "belangrijk"; }); }
+    if (!items.length) {
+      var leeg = document.createElement("div");
+      leeg.className = "meldleeg";
+      leeg.textContent = alleenBelangrijk.checked ? "Geen belangrijke meldingen. Rustig." : "Nog geen meldingen.";
+      lijst.appendChild(leeg);
+      return;
+    }
+    items.forEach(function (m) {
+      var rij = document.createElement("div");
+      rij.className = "meld" + (m.niveau === "belangrijk" ? " belangrijk" : "");
+      var klein = document.createElement("small");
+      klein.textContent = tijdTekst(m.t);
+      var tekst = document.createElement("span");
+      tekst.textContent = m.tekst;
+      rij.appendChild(klein); rij.appendChild(tekst);
+      lijst.appendChild(rij);
+    });
+  }
+
+  function haal(markeerGelezen) {
+    return fetch("/api/meldingen", { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { return; }
+        laatsteData = data;
+        stip.hidden = !(data.ongelezen_belangrijk > 0) || markeerGelezen === true;
+        if (!paneel.hidden) { teken(); }
+      })
+      .catch(function () {});
+  }
+
+  function markeerGelezen() {
+    fetch("/api/meldingen/gelezen", { method: "POST", credentials: "same-origin" }).catch(function () {});
+    stip.hidden = true;
+  }
+
+  function sluit() { paneel.hidden = true; knop.classList.remove("open"); }
+
+  knop.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (!paneel.hidden) { sluit(); return; }
+    paneel.hidden = false;
+    knop.classList.add("open");
+    teken();
+    haal(true).then(function () { teken(); markeerGelezen(); });
+  });
+  paneel.addEventListener("click", function (e) { e.stopPropagation(); });
+  alleenBelangrijk.addEventListener("change", teken);
+  document.addEventListener("click", sluit);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { sluit(); } });
+
+  haal();
+  setInterval(function () { if (!document.hidden && paneel.hidden) { haal(); } }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
+})();
+</script>
 <script>
   // Kopieerknop bij de donatie-adressen
   document.querySelectorAll(".kopieer").forEach(function (knop) {

@@ -16,6 +16,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var KEY = "thema";
+  function lees() { try { return localStorage.getItem(KEY) === "licht" ? "licht" : "donker"; } catch (e) { return "donker"; } }
+  function zet(t) {
+    document.documentElement.setAttribute("data-thema", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    var c = document.querySelector('meta[name="color-scheme"]');
+    if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
+    var b = document.getElementById("knopThema");
+    if (b) { b.textContent = t === "licht" ? "Donker" : "Licht"; }
+  }
+  zet(lees());
+  document.addEventListener("DOMContentLoaded", function () {
+    zet(lees());
+    var b = document.getElementById("knopThema");
+    if (b) { b.addEventListener("click", function () {
+      var nieuw = lees() === "licht" ? "donker" : "licht";
+      try { localStorage.setItem(KEY, nieuw); } catch (e) {}
+      zet(nieuw);
+    }); }
+  });
+})();
+</script>
 <style>
 :root {
   --bg:       #0a0e14;
@@ -122,6 +147,44 @@ button:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); }
   font-size: 0.83rem;
   margin-bottom: 16px;
 }
+
+/* ---------------- licht thema (schakelaar onderaan) ---------------- */
+html[data-thema="licht"] {
+  --bg: #f3f5f9; --surface: #ffffff; --surface2: #edf1f6; --line: #dbe2ea;
+  --text: #16202b; --dim: #556476; --dimmer: #5f6f80;
+  --up: #0b7d55; --down: #c4402b; --gold: #9a6400; --goldsoft: rgba(154,100,0,.09);
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 26px -16px rgba(16,24,40,.22);
+}
+html[data-thema="licht"] body {
+  background: radial-gradient(1100px 500px at 15% -10%, #e3eaf4 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+html[data-thema="licht"] .skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(16,24,40,.06) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+}
+html[data-thema="licht"] .rij:hover,
+html[data-thema="licht"] table.orders tbody tr:hover td { background: rgba(16,24,40,.03); }
+html[data-thema="licht"] table.orders th,
+html[data-thema="licht"] .groepkop { background: rgba(16,24,40,.035); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,249,.9); }
+html[data-thema="licht"] .overlay { background: rgba(16,24,40,.45); }
+html[data-thema="licht"] button:hover,
+html[data-thema="licht"] button:hover:not(:disabled),
+html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
+html[data-thema="licht"] button.hoofd,
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] button.hoofd:hover,
+html[data-thema="licht"] button.hoofd:hover:not(:disabled),
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
+html[data-thema="licht"] button.bevestig { background: var(--down); border-color: var(--down); color: #fff; }
+html[data-thema="licht"] .paneel.tema-pot .paneelkop,
+html[data-thema="licht"] .soort.koop { color: #2f5f99; }
+html[data-thema="licht"] .sprong.pot { --kleur: #2f5f99; }
+html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,24,40,.07); }
+html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
+html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 </head>
 <body>
@@ -130,7 +193,7 @@ button:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); }
       <div class="mark">PH</div>
       <div>
         <h1>Profit Harvester</h1>
-        <span>Bitvavo</span>
+        <span>Bitvavo{% if demo_modus %} · DEMO{% endif %}</span>
       </div>
     </div>
     <form method="post" action="/login">

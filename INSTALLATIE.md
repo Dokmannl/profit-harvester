@@ -269,6 +269,7 @@ Al je gegevens staan in de map `profit-harvester`. Maak af en toe een kopie van 
 - `bot_state.json` (ingelegd, geoogst, pot-cash)
 - `bot_trades_db.json` (orderlogboek)
 - `bot_historie.json` (grafiek)
+- `bot_meldingen.json` (meldingen achter het belletje)
 
 ---
 

@@ -16,6 +16,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var KEY = "thema";
+  function lees() { try { return localStorage.getItem(KEY) === "licht" ? "licht" : "donker"; } catch (e) { return "donker"; } }
+  function zet(t) {
+    document.documentElement.setAttribute("data-thema", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    var c = document.querySelector('meta[name="color-scheme"]');
+    if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
+    var b = document.getElementById("knopThema");
+    if (b) { b.textContent = t === "licht" ? "Donker" : "Licht"; }
+  }
+  zet(lees());
+  document.addEventListener("DOMContentLoaded", function () {
+    zet(lees());
+    var b = document.getElementById("knopThema");
+    if (b) { b.addEventListener("click", function () {
+      var nieuw = lees() === "licht" ? "donker" : "licht";
+      try { localStorage.setItem(KEY, nieuw); } catch (e) {}
+      zet(nieuw);
+    }); }
+  });
+})();
+</script>
 <style>
 :root {
   --bg:       #0a0e14;
@@ -50,9 +75,21 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.wrap { max-width: 900px; margin: 0 auto; }
+.wrap { max-width: 1280px; margin: 0 auto; }
 
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
+input:focus, select:focus { outline: none; border-color: rgba(242,181,59,.55); box-shadow: 0 0 0 3px rgba(242,181,59,.12); }
+
+/* laadstaat: een rustige glans in plaats van een leeg vlak */
+.skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,.055) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skelet 1.5s ease-in-out infinite;
+  border-radius: 10px;
+}
+@keyframes skelet { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.grafiekleeg.skelet { border-color: transparent; }
+@media (prefers-reduced-motion: reduce) { .skelet { animation: none; } }
 
 /* ---------------- kop ---------------- */
 
@@ -251,6 +288,15 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 .aslabel { fill: var(--dimmer); font-size: 10.5px; font-family: inherit; }
 .lijn { fill: none; stroke: var(--gold); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
 .vlak { fill: url(#grafiekvulling); }
+.ordermark { stroke: var(--surface); stroke-width: 1.6; }
+.ordermark.koop, .mk.koop { fill: #3d6ea8; background: #3d6ea8; }
+.ordermark.verkoop, .mk.verkoop { fill: var(--up); background: var(--up); }
+.ordermark.mix, .mk.mix { fill: var(--gold); background: var(--gold); }
+.grafieklegenda { display: flex; gap: 14px; justify-content: flex-end; margin-top: 8px; font-size: 0.72rem; color: var(--dimmer); }
+.grafieklegenda .mk { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 0; }
+.ballon .orderregel { display: block; margin-top: 3px; }
+.ballon .orderregel.verkoop { color: var(--up); }
+.ballon .orderregel.koop { color: #7aa9db; }
 .mikpunt { fill: var(--gold); stroke: var(--surface); stroke-width: 2.5; }
 .mikpunt.verborgen, .miklijn.verborgen { opacity: 0; }
 .miklijn { stroke: var(--dim); stroke-width: 1; stroke-dasharray: 3 3; }
@@ -331,11 +377,19 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 
 .reservekaart { border-color: rgba(242,181,59,.3); }
 .reservekaart .klein { color: var(--gold); }
-.reserveregel + .reserveregel { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-.reservekaart .actiefchip {
-  margin-left: 6px; padding: 0 6px;
-  font-size: 0.62rem; font-weight: 700; letter-spacing: .02em;
-  color: var(--gold); border: 1px solid rgba(242,181,59,.35); border-radius: 5px;
+.reservekaart .reserverij + .reserverij { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
+.reservekaart .etiket { justify-content: space-between; gap: 8px; }
+.reservekaart .etiket .munt { display: flex; align-items: center; }
+.actiefchip {
+  display: inline-flex; align-items: center; flex-shrink: 0;
+  background: rgba(242,181,59,.12);
+  color: var(--gold);
+  border: 1px solid rgba(242,181,59,.35);
+  border-radius: 99px;
+  padding: 1px 9px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: .02em;
 }
 
 .slotje {
@@ -511,12 +565,53 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
   .sorteer button { flex: 1; }
 }
 
+/* ---------------- breed scherm: grafiek links, posities rechts ---------------- */
+
+.hoofdgrid { display: block; }
+
+/* Getallen rechts uitgelijnd in de brede rij, zodat de cijfers netjes onder elkaar staan */
+.rij > .bedrag, .rij > .winst { text-align: right; }
+
+@media (min-width: 1100px) {
+  body { padding-left: 28px; padding-right: 28px; }
+  .wrap { max-width: 1280px; }
+
+  .hoofdgrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+  .hoofdgrid > .grafiekkaart { position: sticky; top: 16px; margin-bottom: 0; padding: 18px 20px 14px; }
+  .grafiekvlak svg, .grafiekleeg { height: 300px; }
+
+  /* de positielijst is hier smaller: dezelfde compacte rij als op een telefoon */
+  .hoofdgrid .rij {
+    grid-template-columns: 34px 1fr auto;
+    grid-template-areas:
+      "logo naam  winst"
+      "logo bedr  winst"
+      "spoor spoor spoor";
+    gap: 2px 12px;
+    padding: 15px 16px;
+  }
+  .hoofdgrid .rij > .logowrap { grid-area: logo; align-self: start; }
+  .hoofdgrid .rij > .naam     { grid-area: naam; }
+  .hoofdgrid .rij > .bedrag   { grid-area: bedr; font-size: 0.88rem; text-align: left; }
+  .hoofdgrid .rij > .winst    { grid-area: winst; text-align: right; }
+  .hoofdgrid .rij > .voortgang{ grid-area: spoor; margin-top: 11px; }
+}
+
+@media (max-width: 700px) {
+  .rij > .bedrag { text-align: left; }
+}
+
 /* ---------------- navigatiebalk ---------------- */
 
 .navbalk {
   position: fixed; bottom: 0; left: 0; right: 0;
   display: flex;
-  max-width: 900px; margin: 0 auto;
+  max-width: 1280px; margin: 0 auto;
   background: var(--surface);
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
@@ -543,6 +638,45 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 .navbalk a.actief:hover { color: var(--gold); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---------------- licht thema (schakelaar onderaan) ---------------- */
+html[data-thema="licht"] {
+  --bg: #f3f5f9; --surface: #ffffff; --surface2: #edf1f6; --line: #dbe2ea;
+  --text: #16202b; --dim: #556476; --dimmer: #5f6f80;
+  --up: #0b7d55; --down: #c4402b; --gold: #9a6400; --goldsoft: rgba(154,100,0,.09);
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 26px -16px rgba(16,24,40,.22);
+}
+html[data-thema="licht"] body {
+  background: radial-gradient(1100px 500px at 15% -10%, #e3eaf4 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+html[data-thema="licht"] .skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(16,24,40,.06) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+}
+html[data-thema="licht"] .rij:hover,
+html[data-thema="licht"] table.orders tbody tr:hover td { background: rgba(16,24,40,.03); }
+html[data-thema="licht"] table.orders th,
+html[data-thema="licht"] .groepkop { background: rgba(16,24,40,.035); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,249,.9); }
+html[data-thema="licht"] .overlay { background: rgba(16,24,40,.45); }
+html[data-thema="licht"] button:hover,
+html[data-thema="licht"] button:hover:not(:disabled),
+html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
+html[data-thema="licht"] button.hoofd,
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] button.hoofd:hover,
+html[data-thema="licht"] button.hoofd:hover:not(:disabled),
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
+html[data-thema="licht"] button.bevestig { background: var(--down); border-color: var(--down); color: #fff; }
+html[data-thema="licht"] .paneel.tema-pot .paneelkop,
+html[data-thema="licht"] .soort.koop,
+html[data-thema="licht"] .ballon .orderregel.koop { color: #2f5f99; }
+html[data-thema="licht"] .sprong.pot { --kleur: #2f5f99; }
+html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,24,40,.07); }
+html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
+html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 </head>
 <body>
@@ -565,6 +699,7 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
     <div class="kaart" id="kaartTotaal">
       <div class="etiket"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="3" y1="13" x2="21" y2="13"/></svg>Totale waarde</div>
       <div class="groot" id="totaal">&euro; 0,00</div>
+      <div class="bij" id="totaalBij" hidden></div>
     </div>
     <div class="kaart" id="kaartVrij">
       <div class="etiket"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="11" rx="2"/><circle cx="12" cy="12" r="2.5"/><line x1="6" y1="9" x2="6" y2="9.01"/><line x1="18" y1="15" x2="18" y2="15.01"/></svg>Vrije cash</div>
@@ -579,18 +714,24 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
       <div class="bij" id="belegdBijDalpot" hidden></div>
     </div>
     <div class="kaart reservekaart" id="kaartReserve">
-      {# Eén regel per reservemunt (BTC, ETH). Wordt live bijgewerkt door tekenReserves(). #}
-      <div id="reserveRegels">
-        {% for r in portfolio.reserves or [] %}
-        <div class="reserveregel">
-          <div class="etiket"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg>Afgeroomd naar {{ r.munt }}{% if r.actief and portfolio.reserves|length > 1 %}<span class="actiefchip">actief</span>{% endif %}</div>
-          <div class="klein">&euro; {{ "{:,.2f}".format(r.waarde).replace(",", "X").replace(".", ",").replace("X", ".") }}</div>
+      <div class="reserverij">
+        <div class="etiket">
+          <span class="munt"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg>Afgeroomd naar BTC</span>
+          <span class="actiefchip" id="reserveActiefBTC" hidden>actief</span>
         </div>
-        {% endfor %}
+        <div class="klein" id="reserveBTC">&euro; 0,00</div>
+      </div>
+      <div class="reserverij">
+        <div class="etiket">
+          <span class="munt"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5l3.2 5.2L12 13.4 8.8 11.7z"/><path d="M8.8 13.3L12 17.5l3.2-4.2"/></svg>Afgeroomd naar ETH</span>
+          <span class="actiefchip" id="reserveActiefETH" hidden>actief</span>
+        </div>
+        <div class="klein" id="reserveETH">&euro; 0,00</div>
       </div>
     </div>
   </div>
 
+  <div class="hoofdgrid">
   <div class="grafiekkaart" id="grafiekKaart">
     <div class="grafiekkop">
       <div>
@@ -608,8 +749,13 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
       </div>
     </div>
     <div class="grafiekvlak" id="grafiekVlak">
-      <div class="grafiekleeg" id="grafiekLeeg">Geschiedenis wordt opgebouwd. De eerste punten verschijnen binnen een paar minuten.</div>
+      <div class="grafiekleeg skelet" id="grafiekLeeg" aria-busy="true"></div>
       <div class="ballon" id="ballon"></div>
+    </div>
+    <div class="grafieklegenda" id="grafiekLegenda" hidden>
+      <span><i class="mk koop"></i>gekocht</span>
+      <span><i class="mk verkoop"></i>verkocht</span>
+      <span><i class="mk mix"></i>beide</span>
     </div>
   </div>
 
@@ -633,9 +779,11 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
       <span id="voetRechts">&nbsp;</span>
     </div>
   </div>
+  </div>
 
   <div class="onderbalk">
     <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <button type="button" class="plat" id="knopThema">Licht</button>
     <a href="/help" class="plat">Help</a>
     <form method="post" action="/logout" id="uitlogFormulier">
       <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
@@ -687,10 +835,10 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
   }
 
   var el = {};
-  ["leeft", "leeftTekst", "totaal", "cash", "cashBij", "cashBijDalpot", "belegd", "belegdBij", "belegdBijDalpot",
+  ["leeft", "leeftTekst", "totaal", "totaalBij", "cash", "cashBij", "cashBijDalpot", "belegd", "belegdBij", "belegdBijDalpot",
    "lijst",
    "klaarChip", "voetRechts",
-   "reserveRegels", "zoek", "zoekWis",
+   "reserveBTC", "reserveETH", "reserveActiefBTC", "reserveActiefETH", "zoek", "zoekWis",
    "grafiekVlak", "grafiekLeeg", "grafiekNu", "grafiekVerschil", "grafiekEtiket", "ballon",
    "kaarten", "grafiekKaart", "positiesPaneel"].forEach(function (id) {
     el[id] = document.getElementById(id);
@@ -807,33 +955,6 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 
   function isKlaar(p) { return p.voortgang >= 100 || p.status === "PUMPING"; }
 
-  // Reservekaart: één regel per reservemunt (BTC, ETH). Bij meer dan één
-  // munt krijgt de munt waar nieuwe winst naartoe gaat een "actief"-label.
-  var RESERVE_ICOON_SVG = el.reserveRegels.querySelector("svg") ? el.reserveRegels.querySelector("svg").outerHTML : "";
-  function tekenReserves(reserves) {
-    el.reserveRegels.textContent = "";
-    reserves.forEach(function (r) {
-      var regel = document.createElement("div");
-      regel.className = "reserveregel";
-      var etiket = document.createElement("div");
-      etiket.className = "etiket";
-      etiket.innerHTML = RESERVE_ICOON_SVG;
-      etiket.appendChild(document.createTextNode("Afgeroomd naar " + r.munt));
-      if (r.actief && reserves.length > 1) {
-        var chip = document.createElement("span");
-        chip.className = "actiefchip";
-        chip.textContent = "actief";
-        etiket.appendChild(chip);
-      }
-      var bedrag = document.createElement("div");
-      bedrag.className = "klein";
-      bedrag.textContent = geld.format(r.waarde || 0);
-      regel.appendChild(etiket);
-      regel.appendChild(bedrag);
-      el.reserveRegels.appendChild(regel);
-    });
-  }
-
   function teken(data) {
     laatste = data;
     var pf = data.portfolio || {};
@@ -842,9 +963,16 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
     var totaal = pf.totaal || 0;
 
     el.totaal.textContent = geld.format(totaal);
+    el.totaalBij.hidden = false;
+    el.totaalBij.textContent = "Geoogst " + geld.format(pf.gerealiseerd || 0);
     el.cash.textContent = geld.format(pf.cash || 0);
     el.belegd.textContent = geld.format(pf.belegd || 0);
-    tekenReserves(pf.reserves || []);
+    var verdeling = pf.reserve_verdeling || { BTC: pf.reserve || 0, ETH: 0 };
+    var actiefeMunt = pf.reserve_actief || "BTC";
+    ["BTC", "ETH"].forEach(function (m) {
+      el["reserve" + m].textContent = geld.format(verdeling[m] || 0);
+      el["reserveActief" + m].hidden = (actiefeMunt !== m);
+    });
 
     if (pot.cash > 0) {
       el.cashBij.hidden = false;
@@ -988,10 +1116,27 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
            d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
   }
 
+  var orders = [];
+
+  function haalOrders() {
+    return fetch("/api/trades?limiet=200", { headers: { "Accept": "application/json" } })
+      .then(function (r) { return r.ok ? r.json() : { trades: [] }; })
+      .then(function (data) {
+        orders = (data.trades || []).map(function (t) {
+          return { t: Date.parse(t.tijd) / 1000, kant: t.kant, munt: t.munt || "", bedrag: t.bedrag || 0 };
+        }).filter(function (o) { return !isNaN(o.t); });
+      })
+      .catch(function () { orders = []; });
+  }
+
   function haalHistorie() {
-    fetch("/api/historie?bereik=" + bereik, { headers: { "Accept": "application/json" } })
-      .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); })
-      .then(function (data) { punten = data.punten || []; tekenGrafiek(); })
+    // De orders zijn alleen voor de markeringen; lukt dat niet, dan blijft de grafiek gewoon werken.
+    Promise.all([
+      fetch("/api/historie?bereik=" + bereik, { headers: { "Accept": "application/json" } })
+        .then(function (r) { if (!r.ok) { throw new Error(r.status); } return r.json(); }),
+      haalOrders()
+    ])
+      .then(function (res) { punten = res[0].punten || []; tekenGrafiek(); })
       .catch(function () { punten = []; tekenGrafiek(); });
   }
 
@@ -1003,6 +1148,8 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 
     if (punten.length < 2) {
       el.grafiekLeeg.hidden = false;
+      el.grafiekLeeg.classList.remove("skelet");
+      el.grafiekLeeg.removeAttribute("aria-busy");
       el.grafiekLeeg.textContent = bereik === "dag"
         ? "Geschiedenis wordt opgebouwd. De eerste punten verschijnen binnen een paar minuten."
         : "Nog te weinig geschiedenis voor dit bereik. De bot schrijft elk uur een punt weg.";
@@ -1012,9 +1159,11 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
     }
 
     el.grafiekLeeg.hidden = true;
+    el.grafiekLeeg.classList.remove("skelet");
+    el.grafiekLeeg.removeAttribute("aria-busy");
 
     var B = Math.max(280, el.grafiekVlak.clientWidth);
-    var H = window.innerWidth <= 700 ? 165 : 190;
+    var H = window.innerWidth <= 700 ? 165 : (window.innerWidth >= 1100 ? 300 : 190);
     var marge = { boven: 12, onder: 22, links: 6, rechts: 52 };
     var vlakB = B - marge.links - marge.rechts;
     var vlakH = H - marge.boven - marge.onder;
@@ -1080,6 +1229,30 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
     }));
     svg.appendChild(maak("path", { "class": "lijn", d: d }));
 
+    // koop- en verkoopmomenten: elke order hangt aan het dichtstbijzijnde meetpunt
+    var perPunt = {};
+    orders.forEach(function (o) {
+      if (o.t < eersteT || o.t > laatsteT) { return; }
+      var bi = 0, bd = Infinity;
+      punten.forEach(function (p, i) {
+        var af = Math.abs(p.t - o.t);
+        if (af < bd) { bd = af; bi = i; }
+      });
+      (perPunt[bi] = perPunt[bi] || []).push(o);
+    });
+    var aantalMarks = 0;
+    Object.keys(perPunt).forEach(function (sleutel) {
+      var lijstO = perPunt[sleutel], p = punten[sleutel];
+      var heeftKoop = lijstO.some(function (o) { return o.kant !== "verkoop"; });
+      var heeftVerkoop = lijstO.some(function (o) { return o.kant === "verkoop"; });
+      svg.appendChild(maak("circle", {
+        "class": "ordermark " + (heeftKoop && heeftVerkoop ? "mix" : (heeftVerkoop ? "verkoop" : "koop")),
+        cx: x(p).toFixed(1), cy: y(p.totaal).toFixed(1), r: 3.6
+      }));
+      aantalMarks++;
+    });
+    document.getElementById("grafiekLegenda").hidden = aantalMarks === 0;
+
     // tijdlabels onderaan
     [0, Math.floor(punten.length / 2), punten.length - 1].forEach(function (idx, plek) {
       var p = punten[idx];
@@ -1109,10 +1282,10 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
       var verhouding = B / doos.width;
       var muisX = (punt.clientX - doos.left) * verhouding;
 
-      var beste = punten[0], besteAfstand = Infinity;
-      punten.forEach(function (p) {
+      var beste = punten[0], besteAfstand = Infinity, besteIdx = 0;
+      punten.forEach(function (p, i) {
         var afstand = Math.abs(x(p) - muisX);
-        if (afstand < besteAfstand) { besteAfstand = afstand; beste = p; }
+        if (afstand < besteAfstand) { besteAfstand = afstand; beste = p; besteIdx = i; }
       });
 
       var px = x(beste), py = y(beste.totaal);
@@ -1121,8 +1294,14 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
       miklijn.classList.remove("verborgen");
       mikpunt.classList.remove("verborgen");
 
+      var orderHtml = (perPunt[besteIdx] || []).slice(0, 4).map(function (o) {
+        var koop = o.kant !== "verkoop";
+        var naam = String(o.munt).replace(/[&<>"']/g, "").replace("/EUR", "");
+        return '<span class="orderregel ' + (koop ? "koop" : "verkoop") + '">' +
+               (koop ? "Gekocht " : "Verkocht ") + naam + " · " + geld.format(o.bedrag) + "</span>";
+      }).join("");
       el.ballon.innerHTML = "<b>" + geld.format(beste.totaal) + "</b>" +
-        "<span>" + volLabel(beste.t) + "</span>";
+        "<span>" + volLabel(beste.t) + "</span>" + orderHtml;
       el.ballon.style.left = (px / verhouding) + "px";
       el.ballon.style.top = (py / verhouding) + "px";
       el.ballon.classList.add("aan");
@@ -1217,6 +1396,135 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("/sw.js").catch(function () { /* niet kritiek */ });
   }
+})();
+</script>
+<!-- meldingen -->
+<script>
+(function () {
+  "use strict";
+  var nav = document.querySelector(".navbalk");
+  if (!nav) { return; }
+
+  var css = document.createElement("style");
+  css.textContent =
+    ".navbalk a, .navbalk button.navknop { position: relative; }" +
+    ".navbalk button.navknop { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;" +
+    " padding: 7px 4px 6px; color: var(--dimmer); background: none; border: none; font: inherit; font-size: 0.66rem;" +
+    " font-weight: 600; border-radius: 10px; cursor: pointer; transition: color .15s, background .15s; }" +
+    ".navbalk button.navknop svg { width: 21px; height: 21px; }" +
+    ".navbalk button.navknop:hover { background: var(--surface2); color: var(--text); }" +
+    ".navbalk button.navknop.open { color: var(--gold); }" +
+    ".navstip { position: absolute; top: 5px; left: calc(50% + 6px); width: 9px; height: 9px; border-radius: 50%;" +
+    " background: var(--down); box-shadow: 0 0 0 2px var(--surface); }" +
+    ".navstip[hidden] { display: none; }" +
+    ".meldpaneel { position: fixed; z-index: 45; bottom: 74px; right: 14px; width: min(420px, calc(100vw - 28px));" +
+    " max-height: min(60vh, 520px); display: flex; flex-direction: column; background: var(--surface);" +
+    " border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }" +
+    ".meldpaneel[hidden] { display: none; }" +
+    ".meldkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px;" +
+    " border-bottom: 1px solid var(--line); font-weight: 700; font-size: 0.92rem; }" +
+    ".meldkop label { font-weight: 500; font-size: 0.76rem; color: var(--dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }" +
+    ".meldlijst { overflow-y: auto; }" +
+    ".meld { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 0.84rem; line-height: 1.45;" +
+    " border-left: 3px solid transparent; white-space: pre-line; word-break: break-word; }" +
+    ".meld:last-child { border-bottom: none; }" +
+    ".meld.belangrijk { border-left-color: var(--down); background: rgba(232,101,79,.07); }" +
+    ".meld small { display: block; color: var(--dimmer); font-size: 0.7rem; margin-bottom: 2px; }" +
+    ".meldleeg { padding: 28px 16px; text-align: center; color: var(--dim); font-size: 0.86rem; }";
+  document.head.appendChild(css);
+
+  var knop = document.createElement("button");
+  knop.type = "button";
+  knop.className = "navknop";
+  knop.id = "navMeldingen";
+  knop.setAttribute("aria-label", "Meldingen");
+  knop.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+    'Meldingen<i class="navstip" hidden></i>';
+  nav.appendChild(knop);
+  var stip = knop.querySelector(".navstip");
+
+  var paneel = document.createElement("div");
+  paneel.className = "meldpaneel";
+  paneel.hidden = true;
+  paneel.setAttribute("role", "dialog");
+  paneel.setAttribute("aria-label", "Meldingen");
+  paneel.innerHTML =
+    '<div class="meldkop"><span>Meldingen</span>' +
+    '<label><input type="checkbox" id="meldAlleenBelangrijk"> Alleen belangrijk</label></div>' +
+    '<div class="meldlijst" id="meldLijst"></div>';
+  document.body.appendChild(paneel);
+  var lijst = paneel.querySelector("#meldLijst");
+  var alleenBelangrijk = paneel.querySelector("#meldAlleenBelangrijk");
+
+  var laatsteData = null;
+
+  function tijdTekst(t) {
+    var d = new Date(t * 1000), nu = new Date();
+    var tijd = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === nu.toDateString()) { return "Vandaag " + tijd; }
+    return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " + tijd;
+  }
+
+  function teken() {
+    lijst.textContent = "";
+    var items = (laatsteData && laatsteData.meldingen) || [];
+    if (alleenBelangrijk.checked) { items = items.filter(function (m) { return m.niveau === "belangrijk"; }); }
+    if (!items.length) {
+      var leeg = document.createElement("div");
+      leeg.className = "meldleeg";
+      leeg.textContent = alleenBelangrijk.checked ? "Geen belangrijke meldingen. Rustig." : "Nog geen meldingen.";
+      lijst.appendChild(leeg);
+      return;
+    }
+    items.forEach(function (m) {
+      var rij = document.createElement("div");
+      rij.className = "meld" + (m.niveau === "belangrijk" ? " belangrijk" : "");
+      var klein = document.createElement("small");
+      klein.textContent = tijdTekst(m.t);
+      var tekst = document.createElement("span");
+      tekst.textContent = m.tekst;
+      rij.appendChild(klein); rij.appendChild(tekst);
+      lijst.appendChild(rij);
+    });
+  }
+
+  function haal(markeerGelezen) {
+    return fetch("/api/meldingen", { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { return; }
+        laatsteData = data;
+        stip.hidden = !(data.ongelezen_belangrijk > 0) || markeerGelezen === true;
+        if (!paneel.hidden) { teken(); }
+      })
+      .catch(function () {});
+  }
+
+  function markeerGelezen() {
+    fetch("/api/meldingen/gelezen", { method: "POST", credentials: "same-origin" }).catch(function () {});
+    stip.hidden = true;
+  }
+
+  function sluit() { paneel.hidden = true; knop.classList.remove("open"); }
+
+  knop.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (!paneel.hidden) { sluit(); return; }
+    paneel.hidden = false;
+    knop.classList.add("open");
+    teken();
+    haal(true).then(function () { teken(); markeerGelezen(); });
+  });
+  paneel.addEventListener("click", function (e) { e.stopPropagation(); });
+  alleenBelangrijk.addEventListener("change", teken);
+  document.addEventListener("click", sluit);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { sluit(); } });
+
+  haal();
+  setInterval(function () { if (!document.hidden && paneel.hidden) { haal(); } }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
 </body>

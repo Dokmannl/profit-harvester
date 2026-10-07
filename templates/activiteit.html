@@ -11,6 +11,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var KEY = "thema";
+  function lees() { try { return localStorage.getItem(KEY) === "licht" ? "licht" : "donker"; } catch (e) { return "donker"; } }
+  function zet(t) {
+    document.documentElement.setAttribute("data-thema", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    var c = document.querySelector('meta[name="color-scheme"]');
+    if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
+    var b = document.getElementById("knopThema");
+    if (b) { b.textContent = t === "licht" ? "Donker" : "Licht"; }
+  }
+  zet(lees());
+  document.addEventListener("DOMContentLoaded", function () {
+    zet(lees());
+    var b = document.getElementById("knopThema");
+    if (b) { b.addEventListener("click", function () {
+      var nieuw = lees() === "licht" ? "donker" : "licht";
+      try { localStorage.setItem(KEY, nieuw); } catch (e) {}
+      zet(nieuw);
+    }); }
+  });
+})();
+</script>
 <style>
 :root {
   --bg:       #0a0e14;
@@ -38,14 +63,28 @@ body {
   padding: 24px 18px 92px;
   -webkit-font-smoothing: antialiased;
 }
-.wrap { max-width: 700px; margin: 0 auto; }
+.wrap { max-width: 1280px; margin: 0 auto; }
+
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
+
+/* laadstaat: een rustige glans in plaats van een leeg paneel */
+.skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,.055) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skelet 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes skelet { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skelet { animation: none; } }
+.skeletlijst { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; }
+.skeletlijst .skelet { height: 44px; }
 
 .kop { text-align: center; margin-bottom: 18px; }
 
 .navbalk {
   position: fixed; bottom: 0; left: 0; right: 0;
   display: flex;
-  max-width: 700px; margin: 0 auto;
+  max-width: 1280px; margin: 0 auto;
   background: var(--surface);
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
@@ -86,25 +125,57 @@ body {
   font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
 }
 
-.activiteitrij {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 13px 18px;
-  border-bottom: 1px solid var(--line);
+/* filterbalk */
+.filterbalk {
+  display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center;
+  padding: 12px 18px; border-bottom: 1px solid var(--line);
 }
-.activiteitrij:last-child { border-bottom: none; }
+.segment { display: inline-flex; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.segment button {
+  font: inherit; font-size: 0.8rem; font-weight: 600; color: var(--dim);
+  background: none; border: none; padding: 7px 13px; cursor: pointer;
+  border-right: 1px solid var(--line);
+}
+.segment button:last-child { border-right: none; }
+.segment button:hover { background: var(--surface2); color: var(--text); }
+.segment button.actief { background: rgba(242,181,59,.12); color: var(--gold); }
+.filterbalk select, .filterbalk input {
+  font: inherit; font-size: 0.82rem; color: var(--text);
+  background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
+  padding: 7px 10px; min-width: 0;
+}
+.filterbalk input { width: 120px; text-transform: uppercase; }
+.filterbalk input::placeholder { text-transform: none; color: var(--dimmer); }
+.filterbalk input:focus, .filterbalk select:focus { outline: none; border-color: rgba(242,181,59,.55); }
+.samenvatting { margin-left: auto; font-size: 0.8rem; color: var(--dim); }
+.samenvatting b { color: var(--text); font-weight: 700; }
 
-.activiteitbol { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.activiteitbol.koop { background: #3d6ea8; }
-.activiteitbol.verkoop { background: var(--up); }
-
-.activiteittekst { flex: 1; min-width: 0; }
-.activiteittekst b { font-weight: 700; }
-.activiteittekst small { display: block; font-size: 0.73rem; color: var(--dimmer); margin-top: 2px; }
-
-.activiteitbedrag { font-weight: 700; white-space: nowrap; text-align: right; }
-
+/* tabel */
+.tabelwrap { overflow-x: auto; }
+table.orders { width: 100%; border-collapse: collapse; }
+table.orders th, table.orders td { padding: 11px 18px; text-align: left; white-space: nowrap; }
+table.orders th {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--dimmer); border-bottom: 1px solid var(--line); background: rgba(255,255,255,.02);
+  cursor: pointer; user-select: none; position: sticky; top: 0;
+}
+table.orders th:hover { color: var(--text); }
+table.orders th.gesorteerd { color: var(--gold); }
+table.orders th .pijl { display: inline-block; width: 10px; margin-left: 4px; }
+table.orders td { border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+table.orders tbody tr:last-child td { border-bottom: none; }
+table.orders tbody tr:hover td { background: rgba(255,255,255,.02); }
+table.orders .rechts { text-align: right; }
+table.orders td.munt b { font-weight: 700; }
+table.orders td.munt small { display: none; color: var(--dimmer); font-size: 0.72rem; }
+table.orders td.bron, table.orders td.fee { color: var(--dim); font-size: 0.82rem; }
+table.orders td.tijd { color: var(--dim); font-size: 0.85rem; }
+.soort {
+  display: inline-block; padding: 1px 9px; border-radius: 999px;
+  font-size: 0.7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+}
+.soort.koop { background: rgba(61,110,168,.18); color: #7aa9db; }
+.soort.verkoop { background: rgba(53,196,145,.15); color: var(--up); }
 .geenmunten { padding: 44px 18px; text-align: center; color: var(--dim); font-size: 0.9rem; }
 
 .onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
@@ -128,9 +199,57 @@ button.plat {
 }
 button.plat:hover { background: var(--surface2); color: var(--text); }
 
-@media (max-width: 560px) {
-  .activiteitrij { padding: 12px 14px; font-size: 0.92rem; }
+@media (max-width: 700px) {
+  table.orders th, table.orders td { padding: 10px 7px; }
+  table.orders th:first-child, table.orders td:first-child { padding-left: 12px; }
+  table.orders th:last-child, table.orders td:last-child { padding-right: 12px; }
+  table.orders td { font-size: 0.84rem; }
+  table.orders td.tijd { font-size: 0.74rem; white-space: normal; min-width: 62px; }
+  .soort { padding: 1px 7px; font-size: 0.64rem; }
+  table.orders th.bron, table.orders td.bron, table.orders th.fee, table.orders td.fee { display: none; }
+  table.orders td.munt small { display: block; white-space: normal; max-width: 105px; line-height: 1.25; }
+  .samenvatting { margin-left: 0; width: 100%; }
+  .filterbalk { padding: 12px 14px; }
 }
+@media (min-width: 1100px) { body { padding-left: 28px; padding-right: 28px; } }
+
+/* ---------------- licht thema (schakelaar onderaan) ---------------- */
+html[data-thema="licht"] {
+  --bg: #f3f5f9; --surface: #ffffff; --surface2: #edf1f6; --line: #dbe2ea;
+  --text: #16202b; --dim: #556476; --dimmer: #5f6f80;
+  --up: #0b7d55; --down: #c4402b; --gold: #9a6400; --goldsoft: rgba(154,100,0,.09);
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 26px -16px rgba(16,24,40,.22);
+}
+html[data-thema="licht"] body {
+  background: radial-gradient(1100px 500px at 15% -10%, #e3eaf4 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+html[data-thema="licht"] .skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(16,24,40,.06) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+}
+html[data-thema="licht"] .rij:hover,
+html[data-thema="licht"] table.orders tbody tr:hover td { background: rgba(16,24,40,.03); }
+html[data-thema="licht"] table.orders th,
+html[data-thema="licht"] .groepkop { background: rgba(16,24,40,.035); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,249,.9); }
+html[data-thema="licht"] .overlay { background: rgba(16,24,40,.45); }
+html[data-thema="licht"] button:hover,
+html[data-thema="licht"] button:hover:not(:disabled),
+html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
+html[data-thema="licht"] button.hoofd,
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] button.hoofd:hover,
+html[data-thema="licht"] button.hoofd:hover:not(:disabled),
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
+html[data-thema="licht"] button.bevestig { background: var(--down); border-color: var(--down); color: #fff; }
+html[data-thema="licht"] .paneel.tema-pot .paneelkop,
+html[data-thema="licht"] .soort.koop { color: #2f5f99; }
+html[data-thema="licht"] .sprong.pot { --kleur: #2f5f99; }
+html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,24,40,.07); }
+html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
+html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 </head>
 <body>
@@ -141,12 +260,26 @@ button.plat:hover { background: var(--surface2); color: var(--text); }
   </div>
 
   <div class="paneel">
-    <div class="paneelkop">Laatste 100 orders</div>
-    <div id="activiteitLijst"></div>
+    <div class="paneelkop">Orders</div>
+    <div class="filterbalk" id="filterbalk" hidden>
+      <div class="segment" id="filterSoort" role="group" aria-label="Soort">
+        <button type="button" data-soort="" class="actief">Alles</button>
+        <button type="button" data-soort="koop">Kopen</button>
+        <button type="button" data-soort="verkoop">Verkopen</button>
+      </div>
+      <select id="filterBron" aria-label="Bron"><option value="">Alle bronnen</option></select>
+      <input type="text" id="filterMunt" placeholder="Munt zoeken" aria-label="Munt zoeken" autocomplete="off">
+      <div class="samenvatting" id="samenvatting"></div>
+    </div>
+    <div id="activiteitLijst" aria-busy="true"><div class="skeletlijst">
+      <div class="skelet"></div><div class="skelet"></div><div class="skelet"></div>
+      <div class="skelet"></div><div class="skelet"></div><div class="skelet"></div>
+    </div></div>
   </div>
 
   <div class="onderbalk">
     <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <button type="button" class="plat" id="knopThema">Licht</button>
     <a href="/help" class="plat">Help</a>
     <form method="post" action="/logout" id="uitlogFormulier">
       <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
@@ -190,7 +323,8 @@ button.plat:hover { background: var(--surface2); color: var(--text); }
     "aanvullen": "aangevuld",
     "pot-automatisch": "pot, automatisch",
     "dalpot-automatisch": "dalpot, automatisch",
-    "reserve-btc": "omgezet naar reserve"
+    "reserve-btc": "omgezet naar BTC",
+    "reserve-eth": "omgezet naar ETH"
   };
 
   function volLabelISO(iso) {
@@ -200,17 +334,93 @@ button.plat:hover { background: var(--surface2); color: var(--text); }
            d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
   }
 
-  function activiteitRijHtml(t) {
-    var isVerkoop = t.kant === "verkoop";
-    var werkwoord = isVerkoop ? "Verkocht" : "Gekocht";
-    var bronTekst = BRON_LABEL[t.bron] || t.bron || "";
-    return '' +
-      '<div class="activiteitbol ' + (isVerkoop ? "verkoop" : "koop") + '"></div>' +
-      '<div class="activiteittekst">' +
-        '<b>' + werkwoord + ' ' + (t.munt || "") + '</b>' +
-        '<small>' + bronTekst + ' · ' + volLabelISO(t.tijd) + '</small>' +
-      '</div>' +
-      '<div class="activiteitbedrag">' + geld.format(t.bedrag || 0) + '</div>';
+  var alle = [];
+  var sorteer = { veld: "tijd", richting: -1 };
+  var filter = { soort: "", bron: "", munt: "" };
+
+  var KOLOMMEN = [
+    { veld: "tijd",   titel: "Tijd",    klasse: "tijd" },
+    { veld: "munt",   titel: "Munt",    klasse: "munt" },
+    { veld: "kant",   titel: "Soort",   klasse: "soortkol" },
+    { veld: "bron",   titel: "Bron",    klasse: "bron" },
+    { veld: "fee",    titel: "Fee",     klasse: "fee rechts" },
+    { veld: "bedrag", titel: "Bedrag",  klasse: "bedrag rechts" }
+  ];
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function bronTekst(b) { return BRON_LABEL[b] || b || ""; }
+
+  function sorteerWaarde(t, veld) {
+    if (veld === "tijd") { return Date.parse(t.tijd) || 0; }
+    if (veld === "bedrag" || veld === "fee") { return Number(t[veld]) || 0; }
+    if (veld === "bron") { return bronTekst(t.bron).toLowerCase(); }
+    return String(t[veld] || "").toLowerCase();
+  }
+
+  function zichtbaar() {
+    var zoek = filter.munt.trim().toUpperCase();
+    var uit = alle.filter(function (t) {
+      if (filter.soort && t.kant !== filter.soort) { return false; }
+      if (filter.bron && t.bron !== filter.bron) { return false; }
+      if (zoek && String(t.munt || "").toUpperCase().indexOf(zoek) === -1) { return false; }
+      return true;
+    });
+    uit.sort(function (a, b) {
+      var x = sorteerWaarde(a, sorteer.veld), y = sorteerWaarde(b, sorteer.veld);
+      if (x < y) { return -1 * sorteer.richting; }
+      if (x > y) { return 1 * sorteer.richting; }
+      return 0;
+    });
+    return uit;
+  }
+
+  function teken() {
+    var rijen = zichtbaar();
+    var gekocht = 0, verkocht = 0;
+    rijen.forEach(function (t) {
+      if (t.kant === "verkoop") { verkocht += Number(t.bedrag) || 0; } else { gekocht += Number(t.bedrag) || 0; }
+    });
+    document.getElementById("samenvatting").innerHTML =
+      '<b>' + rijen.length + '</b> orders · gekocht <b>' + geld.format(gekocht) + '</b> · verkocht <b>' + geld.format(verkocht) + '</b>';
+
+    if (!rijen.length) {
+      lijst.innerHTML = '<div class="geenmunten">' + (alle.length ? "Geen orders met deze filters." : "Nog geen activiteit.") + '</div>';
+      return;
+    }
+    var kop = KOLOMMEN.map(function (k) {
+      var actief = sorteer.veld === k.veld;
+      var pijl = actief ? (sorteer.richting === 1 ? "▲" : "▼") : "";
+      return '<th class="' + k.klasse + (actief ? " gesorteerd" : "") + '" data-veld="' + k.veld + '" scope="col">' +
+             k.titel + '<span class="pijl">' + pijl + '</span></th>';
+    }).join("");
+    var body = rijen.map(function (t) {
+      var isVerkoop = t.kant === "verkoop";
+      return '<tr>' +
+        '<td class="tijd">' + esc(volLabelISO(t.tijd)) + '</td>' +
+        '<td class="munt"><b>' + esc(t.munt) + '</b><small>' + esc(bronTekst(t.bron)) + '</small></td>' +
+        '<td class="soortkol"><span class="soort ' + (isVerkoop ? "verkoop" : "koop") + '">' + (isVerkoop ? "Verkocht" : "Gekocht") + '</span></td>' +
+        '<td class="bron">' + esc(bronTekst(t.bron)) + '</td>' +
+        '<td class="fee rechts">' + (t.fee ? geld.format(t.fee) : "—") + '</td>' +
+        '<td class="bedrag rechts"><b>' + geld.format(t.bedrag || 0) + '</b></td>' +
+      '</tr>';
+    }).join("");
+    lijst.innerHTML = '<div class="tabelwrap"><table class="orders"><thead><tr>' + kop + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+  }
+
+  function vulBronnen() {
+    var sel = document.getElementById("filterBron");
+    var huidig = sel.value;
+    var bronnen = {};
+    alle.forEach(function (t) { if (t.bron) { bronnen[t.bron] = true; } });
+    sel.innerHTML = '<option value="">Alle bronnen</option>' + Object.keys(bronnen).sort().map(function (b) {
+      return '<option value="' + esc(b) + '">' + esc(bronTekst(b)) + '</option>';
+    }).join("");
+    sel.value = bronnen[huidig] ? huidig : "";
+    filter.bron = sel.value;
   }
 
   function naarLogin() {
@@ -218,34 +428,179 @@ button.plat:hover { background: var(--surface2); color: var(--text); }
   }
 
   function haalActiviteit() {
-    fetch("/api/trades?limiet=100", { headers: { "Accept": "application/json" } })
+    fetch("/api/trades?limiet=200", { headers: { "Accept": "application/json" } })
       .then(function (r) {
         if (r.status === 401) { naarLogin(); throw new Error("niet ingelogd"); }
         if (!r.ok) { throw new Error(r.status); }
         return r.json();
       })
       .then(function (data) {
-        var trades = data.trades || [];
-        lijst.textContent = "";
-        if (!trades.length) {
-          lijst.innerHTML = '<div class="geenmunten">Nog geen activiteit.</div>';
-          return;
-        }
-        trades.forEach(function (t) {
-          var rij = document.createElement("div");
-          rij.className = "activiteitrij";
-          rij.innerHTML = activiteitRijHtml(t);
-          lijst.appendChild(rij);
-        });
+        alle = data.trades || [];
+        lijst.removeAttribute("aria-busy");
+        document.getElementById("filterbalk").hidden = false;
+        vulBronnen();
+        teken();
       })
-      .catch(function () { /* stil falen */ });
+      .catch(function () {
+        if (lijst.querySelector(".skelet")) {
+          lijst.innerHTML = '<div class="geenmunten">Kon de activiteit niet laden. Probeer te verversen.</div>';
+        }
+      });
   }
 
   document.getElementById("knopVernieuw").addEventListener("click", haalActiviteit);
 
+  // ---- sorteren (klik op een kop) en filteren ----
+  lijst.addEventListener("click", function (e) {
+    var th = e.target.closest("th[data-veld]");
+    if (!th) { return; }
+    var veld = th.dataset.veld;
+    if (sorteer.veld === veld) { sorteer.richting = -sorteer.richting; }
+    else { sorteer.veld = veld; sorteer.richting = (veld === "tijd" || veld === "bedrag" || veld === "fee") ? -1 : 1; }
+    teken();
+  });
+  document.getElementById("filterSoort").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-soort]");
+    if (!b) { return; }
+    filter.soort = b.dataset.soort;
+    this.querySelectorAll("button").forEach(function (x) { x.classList.toggle("actief", x === b); });
+    teken();
+  });
+  document.getElementById("filterBron").addEventListener("change", function () { filter.bron = this.value; teken(); });
+  document.getElementById("filterMunt").addEventListener("input", function () { filter.munt = this.value; teken(); });
+
   haalActiviteit();
   setInterval(function () { if (!document.hidden) { haalActiviteit(); } }, 30000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { haalActiviteit(); } });
+})();
+</script>
+<!-- meldingen -->
+<script>
+(function () {
+  "use strict";
+  var nav = document.querySelector(".navbalk");
+  if (!nav) { return; }
+
+  var css = document.createElement("style");
+  css.textContent =
+    ".navbalk a, .navbalk button.navknop { position: relative; }" +
+    ".navbalk button.navknop { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;" +
+    " padding: 7px 4px 6px; color: var(--dimmer); background: none; border: none; font: inherit; font-size: 0.66rem;" +
+    " font-weight: 600; border-radius: 10px; cursor: pointer; transition: color .15s, background .15s; }" +
+    ".navbalk button.navknop svg { width: 21px; height: 21px; }" +
+    ".navbalk button.navknop:hover { background: var(--surface2); color: var(--text); }" +
+    ".navbalk button.navknop.open { color: var(--gold); }" +
+    ".navstip { position: absolute; top: 5px; left: calc(50% + 6px); width: 9px; height: 9px; border-radius: 50%;" +
+    " background: var(--down); box-shadow: 0 0 0 2px var(--surface); }" +
+    ".navstip[hidden] { display: none; }" +
+    ".meldpaneel { position: fixed; z-index: 45; bottom: 74px; right: 14px; width: min(420px, calc(100vw - 28px));" +
+    " max-height: min(60vh, 520px); display: flex; flex-direction: column; background: var(--surface);" +
+    " border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }" +
+    ".meldpaneel[hidden] { display: none; }" +
+    ".meldkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px;" +
+    " border-bottom: 1px solid var(--line); font-weight: 700; font-size: 0.92rem; }" +
+    ".meldkop label { font-weight: 500; font-size: 0.76rem; color: var(--dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }" +
+    ".meldlijst { overflow-y: auto; }" +
+    ".meld { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 0.84rem; line-height: 1.45;" +
+    " border-left: 3px solid transparent; white-space: pre-line; word-break: break-word; }" +
+    ".meld:last-child { border-bottom: none; }" +
+    ".meld.belangrijk { border-left-color: var(--down); background: rgba(232,101,79,.07); }" +
+    ".meld small { display: block; color: var(--dimmer); font-size: 0.7rem; margin-bottom: 2px; }" +
+    ".meldleeg { padding: 28px 16px; text-align: center; color: var(--dim); font-size: 0.86rem; }";
+  document.head.appendChild(css);
+
+  var knop = document.createElement("button");
+  knop.type = "button";
+  knop.className = "navknop";
+  knop.id = "navMeldingen";
+  knop.setAttribute("aria-label", "Meldingen");
+  knop.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+    'Meldingen<i class="navstip" hidden></i>';
+  nav.appendChild(knop);
+  var stip = knop.querySelector(".navstip");
+
+  var paneel = document.createElement("div");
+  paneel.className = "meldpaneel";
+  paneel.hidden = true;
+  paneel.setAttribute("role", "dialog");
+  paneel.setAttribute("aria-label", "Meldingen");
+  paneel.innerHTML =
+    '<div class="meldkop"><span>Meldingen</span>' +
+    '<label><input type="checkbox" id="meldAlleenBelangrijk"> Alleen belangrijk</label></div>' +
+    '<div class="meldlijst" id="meldLijst"></div>';
+  document.body.appendChild(paneel);
+  var lijst = paneel.querySelector("#meldLijst");
+  var alleenBelangrijk = paneel.querySelector("#meldAlleenBelangrijk");
+
+  var laatsteData = null;
+
+  function tijdTekst(t) {
+    var d = new Date(t * 1000), nu = new Date();
+    var tijd = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === nu.toDateString()) { return "Vandaag " + tijd; }
+    return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " + tijd;
+  }
+
+  function teken() {
+    lijst.textContent = "";
+    var items = (laatsteData && laatsteData.meldingen) || [];
+    if (alleenBelangrijk.checked) { items = items.filter(function (m) { return m.niveau === "belangrijk"; }); }
+    if (!items.length) {
+      var leeg = document.createElement("div");
+      leeg.className = "meldleeg";
+      leeg.textContent = alleenBelangrijk.checked ? "Geen belangrijke meldingen. Rustig." : "Nog geen meldingen.";
+      lijst.appendChild(leeg);
+      return;
+    }
+    items.forEach(function (m) {
+      var rij = document.createElement("div");
+      rij.className = "meld" + (m.niveau === "belangrijk" ? " belangrijk" : "");
+      var klein = document.createElement("small");
+      klein.textContent = tijdTekst(m.t);
+      var tekst = document.createElement("span");
+      tekst.textContent = m.tekst;
+      rij.appendChild(klein); rij.appendChild(tekst);
+      lijst.appendChild(rij);
+    });
+  }
+
+  function haal(markeerGelezen) {
+    return fetch("/api/meldingen", { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { return; }
+        laatsteData = data;
+        stip.hidden = !(data.ongelezen_belangrijk > 0) || markeerGelezen === true;
+        if (!paneel.hidden) { teken(); }
+      })
+      .catch(function () {});
+  }
+
+  function markeerGelezen() {
+    fetch("/api/meldingen/gelezen", { method: "POST", credentials: "same-origin" }).catch(function () {});
+    stip.hidden = true;
+  }
+
+  function sluit() { paneel.hidden = true; knop.classList.remove("open"); }
+
+  knop.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (!paneel.hidden) { sluit(); return; }
+    paneel.hidden = false;
+    knop.classList.add("open");
+    teken();
+    haal(true).then(function () { teken(); markeerGelezen(); });
+  });
+  paneel.addEventListener("click", function (e) { e.stopPropagation(); });
+  alleenBelangrijk.addEventListener("change", teken);
+  document.addEventListener("click", sluit);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { sluit(); } });
+
+  haal();
+  setInterval(function () { if (!document.hidden && paneel.hidden) { haal(); } }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
 </body>

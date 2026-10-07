@@ -295,13 +295,10 @@ def icoon_voor(coin):
 # ---------------------------------------------------------------------------
 
 STATE_FILE = DATA_PREFIX + "bot_state.json"
-STANDAARD_RESERVE_PCT = 50.0     # deel van elke afroming dat naar de reserve (BTC/ETH) gaat
-# Reservemunten: hier gaat het afgeroomde deel van de winst naartoe. Op het
-# dashboard kies je welke munt de nieuwe winst krijgt (reserve_actief); het
-# hele saldo van ALLE reservemunten telt als reserve, ook na een wissel.
-RESERVE_KEUZES = ["BTC", "ETH"]
-STANDAARD_RESERVE_ACTIEF = "BTC"
-RESERVE_ICOON = {"BTC": "₿", "ETH": "Ξ"}
+STANDAARD_RESERVE_PCT = 50.0     # deel van elke afroming dat naar de reserve-munt gaat
+RESERVE_MUNTEN = ("BTC", "ETH")  # keuze via de Beheren-pagina (global_settings.reserve_munt)
+STANDAARD_RESERVE_MUNT = "BTC"
+RESERVE_BRONNEN = ("reserve-btc", "reserve-eth")   # bron-labels in het orderlogboek
 
 # Donatie-adressen van de maker, getoond onderaan de uitlegpagina. Leeg = het
 # donatieblok wordt niet getoond.
@@ -310,30 +307,6 @@ DONATIE_ADRESSEN = {
     "ETH": "0x798483b4749654Fa0C1bffb95F27d7C401955c24",
     "SOL": "6Qe6o5FMQUUMifxAdzE75SsekYsFX6Bgft3JGPdmGJRT",
 }
-
-
-def actieve_reserve(config=None):
-    """De munt waar nieuwe afgeroomde winst naartoe gaat."""
-    config = config or laad_config()
-    munt = str(config.get("global_settings", {}).get("reserve_actief", STANDAARD_RESERVE_ACTIEF)).upper()
-    return munt if munt in RESERVE_KEUZES else STANDAARD_RESERVE_ACTIEF
-
-
-def is_reserve_munt(coin):
-    """
-    Reservemunten horen bij geen enkele lijst. btc_reserve_waarde rekent het
-    hele saldo van deze munten tot de reserve; staan ze ook in de hoofdlijst,
-    pot of dalpot, dan telt de bot ze dubbel en kan hij reserve als winst
-    verkopen.
-    """
-    return (coin or "").upper().replace("/EUR", "") in RESERVE_KEUZES
-
-
-RESERVE_GEWEIGERD_TEKST = (
-    "❌ *{munt}* is een reservemunt: " + " en ".join(RESERVE_KEUZES) + " zijn gereserveerd "
-    "voor de afgeroomde winst. Bitvavo geeft maar één saldo per munt terug, dus de bot zou "
-    "reserve als winst kunnen verkopen. Daarom kan {munt} niet in de hoofdlijst, pot of dalpot."
-)
 STANDAARD_MAX_INLEG = 1.5        # bodem: hoogstens 1,5 keer het budget inleggen
 STANDAARD_HOOFDLIJST_WINSTDOEL_EUR = 11.0   # vast winstdoel per hoofdlijst-munt in euro's, niet in %
 
@@ -393,11 +366,11 @@ def log_trade(munt, kant, aantal, koers, bedrag, fee_eur, bron):
         log_error("log_trade", e)
 
 
-def _order_uitkomst(order, market, soort):
+def _haal_order_op(order, market, soort):
     """
-    Haalt de echte status van een net geplaatste order op: "gevuld",
-    "niet_gevuld" (door Bitvavo geannuleerd, er is niets gebeurd) of
-    "onbekend" (status kon niet vastgesteld worden).
+    Haalt de echte orderstatus van een net geplaatste order op bij Bitvavo.
+    Geeft None terug (met een Telegram-waarschuwing) als die niet vast te
+    stellen is.
     """
     laatste_fout = None
     for _ in range(3):
@@ -406,46 +379,82 @@ def _order_uitkomst(order, market, soort):
             if echt.get("status") == "open":
                 time.sleep(1)
                 continue
-            if echt.get("status") == "closed" and (echt.get("filled") or 0) > 0:
-                return "gevuld"
-            return "niet_gevuld"
+            return echt
         except Exception as e:
             laatste_fout = e
             time.sleep(1)
     if laatste_fout is not None:
-        log_error(f"order_uitkomst.{market}", laatste_fout)
+        log_error(f"haal_order_op.{market}", laatste_fout)
     send_telegram_message(
         f"⚠️ Kon niet controleren of de {soort} van *{market}* gelukt is. "
         f"Check even in Bitvavo en of de bot-boeken kloppen.",
         include_keyboard=True,
     )
-    return "onbekend"
+    return None
 
 
 def plaats_marktorder(zijde, market, hoeveelheid, soort="aankoop"):
     """
-    Plaatst een marktorder en controleert of hij echt gevuld is. Bitvavo kan
-    een marktorder zonder foutmelding annuleren (bijvoorbeeld bij een te dun
-    orderboek). Is dat gebeurd, dan wordt het nog één keer geprobeerd; nooit
-    opnieuw bij een onduidelijke uitkomst, want dan zou er dubbel gekocht of
-    verkocht kunnen worden. zijde "buy": hoeveelheid is het bedrag in euro,
-    zijde "sell": het aantal munten. Een fout bij het plaatsen zelf gaat omhoog.
-    Geeft True terug als er echt iets gevuld is.
+    Plaatst een marktorder en kijkt bij Bitvavo wat er echt gebeurd is.
+    Bitvavo kan een marktorder zonder foutmelding annuleren (bijvoorbeeld bij
+    een te dun orderboek), soms nadat hij al deels gevuld was. Wat gevuld is
+    telt altijd mee. Is de order niet helemaal gevuld, dan wordt voor het
+    restant nog één keer geprobeerd. Bij een onduidelijke uitkomst nooit
+    opnieuw, want dan zou er dubbel gekocht of verkocht kunnen worden.
+
+    zijde "buy": hoeveelheid is het bedrag in euro; "sell": het aantal munten.
+    Een fout bij het plaatsen van de eerste order gaat omhoog.
+
+    Geeft (euro, aantal) terug: het echt besteedde (koop) of ontvangen
+    (verkoop) bedrag na fee, en het aantal gekochte of verkochte munten.
+    (0.0, 0.0) betekent dat er niets is uitgevoerd.
     """
+    eur = 0.0
+    aantal = 0.0
+    over = hoeveelheid
     for poging in range(2):
-        if zijde == "buy":
-            order = exchange.create_market_buy_order(market, None, {"amountQuote": hoeveelheid})
-        else:
-            order = exchange.create_market_sell_order(market, hoeveelheid)
-        uitkomst = _order_uitkomst(order, market, soort)
-        if uitkomst == "gevuld":
-            return True
-        if uitkomst == "onbekend":
-            return False
+        try:
+            if zijde == "buy":
+                order = exchange.create_market_buy_order(market, None, {"amountQuote": round(over, 2)})
+            else:
+                order = exchange.create_market_sell_order(market, over)
+        except Exception as e:
+            if poging == 0:
+                raise
+            log_error(f"plaats_marktorder.herkansing.{market}", e)
+            break
+
+        echt = _haal_order_op(order, market, soort)
+        if echt is None:
+            break
+        gevuld = echt.get("filled") or 0.0
+        if gevuld > 0:
+            kosten = echt.get("cost") or 0.0
+            fee = (echt.get("fee") or {}).get("cost") or 0.0
+            aantal += gevuld
+            eur += (kosten + fee) if zijde == "buy" else (kosten - fee)
+        if echt.get("status") == "closed" and gevuld > 0:
+            break
+
+        over = (hoeveelheid - eur) if zijde == "buy" else (hoeveelheid - aantal)
+        if (zijde == "buy" and over < MIN_ORDER_EUR) or (zijde == "sell" and over <= 0):
+            break
         if poging == 0:
-            log_info(f"{market}: {soort} niet gevuld door Bitvavo, nog één keer proberen.")
+            log_info(f"{market}: {soort} niet (volledig) gevuld door Bitvavo, nog één keer proberen voor het restant.")
             time.sleep(2)
-    return False
+
+    if zijde == "sell" and 0 < aantal < hoeveelheid * 0.99:
+        send_telegram_message(
+            f"⚠️ De verkoop van *{market}* is maar gedeeltelijk gelukt ({aantal:g} van {hoeveelheid:g} munten, "
+            f"{euro(eur)} ontvangen). Check even in Bitvavo.",
+            include_keyboard=True,
+        )
+    elif zijde == "buy" and 0 < eur < hoeveelheid * 0.95:
+        send_telegram_message(
+            f"⚠️ De aankoop van *{market}* is maar gedeeltelijk gelukt ({euro(eur)} van {euro(hoeveelheid)}).",
+            include_keyboard=True,
+        )
+    return round(eur, 2), aantal
 
 
 def recente_trades(limiet=20):
@@ -477,26 +486,33 @@ def registreer_koop(coin, bedrag):
     bewaar_state(state)
 
 
+def reserve_munt(config=None):
+    """De munt waar afgeroomde winst nu heen gaat (BTC of ETH), instelbaar op de Beheren-pagina."""
+    config = config or laad_config()
+    munt = str(config.get("global_settings", {}).get("reserve_munt", STANDAARD_RESERVE_MUNT)).upper()
+    return munt if munt in RESERVE_MUNTEN else STANDAARD_RESERVE_MUNT
+
+
 def koop_btc_reserve(bedrag_eur, fee):
     """
-    Zet een bedrag om naar de actieve reservemunt (BTC of ETH, te kiezen op
-    het dashboard). Dit is de vervanger van de oude EUR-reserve: in plaats van
-    euro's opzij te zetten die niets doen, koopt de bot er meteen crypto voor.
-    Er is geen apart 'reserve_eur'-bedrag meer dat aangroeit — de waarde staat
-    gewoon in het echte saldo, zichtbaar via de normale balans.
-    De bron blijft "reserve-btc", ook voor ETH, zodat oude en nieuwe
-    logboekregels hetzelfde geteld worden.
+    Zet een bedrag om naar de gekozen reserve-munt (BTC of ETH). Dit is de
+    vervanger van de oude EUR-reserve: in plaats van euro's opzij te zetten
+    die niets doen, koopt de bot er meteen crypto voor. Er is geen apart
+    'reserve_eur'-bedrag meer dat aangroeit — de waarde staat voortaan gewoon
+    in het echte saldo, zichtbaar via de normale balans. Wisselen van munt
+    geldt alleen voor nieuwe aankopen; wat er al staat blijft staan.
     """
     if bedrag_eur < MIN_ORDER_EUR:
         return 0.0
-    markt = f"{actieve_reserve()}/EUR"
     try:
-        gevuld = plaats_marktorder("buy", markt, round(bedrag_eur, 2), "aankoop")
+        munt = reserve_munt()
+        markt = f"{munt}/EUR"
+        besteed, _ = plaats_marktorder("buy", markt, round(bedrag_eur, 2), "aankoop")
         cache.invalideer()
-        if not gevuld:
+        if besteed <= 0:
             return 0.0
-        log_trade(markt, "koop", None, None, bedrag_eur, bedrag_eur * fee, "reserve-btc")
-        return bedrag_eur
+        log_trade(markt, "koop", None, None, besteed, besteed * fee, f"reserve-{munt.lower()}")
+        return besteed
     except Exception as e:
         log_error("koop_btc_reserve", e)
         return 0.0
@@ -505,8 +521,8 @@ def koop_btc_reserve(bedrag_eur, fee):
 def registreer_verkoop(coin, netto_opbrengst, config=None):
     """
     Boekt de netto opbrengst. Een deel (reserve_pct, standaard 50%) wordt
-    direct omgezet naar de actieve reservemunt (BTC of ETH). De rest
-    blijft gewoon vrije cash.
+    direct omgezet naar de reserve-munt (BTC of ETH) — de vervanger van de
+    oude EUR-reserve. De rest blijft gewoon vrije cash.
     """
     config = config or laad_config()
     reserve_pct = float(config.get("global_settings", {}).get("reserve_pct", STANDAARD_RESERVE_PCT))
@@ -681,6 +697,8 @@ class DemoExchange:
     De rest van de bot merkt geen verschil: hij gebruikt dezelfde functies
     (fetch_balance, create_market_*_order, fetch_order) als bij de echte
     exchange, dus de handelslogica wordt precies zo getest als hij live draait.
+    Net als bij Bitvavo is "cost" het bedrag in euro exclusief fee en staat de
+    fee apart in "fee", zodat plaats_marktorder() hetzelfde rekent.
     """
 
     SALDO_FILE = "demo_saldo.json"
@@ -759,7 +777,7 @@ class DemoExchange:
             self._saldo["EUR"] = self._saldo.get("EUR", 0.0) - bedrag
             self._saldo[munt] = self._saldo.get(munt, 0.0) + aantal
             self._bewaar_saldo(self._saldo)
-            return self._vul_order(market, "buy", aantal, prijs, bedrag, fee_eur)
+            return self._vul_order(market, "buy", aantal, prijs, bedrag - fee_eur, fee_eur)
 
     def create_market_sell_order(self, market, amount, params=None):
         munt = market.split("/")[0]
@@ -865,39 +883,39 @@ def koers_van(tickers, market):
     return float(laatste)
 
 
-def reserve_waarden(balans=None, tickers=None):
+def reserve_verdeling(balans=None, tickers=None):
     """
-    EUR-waarde per reservemunt, voor de reservekaart op het dashboard. Toont
-    elke munt met saldo, plus altijd de actieve munt (ook als die nog op nul
-    staat). Gewoon de echte balans, dus beweegt mee met de koers.
+    Huidige EUR-waarde per reserve-munt, bijvoorbeeld {"BTC": 592.2, "ETH": 0.0}.
+    Geen boekhoudveld — gewoon de echte balans, dus deze waarden bewegen mee
+    met de koersen.
     """
     balans = balans if balans is not None else cache.balans()
     tickers = tickers if tickers is not None else cache.tickers()
-    actief = actieve_reserve()
-    regels = []
-    for munt in RESERVE_KEUZES:
-        aantal = balans["total"].get(munt, 0.0)
-        waarde = aantal * (koers_van(tickers, f"{munt}/EUR") or 0.0)
-        if waarde > 0 or munt == actief:
-            regels.append({"munt": munt, "waarde": waarde, "actief": munt == actief})
-    return regels
+    return {
+        munt: balans["total"].get(munt, 0.0) * (koers_van(tickers, f"{munt}/EUR") or 0.0)
+        for munt in RESERVE_MUNTEN
+    }
 
 
-def btc_reserve_waarde(balans=None, tickers=None):
+def reserve_waarde(balans=None, tickers=None):
+    """Totale EUR-waarde van alle reserve-munten (BTC en ETH samen)."""
+    return sum(reserve_verdeling(balans, tickers).values())
+
+
+def reserve_label(balans=None, tickers=None):
     """
-    Totale EUR-waarde van alle reservemunten samen (BTC + ETH), ongeacht welke
-    nu actief is. Alle totalen (dashboard, rapport, historie) gebruiken dit,
-    dus een oude BTC-reserve blijft meetellen na een wissel naar ETH.
+    "Afgeroomd naar BTC", "Afgeroomd naar ETH" of "Afgeroomd naar BTC + ETH":
+    de gekozen munt, plus elke andere reserve-munt waar nog meer dan een euro
+    van in bezit is.
     """
-    return sum(r["waarde"] for r in reserve_waarden(balans, tickers))
-
-
-def reserve_naam(balans=None, tickers=None):
-    """Korte naam voor teksten, bijvoorbeeld 'BTC' of 'BTC + ETH'."""
-    try:
-        return " + ".join(r["munt"] for r in reserve_waarden(balans, tickers))
-    except Exception:
-        return actieve_reserve()
+    balans = balans if balans is not None else cache.balans()
+    tickers = tickers if tickers is not None else cache.tickers()
+    gekozen = reserve_munt()
+    munten = [
+        m for m in RESERVE_MUNTEN
+        if m == gekozen or balans["total"].get(m, 0.0) * (koers_van(tickers, f"{m}/EUR") or 0.0) >= 1.0
+    ]
+    return "Afgeroomd naar " + " + ".join(munten)
 
 
 # ---------------------------------------------------------------------------
@@ -1126,7 +1144,53 @@ def laagste_recent(market, uren=6):
         return None
 
 
+MELDINGEN_FILE = DATA_PREFIX + "bot_meldingen.json"
+MELDINGEN_MAX = 100
+_meldingen_lock = threading.Lock()
+_BELANGRIJK_TEKENS = ("🚨", "⚠️", "❌", "🛑", "‼️")
+
+
+def _laad_meldingen():
+    if os.path.exists(MELDINGEN_FILE):
+        try:
+            with open(MELDINGEN_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and isinstance(data.get("items"), list):
+                data.setdefault("gelezen_tot", 0)
+                return data
+        except Exception as e:
+            log_error("laad_meldingen", e)
+    return {"items": [], "gelezen_tot": 0}
+
+
+def _bewaar_meldingen(data):
+    tijdelijk = MELDINGEN_FILE + ".tmp"
+    with open(tijdelijk, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+    os.replace(tijdelijk, MELDINGEN_FILE)
+
+
+def noteer_melding(text):
+    """
+    Bewaart elk Telegram-bericht ook voor de meldingenlijst op de site (de bel
+    in het menu). Mag nooit iets kapotmaken: een fout hier wordt alleen gelogd.
+    """
+    try:
+        schoon = str(text).replace("*", "").replace("_", "").replace("`", "").strip()
+        if not schoon or schoon.startswith("❓"):
+            return
+        niveau = "belangrijk" if any(t in schoon for t in _BELANGRIJK_TEKENS) else "info"
+        with _meldingen_lock:
+            data = _laad_meldingen()
+            data["items"].append({"t": int(time.time()), "tekst": schoon[:400], "niveau": niveau})
+            data["items"] = data["items"][-MELDINGEN_MAX:]
+            _bewaar_meldingen(data)
+    except Exception as e:
+        log_error("noteer_melding", e)
+
+
 def send_telegram_message(text, include_keyboard=False, custom_keyboard=None):
+    noteer_melding(text)
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
         log_info("Telegram niet geconfigureerd, bericht overgeslagen.")
         return
@@ -1186,7 +1250,7 @@ def stuur_email_rapport():
                 f"• {coin.ljust(6)}: € {waarde:8.2f} ({rendement:+6.1f}%) [Budget: €{budget:.0f}]"
             )
 
-        btc_waarde = btc_reserve_waarde(balans, tickers)
+        btc_waarde = reserve_waarde(balans, tickers)
         pot = verzamel_pot()
         pot_belegd = pot["belegd"]
         dalpot_belegd = verzamel_dalpot()["belegd"]
@@ -1206,7 +1270,7 @@ def stuur_email_rapport():
             f"Gereserveerd voor pot:   € {pot['cash']:>10,.2f}\n\n"
             f"VERDELING\n"
             f"Belegd:                  € {totaal_belegd:>10,.2f}\n"
-            f"Afgeroomd naar reserve:  € {btc_waarde:>10,.2f}  ({reserve_naam()})\n"
+            f"{reserve_label(balans, tickers) + ':':<25}€ {btc_waarde:>10,.2f}\n"
             f"Belegd in pot:           € {pot_belegd:>10,.2f}\n"
             f"----------------------------------------\n"
             f"TOTALE WAARDE:           € {totaal_portfolio:>10,.2f}\n"
@@ -1333,9 +1397,9 @@ def _verkoop_check_munt(coin, info, config, fee, globale_trail, balans, tickers,
         log_info(f"{market}: afromen overgeslagen, berekend aantal is groter dan het saldo.")
         return
 
-    gevuld = plaats_marktorder("sell", market, aantal_verkopen, "verkoop")
+    ontvangen, _ = plaats_marktorder("sell", market, aantal_verkopen, "verkoop")
     cache.invalideer()
-    if not gevuld:
+    if ontvangen <= 0:
         log_info(f"{market}: afromen niet gevuld, over {VERKOOP_MISLUKT_PAUZE // 60} minuten opnieuw.")
         _verkoop_pauze[coin] = time.time() + VERKOOP_MISLUKT_PAUZE
         return
@@ -1344,7 +1408,7 @@ def _verkoop_check_munt(coin, info, config, fee, globale_trail, balans, tickers,
     log_trade(market, "verkoop", aantal_verkopen, live_koers,
               bruto_winst, bruto_winst * fee, "automatisch" if bron == "hoofd" else "pot-automatisch")
     apart = boek_fn(coin, netto_winst, config)
-    regel_extra = f"• Naar {actieve_reserve(config)} omgezet: {euro(apart)}" if bron == "hoofd" else "• Blijft in de pot"
+    regel_extra = f"• Naar {reserve_munt(config)} omgezet: {euro(apart)}" if bron == "hoofd" else "• Blijft in de pot"
 
     send_telegram_message(
         f"💰 *WINST AFGEROOMD*{label}:\n"
@@ -1426,18 +1490,21 @@ def _pot_verkoop_check_munt(coin, info, config, fee, globale_trail, balans, tick
         return
 
     try:
-        gevuld = plaats_marktorder("sell", market, aantal, "verkoop")
+        ontvangen, verkocht = plaats_marktorder("sell", market, aantal, "verkoop")
     except Exception as e:
         log_error(f"_pot_verkoop_check_munt.{coin}", e)
         _verkoop_pauze[coin] = time.time() + VERKOOP_MISLUKT_PAUZE
         return
 
     cache.invalideer()
-    if not gevuld:
-        log_info(f"Pot: verkoop van {coin} is niet gevuld, over {VERKOOP_MISLUKT_PAUZE // 60} minuten opnieuw.")
+    if verkocht < aantal * 0.99:
+        log_info(f"Pot: verkoop van {coin} is niet (volledig) gevuld, over {VERKOOP_MISLUKT_PAUZE // 60} minuten opnieuw.")
         _verkoop_pauze[coin] = time.time() + VERKOOP_MISLUKT_PAUZE
         return
 
+    # Boeken met wat Bitvavo echt uitbetaalde, niet met de schatting van vooraf.
+    netto_opbrengst = round(ontvangen, 2)
+    netto_winst = round(netto_opbrengst - budget, 2)
     db.update({"status": "MONITORING", "piek_koers": 0.0}, Trade.munt == market)
 
     log_trade(market, "verkoop", aantal, live_koers, netto_winst, netto_winst * fee, "pot-automatisch")
@@ -1529,18 +1596,21 @@ def _dalpot_verkoop_check_munt(coin, info, config, fee, globale_trail, balans, t
         return
 
     try:
-        gevuld = plaats_marktorder("sell", market, aantal, "verkoop")
+        ontvangen, verkocht = plaats_marktorder("sell", market, aantal, "verkoop")
     except Exception as e:
         log_error(f"_dalpot_verkoop_check_munt.{coin}", e)
         _verkoop_pauze[coin] = time.time() + VERKOOP_MISLUKT_PAUZE
         return
 
     cache.invalideer()
-    if not gevuld:
-        log_info(f"Dalpot: verkoop van {coin} is niet gevuld, over {VERKOOP_MISLUKT_PAUZE // 60} minuten opnieuw.")
+    if verkocht < aantal * 0.99:
+        log_info(f"Dalpot: verkoop van {coin} is niet (volledig) gevuld, over {VERKOOP_MISLUKT_PAUZE // 60} minuten opnieuw.")
         _verkoop_pauze[coin] = time.time() + VERKOOP_MISLUKT_PAUZE
         return
 
+    # Boeken met wat Bitvavo echt uitbetaalde, niet met de schatting van vooraf.
+    netto_opbrengst = round(ontvangen, 2)
+    netto_winst = round(netto_opbrengst - budget, 2)
     db.update({"status": "MONITORING", "piek_koers": 0.0}, Trade.munt == market)
 
     log_trade(market, "verkoop", aantal, live_koers, netto_winst, netto_winst * fee, "dalpot-automatisch")
@@ -1645,9 +1715,9 @@ def voer_handmatige_oogst_uit(coin_code):
             )
             return
 
-        gevuld = plaats_marktorder("sell", market, aantal_verkopen, "verkoop")
+        ontvangen, _ = plaats_marktorder("sell", market, aantal_verkopen, "verkoop")
         cache.invalideer()
-        if not gevuld:
+        if ontvangen <= 0:
             send_telegram_message(
                 f"⚠️ De verkooporder voor *{coin}* is niet gevuld. Er is niets verkocht en niets geboekt.",
                 include_keyboard=True,
@@ -1664,7 +1734,7 @@ def voer_handmatige_oogst_uit(coin_code):
             f"• Munt: *{coin}*\n"
             f"• Bruto: {euro(bruto_winst)}\n"
             f"• Netto na fee: {euro(netto_winst)}\n"
-            f"• Naar {actieve_reserve(config)} omgezet: {euro(apart)}",
+            f"• Naar {reserve_munt(config)} omgezet: {euro(apart)}",
             include_keyboard=True,
         )
     except Exception as e:
@@ -1792,14 +1862,15 @@ def voer_alles_aanvullen_uit():
                 continue
 
             try:
-                if not plaats_marktorder("buy", item["market"], bedrag, "aankoop"):
+                besteed, _ = plaats_marktorder("buy", item["market"], bedrag, "aankoop")
+                if besteed <= 0:
                     regels.append(f"• *{item['munt']}*: ❌ order niet gevuld door Bitvavo")
                     continue
-                log_trade(item["market"], "koop", None, None, bedrag, bedrag * fee, "aanvullen")
-                registreer_koop(item["munt"], bedrag)
-                regels.append(f"• *{item['munt']}*: +{euro(bedrag)} (laag {item['laag']} van {item['van_lagen']})")
-                beschikbaar -= bedrag
-                totaal_besteed += bedrag
+                log_trade(item["market"], "koop", None, None, besteed, besteed * fee, "aanvullen")
+                registreer_koop(item["munt"], besteed)
+                regels.append(f"• *{item['munt']}*: +{euro(besteed)} (laag {item['laag']} van {item['van_lagen']})")
+                beschikbaar -= besteed
+                totaal_besteed += besteed
                 time.sleep(0.5)
             except Exception as order_e:
                 log_error(f"aanvullen.{item['munt']}", order_e)
@@ -1815,7 +1886,7 @@ def voer_alles_aanvullen_uit():
             f"\n\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n"
             f"💰 Besteed: {euro(totaal_besteed)}\n"
             f"💵 Nog beschikbaar: {euro(beschikbaar)}\n"
-            f"💎 Afgeroomd naar {reserve_naam()}: {euro(btc_reserve_waarde())}"
+            f"₿ {reserve_label()}: {euro(reserve_waarde())}"
         )
         send_telegram_message(bericht, include_keyboard=True)
 
@@ -1958,15 +2029,16 @@ def check_pot_kopen():
                 continue
 
             try:
-                if not plaats_marktorder("buy", item["market"], bedrag, "aankoop"):
+                besteed, _ = plaats_marktorder("buy", item["market"], bedrag, "aankoop")
+                if besteed <= 0:
                     log_info(f"Pot: bijkoop van {coin} is niet gevuld, even overgeslagen.")
                     _pot_koop_pauze[coin] = time.time() + POT_MISLUKTE_KOOP_PAUZE
                     continue
-                log_trade(item["market"], "koop", None, None, bedrag, bedrag * fee, "pot-automatisch")
-                registreer_pot_koop(coin, bedrag)
-                regels.append(f"• *{coin}*: +{euro(bedrag)} (laag {item['laag']} van {item['van_lagen']})")
-                beschikbaar -= bedrag
-                totaal_besteed += bedrag
+                log_trade(item["market"], "koop", None, None, besteed, besteed * fee, "pot-automatisch")
+                registreer_pot_koop(coin, besteed)
+                regels.append(f"• *{coin}*: +{euro(besteed)} (laag {item['laag']} van {item['van_lagen']})")
+                beschikbaar -= besteed
+                totaal_besteed += besteed
                 time.sleep(0.5)
             except Exception as order_e:
                 log_error(f"check_pot_kopen.{coin}", order_e)
@@ -2244,7 +2316,7 @@ def kies_pot_munten(handmatig=False):
             if not market.endswith("/EUR"):
                 continue
             coin = market[:-4]
-            if coin in hoofdlijst or coin in potlijst or coin in uitgesloten or coin == "EUR" or is_reserve_munt(coin):
+            if coin in hoofdlijst or coin in potlijst or coin in uitgesloten or coin == "EUR" or coin in RESERVE_MUNTEN:
                 continue
 
             # Munten die je al bezit buiten de bot om (handmatige trades,
@@ -2320,13 +2392,13 @@ def kies_pot_munten(handmatig=False):
                 kocht_tekst = ""
                 if bedrag >= MIN_ORDER_EUR:
                     try:
-                        gevuld = plaats_marktorder("buy", market, bedrag, "aankoop")
+                        besteed, _ = plaats_marktorder("buy", market, bedrag, "aankoop")
                         cache.invalideer()
-                        if gevuld:
-                            log_trade(market, "koop", None, None, bedrag, bedrag * fee, "pot-automatisch")
-                            registreer_pot_koop(coin, bedrag)
-                            cash_over = round(cash_over - bedrag, 2)
-                            kocht_tekst = f", meteen gekocht voor {euro(bedrag)}"
+                        if besteed > 0:
+                            log_trade(market, "koop", None, None, besteed, besteed * fee, "pot-automatisch")
+                            registreer_pot_koop(coin, besteed)
+                            cash_over = round(cash_over - besteed, 2)
+                            kocht_tekst = f", meteen gekocht voor {euro(besteed)}"
                         else:
                             kocht_tekst = ", order niet gevuld (de pot koopt later zelf bij)"
                     except Exception as koop_e:
@@ -2449,8 +2521,7 @@ def kies_dalpot_munten(handmatig=False):
             if not market.endswith("/EUR"):
                 continue
             coin = market[:-4]
-            if (coin in hoofdlijst or coin in potlijst or coin in dalpotlijst or coin in uitgesloten
-                    or coin == "EUR" or is_reserve_munt(coin)):
+            if coin in hoofdlijst or coin in potlijst or coin in dalpotlijst or coin in uitgesloten or coin == "EUR" or coin in RESERVE_MUNTEN:
                 continue
 
             # Afkoelperiode: een net verkochte munt is vaak nog steeds de
@@ -2497,29 +2568,32 @@ def kies_dalpot_munten(handmatig=False):
                 # geannuleerd worden, dan gaat de bot gewoon naar de volgende.
                 bedrag = round(budget_per_munt, 2)
                 try:
-                    gevuld = plaats_marktorder("buy", market, bedrag, "aankoop")
+                    besteed, _ = plaats_marktorder("buy", market, bedrag, "aankoop")
                 except Exception as koop_e:
                     log_error(f"kies_dalpot_munten.koop.{coin}", koop_e)
                     mislukt.append(coin)
                     continue
                 cache.invalideer()
-                if not gevuld:
+                if besteed <= 0:
                     log_info(f"Dalpot: order voor {coin} is niet gevuld, volgende kandidaat.")
                     mislukt.append(coin)
                     continue
 
-                log_trade(market, "koop", None, None, bedrag, bedrag * fee, "dalpot-automatisch")
-                registreer_dalpot_koop(coin, bedrag)
+                # Het budget van de munt is wat er echt besteed is (meestal het
+                # volle budget, bij een deels gevulde order minder), zodat winst
+                # en winstdoel altijd kloppen met wat er in de wallet zit.
+                log_trade(market, "koop", None, None, besteed, besteed * fee, "dalpot-automatisch")
+                registreer_dalpot_koop(coin, besteed)
                 verse_config["dalpot_coins"][coin] = {
-                    "active": True, "budget_eur": round(budget_per_munt, 2),
-                    "take_profit_pct": round(winstdoel_eur / budget_per_munt * 100, 2) if budget_per_munt else 10.0,
+                    "active": True, "budget_eur": besteed,
+                    "take_profit_pct": round(winstdoel_eur / besteed * 100, 2),
                     "trailing_sell_pct": trailing_pct,
                     "vast_doel": True,
                 }
                 bewaar_config(verse_config)
-                cash_over = round(cash_over - bedrag, 2)
+                cash_over = round(cash_over - besteed, 2)
                 vrije_plekken_nu -= 1
-                regels.append(f"• *{coin}*: gekocht voor {euro(bedrag)}, 24u: {verandering_pct:.1f}%")
+                regels.append(f"• *{coin}*: gekocht voor {euro(besteed)}, 24u: {verandering_pct:.1f}%")
 
         overgeslagen = f"\n_Overgeslagen (order niet gevuld): {', '.join(mislukt)}_" if mislukt else ""
         if regels:
@@ -2568,16 +2642,20 @@ def verwerk_munt_toevoegen(invoer_tekst):
             )
             return
 
-        if is_reserve_munt(coin):
-            send_telegram_message(RESERVE_GEWEIGERD_TEKST.format(munt=coin), include_keyboard=True)
+        if coin in RESERVE_MUNTEN:
+            send_telegram_message(
+                f"❌ *{coin}* is een reserve-munt (BTC en ETH zijn bedoeld voor je afgeroomde winst) "
+                f"en kan niet ook in de hoofdlijst staan.",
+                include_keyboard=True,
+            )
             return
 
         config = laad_config()
         coins = config["coins"]
 
-        if coin in config["pot_coins"]:
+        if coin in config["pot_coins"] or coin in config.get("dalpot_coins", {}):
             send_telegram_message(
-                f"❌ *{coin}* staat al in de pot. Een munt kan niet in beide lijsten staan, "
+                f"❌ *{coin}* staat al in de pot of de dalpot. Een munt kan niet in meerdere lijsten staan, "
                 f"want Bitvavo geeft maar één saldo per munt terug.",
                 include_keyboard=True,
             )
@@ -2681,17 +2759,22 @@ def verwerk_pot_munt_toevoegen(invoer_tekst):
         if not markt_bestaat(market):
             send_telegram_message(f"❌ Markt *{market}* bestaat niet op Bitvavo.", custom_keyboard=POT_KEYBOARD)
             return
-        if is_reserve_munt(coin):
-            send_telegram_message(RESERVE_GEWEIGERD_TEKST.format(munt=coin), custom_keyboard=POT_KEYBOARD)
-            return
         if nieuw_budget < MIN_ORDER_EUR:
             send_telegram_message(f"⚠️ Budget moet minimaal {euro(MIN_ORDER_EUR)} zijn.", custom_keyboard=POT_KEYBOARD)
             return
 
-        config = laad_config()
-        if coin in config["coins"]:
+        if coin in RESERVE_MUNTEN:
             send_telegram_message(
-                f"❌ *{coin}* staat al in je hoofdlijst. Een munt kan niet in beide lijsten staan, "
+                f"❌ *{coin}* is een reserve-munt (BTC en ETH zijn bedoeld voor je afgeroomde winst) "
+                f"en kan niet ook in de pot staan.",
+                custom_keyboard=POT_KEYBOARD,
+            )
+            return
+
+        config = laad_config()
+        if coin in config["coins"] or coin in config.get("dalpot_coins", {}):
+            send_telegram_message(
+                f"❌ *{coin}* staat al in je hoofdlijst of de dalpot. Een munt kan niet in meerdere lijsten staan, "
                 f"want Bitvavo geeft maar één saldo per munt terug.",
                 custom_keyboard=POT_KEYBOARD,
             )
@@ -2722,12 +2805,12 @@ def verwerk_pot_munt_toevoegen(invoer_tekst):
         if bedrag >= MIN_ORDER_EUR:
             fee = fee_fractie(config)
             try:
-                gevuld = plaats_marktorder("buy", market, bedrag, "aankoop")
+                besteed, _ = plaats_marktorder("buy", market, bedrag, "aankoop")
                 cache.invalideer()
-                if gevuld:
-                    log_trade(market, "koop", None, None, bedrag, bedrag * fee, "pot-automatisch")
-                    registreer_pot_koop(coin, bedrag)
-                    kocht_tekst = f"• Meteen gekocht: {euro(bedrag)}\n"
+                if besteed > 0:
+                    log_trade(market, "koop", None, None, besteed, besteed * fee, "pot-automatisch")
+                    registreer_pot_koop(coin, besteed)
+                    kocht_tekst = f"• Meteen gekocht: {euro(besteed)}\n"
                 else:
                     kocht_tekst = "• De order is niet gevuld (te dun orderboek?), de pot koopt later zelf bij.\n"
             except Exception as koop_e:
@@ -2777,7 +2860,7 @@ def verwerk_pot_munt_verwijderen(coin_code):
         if waarde >= 1.0:
             fee = fee_fractie(config)
             try:
-                gevuld = plaats_marktorder("sell", market, aantal, "verkoop")
+                ontvangen, verkocht = plaats_marktorder("sell", market, aantal, "verkoop")
             except Exception as order_e:
                 log_error(f"verwerk_pot_munt_verwijderen.verkoop.{coin}", order_e)
                 send_telegram_message(
@@ -2787,13 +2870,14 @@ def verwerk_pot_munt_verwijderen(coin_code):
                 return
 
             cache.invalideer()
-            if not gevuld:
+            if verkocht < aantal * 0.99:
                 send_telegram_message(
-                    f"⚠️ De verkooporder voor {coin} is niet gevuld — munt blijft nog in de pot staan. Probeer het later nog eens.",
+                    f"⚠️ De verkooporder voor {coin} is niet (volledig) gevuld — munt blijft nog in de pot staan. "
+                    f"Probeer het later nog eens.",
                     custom_keyboard=POT_KEYBOARD,
                 )
                 return
-            netto_opbrengst = round(waarde * (1.0 - fee), 2)
+            netto_opbrengst = round(ontvangen, 2)
             budget = config["pot_coins"][coin].get("budget_eur", 0.0)
             netto_winst = round(netto_opbrengst - budget, 2)
             log_trade(market, "verkoop", aantal, koers, netto_winst, netto_winst * fee, "handmatig")
@@ -2866,21 +2950,21 @@ def verwerk_pot_munt_budget_verhogen(invoer_tekst):
         market = f"{coin}/EUR"
         fee = fee_fractie(config)
         try:
-            gevuld = plaats_marktorder("buy", market, verschil, "aankoop")
+            besteed, _ = plaats_marktorder("buy", market, verschil, "aankoop")
         except Exception as order_e:
             log_error(f"verwerk_pot_munt_budget_verhogen.{coin}", order_e)
             send_telegram_message(f"🚨 Order voor {coin} is mislukt.", custom_keyboard=POT_KEYBOARD)
             return
 
         cache.invalideer()
-        if not gevuld:
+        if besteed <= 0:
             send_telegram_message(
                 f"⚠️ De order voor {coin} is niet gevuld (te dun orderboek?). Er is niets gekocht, het budget is niet aangepast.",
                 custom_keyboard=POT_KEYBOARD,
             )
             return
-        log_trade(market, "koop", None, None, verschil, verschil * fee, "pot-automatisch")
-        registreer_pot_koop(coin, verschil)
+        log_trade(market, "koop", None, None, besteed, besteed * fee, "pot-automatisch")
+        registreer_pot_koop(coin, besteed)
 
         verse_config = laad_config()
         gs = verse_config.get("global_settings", {})
@@ -3131,11 +3215,16 @@ def verwerk_dalpot_munt_toevoegen(invoer_tekst):
         if not markt_bestaat(market):
             send_telegram_message(f"❌ Markt *{market}* bestaat niet op Bitvavo.", include_keyboard=True)
             return
-        if is_reserve_munt(coin):
-            send_telegram_message(RESERVE_GEWEIGERD_TEKST.format(munt=coin), include_keyboard=True)
-            return
         if nieuw_budget < MIN_ORDER_EUR:
             send_telegram_message(f"⚠️ Budget moet minimaal {euro(MIN_ORDER_EUR)} zijn.", include_keyboard=True)
+            return
+
+        if coin in RESERVE_MUNTEN:
+            send_telegram_message(
+                f"❌ *{coin}* is een reserve-munt (BTC en ETH zijn bedoeld voor je afgeroomde winst) "
+                f"en kan niet ook in de dalpot staan.",
+                include_keyboard=True,
+            )
             return
 
         config = laad_config()
@@ -3166,13 +3255,13 @@ def verwerk_dalpot_munt_toevoegen(invoer_tekst):
             return
 
         try:
-            gevuld = plaats_marktorder("buy", market, bedrag, "aankoop")
+            besteed, _ = plaats_marktorder("buy", market, bedrag, "aankoop")
         except Exception as koop_e:
             log_error(f"verwerk_dalpot_munt_toevoegen.koop.{coin}", koop_e)
             send_telegram_message(f"🚨 Kopen van *{coin}* is mislukt. Er is niets gekocht of toegevoegd.", include_keyboard=True)
             return
         cache.invalideer()
-        if not gevuld:
+        if besteed <= 0:
             send_telegram_message(
                 f"⚠️ De order voor *{coin}* is niet gevuld (waarschijnlijk een te dun orderboek). "
                 f"Er is niets gekocht of toegevoegd.", include_keyboard=True,
@@ -3180,11 +3269,11 @@ def verwerk_dalpot_munt_toevoegen(invoer_tekst):
             return
 
         fee = fee_fractie(config)
-        log_trade(market, "koop", None, None, bedrag, bedrag * fee, "dalpot-automatisch")
-        registreer_dalpot_koop(coin, bedrag)
+        log_trade(market, "koop", None, None, besteed, besteed * fee, "dalpot-automatisch")
+        registreer_dalpot_koop(coin, besteed)
         config["dalpot_coins"][coin] = {
-            "active": True, "budget_eur": bedrag,
-            "take_profit_pct": round(winstdoel_eur / bedrag * 100, 2) if bedrag else 10.0,
+            "active": True, "budget_eur": besteed,
+            "take_profit_pct": round(winstdoel_eur / besteed * 100, 2),
             "trailing_sell_pct": trailing_pct,
             "vast_doel": True,
         }
@@ -3193,8 +3282,8 @@ def verwerk_dalpot_munt_toevoegen(invoer_tekst):
 
         send_telegram_message(
             f"📉 *{coin} toegevoegd aan de dalpot!*\n"
-            f"• Budget: {euro(bedrag)}\n"
-            f"• Meteen gekocht: {euro(bedrag)}\n",
+            f"• Budget: {euro(besteed)}\n"
+            f"• Meteen gekocht: {euro(besteed)}\n",
             include_keyboard=True,
         )
     except ValueError:
@@ -3225,7 +3314,7 @@ def verwerk_dalpot_munt_verwijderen(coin_code):
         if waarde >= 1.0:
             fee = fee_fractie(config)
             try:
-                gevuld = plaats_marktorder("sell", market, aantal, "verkoop")
+                ontvangen, verkocht = plaats_marktorder("sell", market, aantal, "verkoop")
             except Exception as order_e:
                 log_error(f"verwerk_dalpot_munt_verwijderen.verkoop.{coin}", order_e)
                 send_telegram_message(
@@ -3235,13 +3324,14 @@ def verwerk_dalpot_munt_verwijderen(coin_code):
                 return
 
             cache.invalideer()
-            if not gevuld:
+            if verkocht < aantal * 0.99:
                 send_telegram_message(
-                    f"⚠️ De verkooporder voor {coin} is niet gevuld — munt blijft nog in de dalpot staan. Probeer het later nog eens.",
+                    f"⚠️ De verkooporder voor {coin} is niet (volledig) gevuld — munt blijft nog in de dalpot staan. "
+                    f"Probeer het later nog eens.",
                     include_keyboard=True,
                 )
                 return
-            netto_opbrengst = round(waarde * (1.0 - fee), 2)
+            netto_opbrengst = round(ontvangen, 2)
             budget = config["dalpot_coins"][coin].get("budget_eur", 0.0)
             netto_winst = round(netto_opbrengst - budget, 2)
             log_trade(market, "verkoop", aantal, koers, netto_winst, netto_winst * fee, "handmatig")
@@ -3320,6 +3410,40 @@ def wijzig_dalpot_instellingen(max_munten, budget_per_munt, winstdoel_eur, trail
         include_keyboard=True,
     )
     return True, "Dalpot-instellingen opgeslagen."
+
+
+@met_lock
+def wijzig_reserve_munt(munt):
+    """
+    Kiest naar welke munt (BTC of ETH) de helft van elke afgeroomde winst gaat.
+    Geldt alleen voor nieuwe aankopen: wat er al staat blijft staan en blijft
+    meetellen in de totalen.
+    """
+    munt = str(munt).strip().upper()
+    if munt not in RESERVE_MUNTEN:
+        return False, "Kies BTC of ETH."
+
+    config = laad_config()
+    gs = config.setdefault("global_settings", {})
+    if munt == reserve_munt(config):
+        return True, f"De reserve-munt staat al op {munt}."
+
+    # Bitvavo geeft maar één saldo per munt terug: een munt kan niet tegelijk
+    # reserve en positie in de hoofdlijst, pot of dalpot zijn.
+    if munt in config.get("coins", {}) or munt in config.get("pot_coins", {}) or munt in config.get("dalpot_coins", {}):
+        return False, f"{munt} staat al in de hoofdlijst, de pot of de dalpot en kan dan niet ook de reserve zijn."
+    if not markt_bestaat(f"{munt}/EUR"):
+        return False, f"De markt {munt}/EUR bestaat niet op Bitvavo."
+
+    gs["reserve_munt"] = munt
+    bewaar_config(config)
+    send_telegram_message(
+        f"💎 *Reserve-munt gewijzigd naar {munt}*\n"
+        f"Vanaf nu gaat de helft van elke afgeroomde winst naar {munt}. "
+        f"Wat je al in andere reserve-munten hebt blijft staan en blijft meetellen.",
+        include_keyboard=True,
+    )
+    return True, f"Reserve-munt gewijzigd naar {munt}."
 
 
 # ---------------------------------------------------------------------------
@@ -3413,13 +3537,13 @@ def cmd_live_dashboard():
                 f"{icon}*{p['coin'].ljust(6)}*: `{euro(p['waarde'], False)} ({rendement_str})` [€{p['budget']:.0f}]"
             )
 
-        btc_waarde = btc_reserve_waarde()
+        btc_waarde = reserve_waarde()
         bericht = (
             f"🤖 *PROFIT HARVESTER V5.7*\n\n"
             f"💼 *Totale waarde:* {euro(vrij_cash + totaal_belegd + btc_waarde + pot['belegd'] + dalpot['belegd'])}\n"
             f"💰 *Vrije cash:* {euro(handelscash(vrij_cash, state))}\n"
             f"🪙 *Belegd:* {euro(totaal_belegd)}\n"
-            f"💎 *Afgeroomd naar {reserve_naam()}:* {euro(btc_waarde)}\n\n"
+            f"₿ *{reserve_label()}:* {euro(btc_waarde)}\n\n"
             f"📊 *LIVE POSITIES PER MUNT*:\n" + ("\n".join(regels) if regels else "_Geen actieve munten._")
         )
         send_telegram_message(bericht, include_keyboard=True)
@@ -3456,7 +3580,7 @@ def cmd_overzicht():
     try:
         _, vrij_cash, totaal_belegd = verzamel_posities()
         state = laad_state()
-        btc_waarde = btc_reserve_waarde()
+        btc_waarde = reserve_waarde()
         pot = verzamel_pot()
         dalpot = verzamel_dalpot()
         echt_vrij = handelscash(vrij_cash, state)
@@ -3474,7 +3598,7 @@ def cmd_overzicht():
             f"• Gereserveerd voor dalpot: {euro(dalpot_cash)}\n\n"
             f"📊 *Verdeling*\n"
             f"• Belegd: {euro(totaal_belegd)}\n"
-            f"• Afgeroomd naar {reserve_naam()}: {euro(btc_waarde)}\n"
+            f"• {reserve_label()}: {euro(btc_waarde)}\n"
             f"• Belegd in pot: {euro(pot_belegd)}\n"
             f"• Belegd in dalpot: {euro(dalpot_belegd)}\n\n"
             f"▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n"
@@ -3545,7 +3669,7 @@ def cmd_handelen_menu():
         f"Kies hieronder een actie, of bekijk de instellingen:\n\n"
         f"• 📉 Trailing Sell: `{gs.get('trailing_sell_pct', 1.0)}%` (per munt op maat)\n"
         f"• 💰 Min. netto afroomwinst: `{euro(MIN_WINST_EUR, False)}`\n"
-        f"• 💎 Naar {actieve_reserve(config)} per oogst: `{gs.get('reserve_pct', STANDAARD_RESERVE_PCT)}%`\n"
+        f"• 💎 Naar {reserve_munt(config)} per oogst: `{gs.get('reserve_pct', STANDAARD_RESERVE_PCT)}%`\n"
         f"• 🛑 Inlegplafond per munt: `{gs.get('max_inleg_factor', STANDAARD_MAX_INLEG)}x budget`\n"
         f"• 🪜 Aanvullagen: `{', '.join(str(l) + '%' for l in lagen)}`\n"
         f"• ⏳ Wacht op bodem: `{'ja' if gs.get('wacht_op_bodem', True) else 'nee'}`\n"
@@ -4054,52 +4178,11 @@ def beheren():
         pot_instellingen=pot_instellingen,
         dalpot_munten=dalpot_munten,
         dalpot_instellingen=dalpot_instellingen,
-        reserve_keuzes=RESERVE_KEUZES,
-        reserve_actief=actieve_reserve(config),
-        # Uit de sessie, niet uit de URL: anders kan een link met eigen tekst
-        # een nep-melding op deze pagina zetten.
-        reserve_melding=session.pop("reserve_melding", None),
+        reserve_munt=reserve_munt(config),
+        reserve_munten=RESERVE_MUNTEN,
         verwerkt=request.args.get("verwerkt"),
+        fout=session.pop("beheren_fout", None),
     )
-
-
-@met_lock
-def verwerk_reserve_wissel(nieuwe_munt):
-    """
-    Kiest naar welke reservemunt nieuwe afgeroomde winst gaat. Bestaande
-    reserve blijft staan en blijft meetellen. Geeft een korte melding terug
-    voor de Beheren-pagina.
-    """
-    munt = (nieuwe_munt or "").strip().upper()
-    if munt not in RESERVE_KEUZES:
-        return f"{munt or 'Deze munt'} kan geen reservemunt zijn. Kies uit {', '.join(RESERVE_KEUZES)}."
-    if not markt_bestaat(f"{munt}/EUR"):
-        return f"Markt {munt}/EUR bestaat niet op Bitvavo."
-    config = laad_config()
-    oud = actieve_reserve(config)
-    if munt == oud:
-        return f"{munt} was al de actieve reservemunt."
-    config["global_settings"]["reserve_actief"] = munt
-    bewaar_config(config)
-    log_info(f"Reservemunt gewisseld van {oud} naar {munt}.")
-    send_telegram_message(
-        f"{RESERVE_ICOON.get(munt, '💎')} *Reservemunt gewisseld: {oud} → {munt}*\n\n"
-        f"Nieuwe afgeroomde winst gaat voortaan naar {munt}. Je {oud}-reserve blijft "
-        f"gewoon staan en telt mee in je totale waarde.",
-        include_keyboard=True,
-    )
-    return f"Nieuwe winst gaat voortaan naar {munt}. Je {oud}-reserve blijft staan."
-
-
-@app.route("/beheren/reserve-munt", methods=["POST"])
-def beheren_reserve_munt():
-    try:
-        melding = verwerk_reserve_wissel(request.form.get("munt", ""))
-    except Exception as e:
-        log_error("beheren_reserve_munt", e)
-        melding = "Wisselen is mislukt. Zie bot_errors.log."
-    session["reserve_melding"] = melding
-    return redirect(url_for("beheren", verwerkt="1"))
 
 
 @app.route("/help")
@@ -4122,8 +4205,8 @@ def help_pagina():
         "trailing_buy": float(gs.get("trailing_buy_pct", 1.0)),
         "wacht_op_bodem": gs.get("wacht_op_bodem", True),
         "reserve_pct": float(gs.get("reserve_pct", STANDAARD_RESERVE_PCT)),
-        "reserve_actief": actieve_reserve(config),
-        "reserve_keuzes": RESERVE_KEUZES,
+        "reserve_actief": reserve_munt(config),
+        "reserve_keuzes": list(RESERVE_MUNTEN),
         "pot_max": int(gs.get("pot_max_munten", STANDAARD_POT_MAX_MUNTEN)),
         "pot_budget": float(gs.get("pot_budget_per_munt", pot_min_order)),
         "pot_min_order": pot_min_order,
@@ -4340,6 +4423,20 @@ def beheren_dalpot_instellingen():
     return redirect(url_for("beheren", verwerkt="1"))
 
 
+@app.route("/beheren/reserve-munt", methods=["POST"])
+def beheren_reserve_munt():
+    try:
+        ok, bericht = wijzig_reserve_munt(request.form.get("munt", ""))
+        if not ok:
+            # Via de sessie, niet via de URL: anders kan een link met eigen
+            # tekst een nep-foutmelding op de Beheren-pagina zetten.
+            session["beheren_fout"] = bericht
+            return redirect(url_for("beheren"))
+    except Exception as e:
+        log_error("beheren_reserve_munt", e)
+    return redirect(url_for("beheren", verwerkt="1"))
+
+
 @app.route("/sw.js")
 def service_worker():
     """
@@ -4358,7 +4455,7 @@ def dashboard():
         posities, vrij_cash, totaal_belegd = verzamel_posities()
         actieve_posities = [p for p in posities if p["actief"]]
         state = laad_state()
-        btc_waarde = btc_reserve_waarde()
+        btc_waarde = reserve_waarde()
         pot = verzamel_pot()
         dalpot = verzamel_dalpot()
         portfolio_data = {
@@ -4366,7 +4463,8 @@ def dashboard():
             "cash": handelscash(vrij_cash, state),
             "belegd": totaal_belegd,
             "reserve": btc_waarde,
-            "reserves": reserve_waarden(),
+            "reserve_verdeling": reserve_verdeling(),
+            "reserve_actief": reserve_munt(),
             "gerealiseerd": gerealiseerd_totaal(state),
         }
         return render_template(
@@ -4383,7 +4481,7 @@ def dashboard():
 # De bot bewaarde tot nu toe alleen de stand van nu. Voor een grafiek is een
 # reeks nodig. Twee lagen, zodat het bestand klein blijft:
 #   fijn : elke 5 minuten, 48 uur bewaard  -> de grafiek van vandaag
-#   uur  : elk uur, 95 dagen bewaard       -> de maand en de drie maanden
+#   uur  : elk uur, altijd bewaard         -> de maand, de drie maanden en alles
 # ---------------------------------------------------------------------------
 
 HISTORIE_FILE = DATA_PREFIX + "bot_historie.json"
@@ -4430,7 +4528,7 @@ def noteer_historie():
 
         posities, vrij_cash, belegd = verzamel_posities()
         totaal = (
-            vrij_cash + belegd + btc_reserve_waarde()
+            vrij_cash + belegd + reserve_waarde()
             + verzamel_pot()["belegd"] + verzamel_dalpot()["belegd"]
         )
         punt = [round(nu), round(totaal, 2), round(vrij_cash, 2), round(belegd, 2)]
@@ -4476,6 +4574,35 @@ def historie_punten(bereik):
     return [{"t": p[0], "totaal": p[1], "cash": p[2], "belegd": p[3]} for p in ruw]
 
 
+@app.route("/api/meldingen")
+def api_meldingen():
+    """Laatste meldingen (nieuwste eerst) en hoeveel belangrijke er nog ongelezen zijn."""
+    try:
+        with _meldingen_lock:
+            data = _laad_meldingen()
+        items = list(reversed(data["items"]))[:50]
+        gelezen_tot = data.get("gelezen_tot", 0)
+        ongelezen = sum(1 for m in data["items"] if m["niveau"] == "belangrijk" and m["t"] > gelezen_tot)
+        return jsonify({"meldingen": items, "ongelezen_belangrijk": ongelezen, "gelezen_tot": gelezen_tot})
+    except Exception as e:
+        log_error("api_meldingen", e)
+        return jsonify({"fout": "Meldingen ophalen mislukt."}), 500
+
+
+@app.route("/api/meldingen/gelezen", methods=["POST"])
+def api_meldingen_gelezen():
+    """Markeert alles als gelezen (de rode stip verdwijnt)."""
+    try:
+        with _meldingen_lock:
+            data = _laad_meldingen()
+            data["gelezen_tot"] = int(time.time())
+            _bewaar_meldingen(data)
+        return jsonify({"ok": True})
+    except Exception as e:
+        log_error("api_meldingen_gelezen", e)
+        return jsonify({"fout": "Bijwerken mislukt."}), 500
+
+
 @app.route("/api/historie")
 def api_historie():
     """Punten voor de grafiek. bereik = dag, maand, kwartaal of alles."""
@@ -4505,7 +4632,7 @@ def _oogst_trades():
     een omzetting, geen nieuwe winst."""
     if trades_tabel is None:
         return []
-    return [t for t in trades_tabel.all() if t.get("kant") == "verkoop" and t.get("bron") != "reserve-btc"]
+    return [t for t in trades_tabel.all() if t.get("kant") == "verkoop" and t.get("bron") not in RESERVE_BRONNEN]
 
 
 def _periode_start(bereik, nu):
@@ -4522,7 +4649,7 @@ def _periode_start(bereik, nu):
 def bereken_rendement(bereik):
     """
     Zet het orderlogboek om in een winstoverzicht per periode: totaal
-    geoogst, aantal oogsten, gemiddelde, betaalde fees, naar de reserve omgezet,
+    geoogst, aantal oogsten, gemiddelde, betaalde fees, naar BTC omgezet,
     een reeks per dag (of per maand bij "alles") en de best presterende
     munten. Alles hier is afgeleid van bestaande orders, er wordt niets
     nieuws bijgehouden.
@@ -4544,8 +4671,8 @@ def bereken_rendement(bereik):
 
     alle_trades = trades_tabel.all() if trades_tabel is not None else []
     alle_trades_periode = [t for t in alle_trades if in_periode(t)]
-    oogsten = [t for t in alle_trades_periode if t.get("kant") == "verkoop" and t.get("bron") != "reserve-btc"]
-    btc_aankopen = [t for t in alle_trades_periode if t.get("bron") == "reserve-btc"]
+    oogsten = [t for t in alle_trades_periode if t.get("kant") == "verkoop" and t.get("bron") not in RESERVE_BRONNEN]
+    btc_aankopen = [t for t in alle_trades_periode if t.get("bron") in RESERVE_BRONNEN]
 
     totaal_winst = round(sum(t.get("bedrag", 0.0) for t in oogsten), 2)
     aantal = len(oogsten)
@@ -4648,7 +4775,7 @@ def api_data():
     try:
         posities, vrij_cash, totaal_belegd = verzamel_posities()
         state = laad_state()
-        btc_waarde = btc_reserve_waarde()
+        btc_waarde = reserve_waarde()
         pot = verzamel_pot()
         dalpot = verzamel_dalpot()
         return jsonify({
@@ -4659,7 +4786,8 @@ def api_data():
                 "cash": handelscash(vrij_cash, state),
                 "belegd": totaal_belegd,
                 "reserve": btc_waarde,
-                "reserves": reserve_waarden(),
+                "reserve_verdeling": reserve_verdeling(),
+                "reserve_actief": reserve_munt(),
                 "gerealiseerd": gerealiseerd_totaal(state),
             },
             "posities": [p for p in posities if p["actief"]],
@@ -4707,11 +4835,11 @@ def main():
     config = laad_config()
     poll_interval = float(config.get("global_settings", {}).get("poll_interval_seconds", 10))
 
-    # Reservemunten horen in geen enkele lijst (zie is_reserve_munt). Stonden
-    # ze er al in van vóór deze controle, dan alleen waarschuwen: niets
-    # automatisch verwijderen, dat is aan de gebruiker.
+    # Reservemunten horen in geen enkele lijst (Bitvavo geeft maar één saldo
+    # per munt). Stonden ze er al in van vóór die controle, dan alleen
+    # waarschuwen: niets automatisch verwijderen, dat is aan de gebruiker.
     for lijst, naam in (("coins", "hoofdlijst"), ("pot_coins", "pot"), ("dalpot_coins", "dalpot")):
-        dubbel = [c for c in config.get(lijst, {}) if is_reserve_munt(c)]
+        dubbel = [c for c in config.get(lijst, {}) if c in RESERVE_MUNTEN]
         if dubbel:
             log_info(f"Reservemunt(en) {dubbel} staan ook in de {naam}.")
             send_telegram_message(
@@ -4731,7 +4859,7 @@ def main():
 
     demo_regel = ""
     if DEMO_MODUS:
-        demo_regel = f"🧪 *Demo-modus*: nep-saldo, echte koersen, geen echte orders.\n\n"
+        demo_regel = "🧪 *Demo-modus*: nep-saldo, echte koersen, geen echte orders.\n\n"
         print(f"DEMO-MODUS actief. Nep-saldo in {DemoExchange.SALDO_FILE}, data in demo_*.json")
     print(f"Profit Harvester V5.7 gestart. Dashboard op http://{DASHBOARD_HOST}:{DASHBOARD_PORT}")
     send_telegram_message(
@@ -4739,7 +4867,7 @@ def main():
         f"{demo_regel}"
         f"🌐 Dashboard: `{DASHBOARD_HOST}:{DASHBOARD_PORT}`\n"
         f"⏱️ Check interval: `{poll_interval:.0f}s`\n"
-        f"💎 Afgeroomd naar {reserve_naam()}: {euro(btc_reserve_waarde())}\n"
+        f"₿ {reserve_label()}: {euro(reserve_waarde())}\n"
         f"🧪 Pot cash: {euro(laad_state().get('pot_cash_eur', 0.0))}\n\n"
         f"_Hoofdlijst: verkopen automatisch, kopen alleen op jouw knop.\n"
         f"Pot: koopt en verkoopt zelf, binnen zijn eigen grenzen._",

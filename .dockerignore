@@ -7,6 +7,7 @@ bot_live_config.json
 bot_state.json
 bot_trades_db.json
 bot_historie.json
+bot_meldingen.json
 coin_iconen.json
 demo_*.json
 *.log

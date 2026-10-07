@@ -11,6 +11,31 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var KEY = "thema";
+  function lees() { try { return localStorage.getItem(KEY) === "licht" ? "licht" : "donker"; } catch (e) { return "donker"; } }
+  function zet(t) {
+    document.documentElement.setAttribute("data-thema", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    var c = document.querySelector('meta[name="color-scheme"]');
+    if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
+    var b = document.getElementById("knopThema");
+    if (b) { b.textContent = t === "licht" ? "Donker" : "Licht"; }
+  }
+  zet(lees());
+  document.addEventListener("DOMContentLoaded", function () {
+    zet(lees());
+    var b = document.getElementById("knopThema");
+    if (b) { b.addEventListener("click", function () {
+      var nieuw = lees() === "licht" ? "donker" : "licht";
+      try { localStorage.setItem(KEY, nieuw); } catch (e) {}
+      zet(nieuw);
+    }); }
+  });
+})();
+</script>
 <style>
 :root {
   --bg:       #0a0e14;
@@ -40,8 +65,24 @@ body {
   padding: 24px 18px 92px;
   -webkit-font-smoothing: antialiased;
 }
-.wrap { max-width: 900px; margin: 0 auto; }
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 1280px; margin: 0 auto; }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
+
+/* laadstaat: een rustige glans in plaats van lege vlakken met nulwaarden */
+.skelet, body[data-laden] .strategiekaart .sk-waarde, body[data-laden] .strategiekaart .sk-sub, body[data-laden] .strategiekaart .sk-munten {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,.055) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skelet 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes skelet { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .skelet, body[data-laden] .strategiekaart * { animation: none !important; } }
+body[data-laden] .strategiekaart .sk-waarde, body[data-laden] .strategiekaart .sk-sub, body[data-laden] .strategiekaart .sk-munten { color: transparent; }
+body[data-laden] .strategiekaart .sk-waarde { width: 62%; }
+body[data-laden] .strategiekaart .sk-sub { width: 44%; min-height: 1.1em; }
+body[data-laden] .strategiekaart .sk-munten { width: 28%; min-height: 1em; }
+.laadpaneel { padding: 16px 18px; display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.laadpaneel .skelet { height: 46px; }
 
 .kop { text-align: center; margin-bottom: 18px; }
 .kop h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -171,8 +212,58 @@ button:hover:not(:disabled) { background: #1f2c3d; border-color: #33475d; }
 button:active:not(:disabled) { transform: translateY(1px); }
 button.plat { background: none; border-color: transparent; color: var(--dim); font-weight: 500; }
 button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--text); }
+a.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); text-decoration: none;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+a.plat:hover { background: var(--surface2); color: var(--text); }
+
+.rijkop {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, .8fr) minmax(150px, 1.5fr);
+  gap: 14px;
+  padding: 9px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--dimmer);
+}
+
+/* Getallen rechts uitgelijnd, zodat de cijfers netjes onder elkaar staan */
+.rij > .bedrag, .rij > .winst { text-align: right; }
+.rijkop span:nth-child(3), .rijkop span:nth-child(4) { text-align: right; }
+
+.potgrid { display: block; }
+
+@media (min-width: 1100px) {
+  body { padding-left: 28px; padding-right: 28px; }
+  .wrap { max-width: 1280px; }
+
+  /* pot en dalpot naast elkaar, met dezelfde compacte rij als op een telefoon */
+  .potgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .potgrid > .paneel { margin-bottom: 0; }
+  .potgrid .rijkop { display: none; }
+  .potgrid .rij {
+    grid-template-columns: 34px 1fr auto;
+    grid-template-areas:
+      "logo naam  winst"
+      "logo bedr  winst"
+      "spoor spoor spoor";
+    gap: 2px 12px;
+    padding: 15px 16px;
+  }
+  .potgrid .rij > .logowrap { grid-area: logo; align-self: start; }
+  .potgrid .rij > .naam     { grid-area: naam; }
+  .potgrid .rij > .bedrag   { grid-area: bedr; font-size: 0.88rem; text-align: left; }
+  .potgrid .rij > .winst    { grid-area: winst; text-align: right; }
+  .potgrid .rij > .voortgang{ grid-area: spoor; margin-top: 11px; }
+}
 
 @media (max-width: 700px) {
+  .rijkop { display: none; }
   body { padding: 16px 12px 48px; }
   .strategiekaarten { grid-template-columns: 1fr; }
   .potcijfers { padding: 2px 14px 14px; gap: 8px; }
@@ -189,7 +280,7 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
   }
   .rij > .logowrap { grid-area: logo; align-self: start; }
   .rij > .naam     { grid-area: naam; }
-  .rij > .bedrag   { grid-area: bedr; font-size: 0.88rem; }
+  .rij > .bedrag   { grid-area: bedr; font-size: 0.88rem; text-align: left; }
   .rij > .winst    { grid-area: winst; text-align: right; }
   .rij > .voortgang{ grid-area: spoor; margin-top: 11px; }
 }
@@ -199,7 +290,7 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
 .navbalk {
   position: fixed; bottom: 0; left: 0; right: 0;
   display: flex;
-  max-width: 900px; margin: 0 auto;
+  max-width: 1280px; margin: 0 auto;
   background: var(--surface);
   border-top: 1px solid var(--line);
   border-left: 1px solid var(--line);
@@ -226,9 +317,47 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
 .navbalk a.actief:hover { color: var(--gold); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* ---------------- licht thema (schakelaar onderaan) ---------------- */
+html[data-thema="licht"] {
+  --bg: #f3f5f9; --surface: #ffffff; --surface2: #edf1f6; --line: #dbe2ea;
+  --text: #16202b; --dim: #556476; --dimmer: #5f6f80;
+  --up: #0b7d55; --down: #c4402b; --gold: #9a6400; --goldsoft: rgba(154,100,0,.09);
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 26px -16px rgba(16,24,40,.22);
+}
+html[data-thema="licht"] body {
+  background: radial-gradient(1100px 500px at 15% -10%, #e3eaf4 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+html[data-thema="licht"] .skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(16,24,40,.06) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+}
+html[data-thema="licht"] .rij:hover,
+html[data-thema="licht"] table.orders tbody tr:hover td { background: rgba(16,24,40,.03); }
+html[data-thema="licht"] table.orders th,
+html[data-thema="licht"] .groepkop { background: rgba(16,24,40,.035); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,249,.9); }
+html[data-thema="licht"] .overlay { background: rgba(16,24,40,.45); }
+html[data-thema="licht"] button:hover,
+html[data-thema="licht"] button:hover:not(:disabled),
+html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
+html[data-thema="licht"] button.hoofd,
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] button.hoofd:hover,
+html[data-thema="licht"] button.hoofd:hover:not(:disabled),
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
+html[data-thema="licht"] button.bevestig { background: var(--down); border-color: var(--down); color: #fff; }
+html[data-thema="licht"] .paneel.tema-pot .paneelkop,
+html[data-thema="licht"] .soort.koop { color: #2f5f99; }
+html[data-thema="licht"] .sprong.pot { --kleur: #2f5f99; }
+html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,24,40,.07); }
+html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
+html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 </head>
-<body>
+<body data-laden>
 <div class="wrap">
 
   <div class="kop">
@@ -256,6 +385,11 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
     </div>
   </div>
 
+  <div class="paneel laadpaneel" id="laadPaneel" aria-busy="true">
+    <div class="skelet"></div><div class="skelet"></div><div class="skelet"></div>
+  </div>
+
+  <div class="potgrid">
   <div class="paneel potpaneel" id="potPaneel" hidden>
     <div class="paneelkop">
       <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot <span class="noodstopchip" id="potNoodstopChip" hidden>noodstop actief</span></h2>
@@ -277,9 +411,11 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
     </div>
     <div id="dalpotLijst"></div>
   </div>
+  </div>
 
   <div class="onderbalk">
     <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <button type="button" class="plat" id="knopThema">Licht</button>
     <a href="/help" class="plat">Help</a>
     <form method="post" action="/logout" id="uitlogFormulier">
       <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
@@ -434,6 +570,8 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
   function tekenLijst(lijst, posities, magPot) {
     lijst.textContent = "";
     if (!posities.length) { return; }
+    lijst.insertAdjacentHTML("beforeend",
+      '<div class="rijkop"><span></span><span>Munt</span><span>Waarde</span><span>Winst</span><span>Voortgang</span></div>');
     posities.forEach(function (p) {
       var klaar = isKlaar(p);
       var rij = document.createElement("div");
@@ -459,8 +597,15 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
     muntenEl.textContent = aantal + " munt" + (aantal === 1 ? "" : "en");
   }
 
+  function klaarMetLaden() {
+    document.body.removeAttribute("data-laden");
+    var laad = document.getElementById("laadPaneel");
+    if (laad) { laad.hidden = true; }
+  }
+
   function teken(data) {
     laatste = data;
+    klaarMetLaden();
     var posities = data.posities || [];
     var pot = data.pot || { posities: [] };
     var dalpot = data.dalpot || { posities: [] };
@@ -525,7 +670,7 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
         return r.json();
       })
       .then(function (data) { teken(data); })
-      .catch(function () { /* stil falen, blijft laatste stand tonen */ })
+      .catch(function () { klaarMetLaden(); /* stil falen, blijft laatste stand tonen */ })
       .then(function () { bezig = false; });
   }
 
@@ -534,6 +679,135 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
   haalData();
   setInterval(function () { if (!document.hidden) { haalData(); } }, VERVERS_MS);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { haalData(); } });
+})();
+</script>
+<!-- meldingen -->
+<script>
+(function () {
+  "use strict";
+  var nav = document.querySelector(".navbalk");
+  if (!nav) { return; }
+
+  var css = document.createElement("style");
+  css.textContent =
+    ".navbalk a, .navbalk button.navknop { position: relative; }" +
+    ".navbalk button.navknop { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;" +
+    " padding: 7px 4px 6px; color: var(--dimmer); background: none; border: none; font: inherit; font-size: 0.66rem;" +
+    " font-weight: 600; border-radius: 10px; cursor: pointer; transition: color .15s, background .15s; }" +
+    ".navbalk button.navknop svg { width: 21px; height: 21px; }" +
+    ".navbalk button.navknop:hover { background: var(--surface2); color: var(--text); }" +
+    ".navbalk button.navknop.open { color: var(--gold); }" +
+    ".navstip { position: absolute; top: 5px; left: calc(50% + 6px); width: 9px; height: 9px; border-radius: 50%;" +
+    " background: var(--down); box-shadow: 0 0 0 2px var(--surface); }" +
+    ".navstip[hidden] { display: none; }" +
+    ".meldpaneel { position: fixed; z-index: 45; bottom: 74px; right: 14px; width: min(420px, calc(100vw - 28px));" +
+    " max-height: min(60vh, 520px); display: flex; flex-direction: column; background: var(--surface);" +
+    " border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }" +
+    ".meldpaneel[hidden] { display: none; }" +
+    ".meldkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px;" +
+    " border-bottom: 1px solid var(--line); font-weight: 700; font-size: 0.92rem; }" +
+    ".meldkop label { font-weight: 500; font-size: 0.76rem; color: var(--dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }" +
+    ".meldlijst { overflow-y: auto; }" +
+    ".meld { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 0.84rem; line-height: 1.45;" +
+    " border-left: 3px solid transparent; white-space: pre-line; word-break: break-word; }" +
+    ".meld:last-child { border-bottom: none; }" +
+    ".meld.belangrijk { border-left-color: var(--down); background: rgba(232,101,79,.07); }" +
+    ".meld small { display: block; color: var(--dimmer); font-size: 0.7rem; margin-bottom: 2px; }" +
+    ".meldleeg { padding: 28px 16px; text-align: center; color: var(--dim); font-size: 0.86rem; }";
+  document.head.appendChild(css);
+
+  var knop = document.createElement("button");
+  knop.type = "button";
+  knop.className = "navknop";
+  knop.id = "navMeldingen";
+  knop.setAttribute("aria-label", "Meldingen");
+  knop.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+    'Meldingen<i class="navstip" hidden></i>';
+  nav.appendChild(knop);
+  var stip = knop.querySelector(".navstip");
+
+  var paneel = document.createElement("div");
+  paneel.className = "meldpaneel";
+  paneel.hidden = true;
+  paneel.setAttribute("role", "dialog");
+  paneel.setAttribute("aria-label", "Meldingen");
+  paneel.innerHTML =
+    '<div class="meldkop"><span>Meldingen</span>' +
+    '<label><input type="checkbox" id="meldAlleenBelangrijk"> Alleen belangrijk</label></div>' +
+    '<div class="meldlijst" id="meldLijst"></div>';
+  document.body.appendChild(paneel);
+  var lijst = paneel.querySelector("#meldLijst");
+  var alleenBelangrijk = paneel.querySelector("#meldAlleenBelangrijk");
+
+  var laatsteData = null;
+
+  function tijdTekst(t) {
+    var d = new Date(t * 1000), nu = new Date();
+    var tijd = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === nu.toDateString()) { return "Vandaag " + tijd; }
+    return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " + tijd;
+  }
+
+  function teken() {
+    lijst.textContent = "";
+    var items = (laatsteData && laatsteData.meldingen) || [];
+    if (alleenBelangrijk.checked) { items = items.filter(function (m) { return m.niveau === "belangrijk"; }); }
+    if (!items.length) {
+      var leeg = document.createElement("div");
+      leeg.className = "meldleeg";
+      leeg.textContent = alleenBelangrijk.checked ? "Geen belangrijke meldingen. Rustig." : "Nog geen meldingen.";
+      lijst.appendChild(leeg);
+      return;
+    }
+    items.forEach(function (m) {
+      var rij = document.createElement("div");
+      rij.className = "meld" + (m.niveau === "belangrijk" ? " belangrijk" : "");
+      var klein = document.createElement("small");
+      klein.textContent = tijdTekst(m.t);
+      var tekst = document.createElement("span");
+      tekst.textContent = m.tekst;
+      rij.appendChild(klein); rij.appendChild(tekst);
+      lijst.appendChild(rij);
+    });
+  }
+
+  function haal(markeerGelezen) {
+    return fetch("/api/meldingen", { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { return; }
+        laatsteData = data;
+        stip.hidden = !(data.ongelezen_belangrijk > 0) || markeerGelezen === true;
+        if (!paneel.hidden) { teken(); }
+      })
+      .catch(function () {});
+  }
+
+  function markeerGelezen() {
+    fetch("/api/meldingen/gelezen", { method: "POST", credentials: "same-origin" }).catch(function () {});
+    stip.hidden = true;
+  }
+
+  function sluit() { paneel.hidden = true; knop.classList.remove("open"); }
+
+  knop.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (!paneel.hidden) { sluit(); return; }
+    paneel.hidden = false;
+    knop.classList.add("open");
+    teken();
+    haal(true).then(function () { teken(); markeerGelezen(); });
+  });
+  paneel.addEventListener("click", function (e) { e.stopPropagation(); });
+  alleenBelangrijk.addEventListener("change", teken);
+  document.addEventListener("click", sluit);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { sluit(); } });
+
+  haal();
+  setInterval(function () { if (!document.hidden && paneel.hidden) { haal(); } }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
 </body>
