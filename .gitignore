@@ -30,3 +30,6 @@ venv/
 .claude/
 .DS_Store
 Thumbs.db
+
+# Eigen promotiemateriaal (TikTok e.d.)
+marketing/
