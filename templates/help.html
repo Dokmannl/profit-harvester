@@ -402,10 +402,14 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
               onthoudt vanaf nu de hoogste koers.</li>
             <li>Stijgt de koers verder, dan wacht de bot. Zakt de koers <b>1%</b> (de "trailing stop", per munt
               instelbaar) onder de hoogste koers, dan verkoopt hij <b>alleen het deel boven je budget</b>.</li>
+            <li><b>Vangnet:</b> zakt de winst tijdens "Volgt de top" terug tot {{ eur(h.min_oogst) }} netto, dan
+              verkoopt de bot meteen. Zo is de helft altijd groot genoeg (Bitvavo eist minimaal {{ eur(h.min_order) }}
+              per order) om naar de reserve-munt te gaan.</li>
             <li>Je budget blijft belegd en de munt begint opnieuw. Dit herhaalt zich zo vaak als de munt stijgt.</li>
           </ol>
           Valt de waarde tijdens "Volgt de top" ver terug (meer dan 2× de trailing onder het budget), of blijft er na
-          de terugval minder dan {{ eur(h.min_winst) }} winst over, dan stopt het volgen en begint de munt opnieuw.
+          een plotselinge val minder dan {{ eur(2 * h.min_order) }} winst over, dan verkoopt de bot niet: het volgen
+          stopt en de munt begint opnieuw.
         </div>
       </div>
 

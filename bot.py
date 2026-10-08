@@ -309,6 +309,7 @@ DONATIE_ADRESSEN = {
 }
 STANDAARD_MAX_INLEG = 1.5        # bodem: hoogstens 1,5 keer het budget inleggen
 STANDAARD_HOOFDLIJST_WINSTDOEL_EUR = 11.0   # vast winstdoel per hoofdlijst-munt in euro's, niet in %
+STANDAARD_HOOFDLIJST_MIN_OOGST_EUR = 10.50  # vangnet: zakt de winst tijdens "Volgt de top" hiertoe terug, dan nu verkopen
 
 trades_tabel = None              # wordt in main() gezet
 
@@ -1322,7 +1323,7 @@ def _verkoop_check_munt(coin, info, config, fee, globale_trail, balans, tickers,
     actuele_waarde = aantal * live_koers
 
     # Doelwinst is netto, dus na aftrek van de verkoopfee
-    _, bruto_doel = bereken_doel(budget, tp_pct, fee)
+    netto_doel, bruto_doel = bereken_doel(budget, tp_pct, fee)
     target_waarde = budget + bruto_doel
 
     bestaande_trade = db.get(Trade.munt == market)
@@ -1372,12 +1373,25 @@ def _verkoop_check_munt(coin, info, config, fee, globale_trail, balans, tickers,
         db.update({"status": "MONITORING", "piek_koers": 0.0}, Trade.munt == market)
         return
 
-    if daling_pct < trailing_pct:
-        return
-
     bruto_winst = round(actuele_waarde - budget, 2)
     netto_winst = bruto_winst * (1.0 - fee)
-    if netto_winst < MIN_WINST_EUR:
+
+    # Vangnet: zakt de netto winst terug tot de minimale oogst, dan nu
+    # verkopen, ook als de trailing stop nog niet geraakt is. Zo blijft de
+    # helft altijd groot genoeg (>= €5) voor de aankoop van de reserve-munt.
+    # Alleen voor munten waarvan het winstdoel boven het vangnet ligt.
+    min_oogst = float(config.get("global_settings", {}).get(
+        "hoofdlijst_min_oogst_eur", STANDAARD_HOOFDLIJST_MIN_OOGST_EUR))
+    vangnet_aan = netto_doel > min_oogst
+    vangnet_geraakt = vangnet_aan and netto_winst <= min_oogst
+
+    if daling_pct < trailing_pct and not vangnet_geraakt:
+        return
+
+    # Met vangnet nooit verkopen als de helft onder Bitvavo's minimum zou
+    # vallen (bijvoorbeeld na een plotselinge koersval): dan opnieuw wachten.
+    ondergrens = max(MIN_WINST_EUR, 2 * MIN_ORDER_EUR) if vangnet_aan else MIN_WINST_EUR
+    if netto_winst < ondergrens:
         # De trailing stop is al echt geraakt (verder dan trailing_pct vanaf
         # de piek), maar wat er nog aan winst over is, is te weinig om voor
         # te verkopen. De oude piek is dan niets meer waard — zonder reset
@@ -4199,6 +4213,7 @@ def help_pagina():
         "fee_pct": fee_fractie(config) * 100,
         "min_winst": MIN_WINST_EUR,
         "min_order": MIN_ORDER_EUR,
+        "min_oogst": float(gs.get("hoofdlijst_min_oogst_eur", STANDAARD_HOOFDLIJST_MIN_OOGST_EUR)),
         "hoofd_doel": float(gs.get("hoofdlijst_winstdoel_eur", STANDAARD_HOOFDLIJST_WINSTDOEL_EUR)),
         "max_inleg": float(gs.get("max_inleg_factor", STANDAARD_MAX_INLEG)),
         "lagen": gs.get("aanvul_lagen", [4.0, 10.0, 18.0]),
