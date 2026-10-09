@@ -34,13 +34,6 @@
       (document.body.dataset.demo === "1" ? " · DEMO" : "") + '</small></span>');
     nav.insertBefore(maak("span", "ph-zijlabel", "Menu"), nav.firstChild);
     nav.insertBefore(merk, nav.firstChild);
-    // "Hulp > Uitleg" onderaan het menu (alleen zichtbaar in de zijbalk op een computer)
-    var hulp = maak("span", "ph-zijlabel ph-hulplabel", "Hulp");
-    var uitleg = maak("a", "ph-alleenbreed" + (location.pathname === "/help" ? " actief" : ""),
-      IC.help + "Uitleg");
-    uitleg.href = "/help";
-    nav.appendChild(hulp);
-    nav.appendChild(uitleg);
   }
 
   // ---------- kop: logo (telefoon) en datum als ondertitel ----------

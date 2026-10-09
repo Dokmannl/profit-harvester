@@ -190,7 +190,7 @@ html[data-thema="licht"] .segment button.actief { background: var(--ph-card); }
 /* ---------------- zijbalk (computer) en onderbalk (telefoon) ---------------- */
 
 .ph-zijstatus { display: none; }
-.ph-zijmerk, .ph-zijlabel, .navbalk .ph-zijmerk, .navbalk .ph-zijlabel, .navbalk .ph-alleenbreed { display: none !important; }
+.ph-zijmerk, .ph-zijlabel, .navbalk .ph-zijmerk, .navbalk .ph-zijlabel { display: none !important; }
 
 .navbalk {
   background: var(--ph-sidebar);
@@ -223,8 +223,6 @@ html[data-thema="licht"] .segment button.actief { background: var(--ph-card); }
   .ph-zijmerk .ph-merkje svg { width: 21px; height: 21px; }
   .ph-zijmerk b { display: block; font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
   .ph-zijmerk small { display: block; font-size: 0.72rem; color: var(--ph-muted); }
-  .navbalk .ph-alleenbreed { display: flex !important; order: 99; }
-  .navbalk .ph-hulplabel { order: 98; margin-top: 14px; }
   .navbalk .ph-zijlabel { display: block !important; padding: 6px 12px 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim); }
 
   .navbalk a, .navbalk button.navknop {
