@@ -19,6 +19,12 @@ def service_worker():
     return send_from_directory(app.static_folder, "sw.js")
 
 
+@app.route("/login")
+def login_voorbeeld():
+    # Alleen om de inlogpagina te bekijken; de demo heeft geen wachtwoord.
+    return render_template("login.html", fout=request.args.get("fout"), volgende=None)
+
+
 @app.route("/logout", methods=["POST"])
 def logout():
     return redirect(url_for("dashboard"))
@@ -119,6 +125,25 @@ def beheren():
         verwerkt=request.args.get("verwerkt"),
         fout=None,
     )
+
+
+_demo_status = {"actief": True, "gestart": __import__("time").time() - 3 * 86400 - 14 * 3600}
+
+
+@app.route("/api/status")
+def api_status():
+    import time
+    nu = time.time()
+    return jsonify({"bot_actief": _demo_status["actief"], "uptime_sec": int(nu - _demo_status["gestart"]),
+                    "laatste_run": time.strftime("%H:%M:%S"), "laatste_run_sec_geleden": 1,
+                    "pi_temp": 41.0, "demo": True})
+
+
+@app.route("/beheren/pauzeer", methods=["POST"])
+def beheren_pauzeer():
+    _demo_status["actief"] = not _demo_status["actief"]
+    terug = request.form.get("terug", "/")
+    return redirect(terug if terug.startswith("/") and not terug.startswith("//") else "/")
 
 
 @app.route("/beheren/<path:pad>", methods=["POST"])

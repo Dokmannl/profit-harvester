@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Rendement — Profit Harvester</title>
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -18,7 +19,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -47,8 +48,8 @@
   --dimmer:   #5d6e80;
   --up:       #35c491;
   --down:     #e8654f;
-  --gold:     #f2b53b;
-  --goldsoft: rgba(242, 181, 59, .09);
+  --gold:     #F7931A;
+  --goldsoft: rgba(247,147,26, .09);
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -57,7 +58,7 @@ body {
   background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
@@ -66,7 +67,7 @@ body {
 }
 .wrap { max-width: 1280px; margin: 0 auto; }
 
-:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(247,147,26,.5); border-radius: 6px; }
 
 /* laadstaat: een rustige glans in plaats van lege vlakken met nulwaarden */
 body[data-laden] .kaart .groot, body[data-laden] .balkenvlak, body[data-laden] #topMunten {
@@ -279,7 +280,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -291,43 +292,94 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: alleen rendement ---- */
+.kop .tabs { margin: 0; box-shadow: none; flex: 0 1 380px; }
+.kop .tabs button { padding: 8px 10px; }
+.kaarten { gap: 14px; }
+.kaart { padding: 18px 20px; }
+.kaart .groot { font-size: 1.7rem; font-weight: 600; margin-top: 6px; color: var(--ph-text-hi); }
+.kaart .groot.op { color: var(--ph-green); }
+.kaart .groot.af { color: var(--ph-red); }
+.kaart .bij { font-size: 0.78rem; color: var(--ph-muted); margin-top: 6px; }
+.paneelkop { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim);
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; }
+.ph-hoogste { font-size: 0.78rem; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--ph-muted); }
+.balkenvlak { padding: 34px 20px 12px; gap: 10px; }
+.balk { background: rgba(247,147,26,.78); border-radius: 4px 4px 0 0; position: relative; }
+.balk.hoogst { background: var(--ph-accent); }
+.balk.hoogst::after {
+  content: attr(data-waarde); position: absolute; left: 50%; bottom: calc(100% + 6px); transform: translateX(-50%);
+  font-family: var(--ph-mono); font-size: 0.72rem; font-weight: 600; white-space: nowrap;
+  background: var(--ph-inner); border: 1px solid var(--ph-border-2); color: var(--ph-text); border-radius: 5px; padding: 2px 7px;
+}
+.balk.leeg { background: var(--ph-border-2); }
+.balklabels { font-family: var(--ph-mono); font-size: 0.68rem; padding: 0 20px 18px; gap: 10px; }
+.muntrij { flex-wrap: wrap; padding: 14px 20px; row-gap: 8px; }
+.muntrij .rang { background: var(--ph-inner); color: var(--ph-muted); font-family: var(--ph-mono); width: 26px; height: 26px; }
+.muntrij .naam { font-weight: 600; }
+.muntrij .bedrag { font-family: var(--ph-mono); font-weight: 600; color: var(--ph-green); white-space: nowrap; }
+.ph-muntbalk { flex-basis: 100%; height: 4px; border-radius: 99px; background: var(--ph-border); overflow: hidden; }
+.ph-muntbalk i { display: block; height: 100%; border-radius: 99px; background: var(--ph-green); }
+.muntrij.verlopen { box-shadow: inset 3px 0 0 var(--ph-red); background: var(--ph-red-soft); }
+@media (min-width: 900px) {
+  .kaarten { grid-template-columns: repeat(4, 1fr) !important; }
+  .rgrid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .rgrid > .paneel { margin-bottom: 0; }
+  .balkenvlak { height: 240px; }
+}
+@media (max-width: 899px) {
+  .kop { flex-wrap: wrap; }
+  .kop .tabs { flex: 1 1 100%; }
+  .kaarten { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kaart { padding: 15px 16px; }
+  .kaart .groot { font-size: 1.3rem; }
+  .balkenvlak { height: 170px; padding: 34px 14px 10px; gap: 6px; }
+  .balklabels { font-size: 0.6rem; padding: 0 14px 16px; gap: 6px; letter-spacing: -0.04em; }
+  .balklabels span { text-overflow: clip; }
+}
+</style>
 </head>
-<body data-laden>
+<body data-laden data-demo="{{ 1 if demo_modus else 0 }}">
 <div class="wrap">
 
   <div class="kop">
-    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>Rendement</h1>
-  </div>
-
-  <div class="tabs" id="tabs">
-    <button type="button" data-bereik="dag">Vandaag</button>
-    <button type="button" data-bereik="week" aria-pressed="true">Week</button>
-    <button type="button" data-bereik="maand">Maand</button>
-    <button type="button" data-bereik="alles">Alles</button>
+    <div class="merk"><div><span class="ph-sub">Afgeroomde winst</span><h1>Rendement</h1></div></div>
+    <div class="tabs" id="tabs">
+      <button type="button" data-bereik="dag">Vandaag</button>
+      <button type="button" data-bereik="week" aria-pressed="true">Week</button>
+      <button type="button" data-bereik="maand">Maand</button>
+      <button type="button" data-bereik="alles">Alles</button>
+    </div>
   </div>
 
   <div class="kaarten">
     <div class="kaart">
       <div class="etiket">Totaal geoogst</div>
       <div class="groot op" id="totaalWinst">&euro; 0,00</div>
+      <div class="bij" id="totaalBij">&nbsp;</div>
     </div>
     <div class="kaart">
       <div class="etiket">Aantal oogsten</div>
       <div class="groot" id="aantalOogsten">0</div>
+      <div class="bij" id="aantalBij">&nbsp;</div>
     </div>
     <div class="kaart">
       <div class="etiket">Gemiddeld per oogst</div>
       <div class="groot" id="gemiddelde">&euro; 0,00</div>
+      <div class="bij">bruto, per keer afromen</div>
     </div>
     <div class="kaart">
       <div class="etiket">Fees betaald</div>
       <div class="groot af" id="totaalFees">&euro; 0,00</div>
+      <div class="bij" id="feesBij">&nbsp;</div>
     </div>
   </div>
 
   <div class="rgrid">
   <div class="paneel">
-    <div class="paneelkop">Verloop</div>
+    <div class="paneelkop ph-balkkop"><span id="balkTitel">Geoogst per dag</span><span class="ph-hoogste" id="balkHoogste"></span></div>
     <div class="balkenvlak" id="balkenVlak"></div>
     <div class="balklabels" id="balkLabels"></div>
   </div>
@@ -376,6 +428,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   "use strict";
 
   var geld = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+  function pctTekst(n) { return new Intl.NumberFormat("nl-NL", { maximumFractionDigits: 1 }).format(n) + "%"; }
   var bereik = "week";
 
   var el = {};
@@ -410,11 +463,16 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     // Bij "alles" kunnen het veel maanden zijn; toon de laatste 14 punten
     var punten = reeks.slice(-14);
     var max = Math.max.apply(null, punten.map(function (p) { return p.winst; }).concat([0.01]));
+    var hoogste = null;
+    punten.forEach(function (p) { if (!hoogste || p.winst > hoogste.winst) { hoogste = p; } });
+    document.getElementById("balkHoogste").textContent = hoogste && hoogste.winst > 0
+      ? "hoogste: " + labelVoorPeriode(hoogste.periode) + " · " + geld.format(hoogste.winst) : "";
 
     punten.forEach(function (p) {
       var balk = document.createElement("div");
       var hoogtePct = Math.max(3, (p.winst / max) * 100);
-      balk.className = "balk" + (p.winst <= 0 ? " leeg" : "");
+      balk.className = "balk" + (p.winst <= 0 ? " leeg" : "") + (p === hoogste && p.winst > 0 ? " hoogst" : "");
+      if (p === hoogste && p.winst > 0) { balk.setAttribute("data-waarde", geld.format(p.winst)); }
       balk.style.height = hoogtePct + "%";
       balk.title = labelVoorPeriode(p.periode) + ": " + geld.format(p.winst) + " (" + p.aantal + " oogst" + (p.aantal === 1 ? "" : "en") + ")";
       el.balkenVlak.appendChild(balk);
@@ -432,7 +490,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       el.topMunten.innerHTML = '<div class="geenmunten">Nog geen oogsten in deze periode.</div>';
       return;
     }
-    el.topMuntenKop.textContent = "Munten (" + aantalMunten + ")";
+    el.topMuntenKop.innerHTML = 'Per munt <span class="ph-hoogste">' + aantalMunten + ' munt' + (aantalMunten === 1 ? '' : 'en') + '</span>';
+    var maxWinst = Math.max.apply(null, top.map(function (m) { return m.winst; }).concat([0.01]));
     top.forEach(function (m, idx) {
       var rij = document.createElement("div");
       var nooitGeoogst = m.aantal === 0;
@@ -450,7 +509,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       rij.innerHTML =
         '<div class="rang">' + (nooitGeoogst ? "&mdash;" : (idx + 1)) + '</div>' +
         '<div class="naam">' + m.munt + '<small>' + subtekst + '</small></div>' +
-        '<div class="' + bedragKlasse + '">' + bedragTekst + '</div>';
+        '<div class="' + bedragKlasse + '">' + bedragTekst + '</div>' +
+        '<div class="ph-muntbalk"><i style="width:' + Math.max(0, Math.min(100, m.winst / maxWinst * 100)) + '%"></i></div>';
       el.topMunten.appendChild(rij);
     });
   }
@@ -469,6 +529,14 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
         el.aantalOogsten.textContent = data.aantal_oogsten || 0;
         el.gemiddelde.textContent = geld.format(data.gemiddelde || 0);
         el.totaalFees.textContent = geld.format(data.totaal_fees || 0);
+        var bijTot = document.getElementById("totaalBij"), bijAantal = document.getElementById("aantalBij"), bijFees = document.getElementById("feesBij");
+        bijTot.textContent = "waarvan " + geld.format(data.naar_btc || 0) + " naar reserve";
+        var metOogst = (data.top_munten || []).filter(function (m) { return m.aantal > 0; }).length;
+        bijAantal.textContent = "over " + metOogst + " munt" + (metOogst === 1 ? "" : "en");
+        bijFees.textContent = data.totaal_winst > 0
+          ? pctTekst((data.totaal_fees || 0) / data.totaal_winst * 100) + " van de oogst"
+          : " ";
+        document.getElementById("balkTitel").textContent = bereik === "alles" ? "Geoogst per maand" : "Geoogst per dag";
         tekenBalken(data.reeks || []);
         tekenTopMunten(data.top_munten || [], data.aantal_munten || 0);
       })
@@ -621,5 +689,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
+<script src="/static/ph.js?v=1"></script>
 </body>
 </html>

@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Beheren — Profit Harvester</title>
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -18,7 +19,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -47,7 +48,7 @@
   --dimmer:   #5d6e80;
   --up:       #35c491;
   --down:     #e8654f;
-  --gold:     #f2b53b;
+  --gold:     #F7931A;
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -57,7 +58,7 @@ body {
   background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   padding: 24px 18px 92px;
@@ -102,8 +103,8 @@ body {
 
 .banner {
   display: flex; align-items: center; gap: 10px;
-  background: var(--goldsoft, rgba(242,181,59,.09));
-  border: 1px solid rgba(242,181,59,.3);
+  background: var(--goldsoft, rgba(247,147,26,.09));
+  border: 1px solid rgba(247,147,26,.3);
   color: var(--gold);
   border-radius: var(--r);
   padding: 12px 16px;
@@ -126,7 +127,7 @@ body {
 }
 
 .paneel.tema-hoofdlijst { border-left: 3px solid var(--gold); }
-.paneel.tema-hoofdlijst .paneelkop { background: rgba(242,181,59,.08); color: var(--gold); }
+.paneel.tema-hoofdlijst .paneelkop { background: rgba(247,147,26,.08); color: var(--gold); }
 .paneel.tema-pot { border-left: 3px solid #3d6ea8; }
 .paneel.tema-pot .paneelkop { background: rgba(61,110,168,.1); color: #7aa9db; }
 .paneel.tema-dalpot { border-left: 3px solid var(--down); }
@@ -153,7 +154,7 @@ body {
   font-size: 0.64rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
 }
 .tag.boeking   { background: rgba(132,150,168,.14); color: var(--dim); }
-.tag.koopt     { background: rgba(242,181,59,.14);  color: var(--gold); }
+.tag.koopt     { background: rgba(247,147,26,.14);  color: var(--gold); }
 .tag.verkoopt  { background: rgba(232,101,79,.15);  color: var(--down); }
 
 .legenda {
@@ -224,16 +225,16 @@ button.plat:hover:not(:disabled) { background: var(--surface2); color: var(--tex
   font-size: 0.82rem; font-weight: 700; text-decoration: none; color: var(--dim);
   transition: background .15s, color .15s, border-color .15s;
 }
-.sprong.hoofdlijst { --kleur: var(--gold); --tint: rgba(242,181,59,.12); --rand: rgba(242,181,59,.45); }
+.sprong.hoofdlijst { --kleur: var(--gold); --tint: rgba(247,147,26,.12); --rand: rgba(247,147,26,.45); }
 .sprong.pot { --kleur: #7aa9db; --tint: rgba(61,110,168,.16); --rand: rgba(61,110,168,.6); }
 .sprong.dalpot { --kleur: var(--down); --tint: rgba(232,101,79,.12); --rand: rgba(232,101,79,.5); }
 .sprong:hover, .sprong.actief { color: var(--kleur); background: var(--tint); border-color: var(--rand); }
 
 .paneel { scroll-margin-top: 72px; }
 .paneelkop { cursor: pointer; user-select: none; }
-:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
-.paneelkop:focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgba(242,181,59,.5); border-radius: 0; }
-input:focus, select:focus { outline: none; border-color: rgba(242,181,59,.55); box-shadow: 0 0 0 3px rgba(242,181,59,.12); }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(247,147,26,.5); border-radius: 6px; }
+.paneelkop:focus-visible { outline: none; box-shadow: inset 0 0 0 2px rgba(247,147,26,.5); border-radius: 0; }
+input:focus, select:focus { outline: none; border-color: rgba(247,147,26,.55); box-shadow: 0 0 0 3px rgba(247,147,26,.12); }
 .paneelkop .chevron { margin-left: auto; width: 14px; height: 14px; flex-shrink: 0; opacity: .7; transition: transform .18s ease; }
 .paneel.ingeklapt .paneelkop .chevron { transform: rotate(-90deg); }
 .paneel.ingeklapt .paneelkop { border-bottom: none; }
@@ -319,7 +320,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -331,12 +332,96 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: alleen beheren ---- */
+.wrap { position: relative; }
+.legenda {
+  background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 12px;
+  padding: 12px 18px; margin-bottom: 16px; gap: 8px 22px; font-size: 0.8rem; color: var(--ph-muted);
+}
+.tag { border-radius: 4px; padding: 2px 7px; font-size: 10px; letter-spacing: .06em; margin-left: 8px; }
+.tag.boeking, html[data-thema="licht"] .tag.boeking { background: var(--ph-inner); color: var(--ph-muted); }
+.tag.koopt, html[data-thema="licht"] .tag.koopt { background: var(--ph-accent-soft); color: var(--ph-accent); }
+.tag.verkoopt { background: var(--ph-red-soft); color: var(--ph-red); }
+
+.paneel { margin-bottom: 16px; }
+.paneel.tema-hoofdlijst, .paneel.tema-pot, .paneel.tema-dalpot { border-left: 1px solid var(--ph-border); }
+.paneel.tema-hoofdlijst .paneelkop, .paneel.tema-pot .paneelkop, .paneel.tema-dalpot .paneelkop,
+html[data-thema="licht"] .paneel.tema-pot .paneelkop {
+  background: none; color: var(--ph-text); font-size: 1.08rem; font-weight: 600; padding: 17px 20px;
+}
+.paneelkop .ic { display: none; }
+.paneelkop::before { content: ""; width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; margin-right: 2px; background: var(--ph-accent); }
+.paneel.tema-pot .paneelkop::before { background: var(--ph-blue); }
+.paneel.tema-dalpot .paneelkop::before { background: var(--ph-red); }
+.groepkop, html[data-thema="licht"] .groepkop {
+  background: none; padding: 10px 20px; font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--ph-dim);
+}
+.actierij { padding: 16px 20px; }
+.actie-titel { font-size: 0.95rem; font-weight: 600; }
+.actie-uitleg { font-size: 0.82rem; color: var(--ph-muted); margin-top: 3px; max-width: 46ch; }
+.actie-form select, .actie-form input {
+  background: var(--ph-bg); border: 1px solid var(--ph-border-2); border-radius: 9px; padding: 10px 12px; min-height: 42px;
+}
+html[data-thema="licht"] .actie-form select, html[data-thema="licht"] .actie-form input { background: var(--ph-card); }
+.actie-form input[type="number"], .actie-form input[type="text"] { width: 110px; font-family: var(--ph-mono); }
+.actie-form button { min-height: 42px; padding: 0 16px; }
+button.gevaar, html[data-thema="licht"] button.gevaar { background: transparent; border-color: rgba(248,81,73,.5); color: var(--ph-red-strong); }
+button.gevaar:hover:not(:disabled) { background: var(--ph-red-soft) !important; border-color: var(--ph-red-strong) !important; }
+
+/* instellingenformulieren: velden netjes in twee kolommen */
+form.actie-form[action$="instellingen"] {
+  display: grid !important; grid-template-columns: 1fr 1fr; gap: 12px 14px !important; padding: 4px 20px 20px !important;
+}
+form.actie-form[action$="instellingen"] label { font-size: 0.8rem !important; color: var(--ph-muted) !important; }
+form.actie-form[action$="instellingen"] input { width: 100%; margin-top: 5px; }
+form.actie-form[action$="instellingen"] button { justify-self: start; }
+
+/* bevestigvenster */
+.overlay { background: rgba(5,8,13,.72); backdrop-filter: blur(3px); }
+.modaal { background: var(--ph-card); border: 1px solid var(--ph-border-2); border-radius: 16px; padding: 22px; max-width: 420px; }
+.modaal h3 { font-size: 1.1rem; font-weight: 600; }
+.modaalrijen { border-color: var(--ph-border); border-radius: 10px; }
+.modaalrij { padding: 10px 14px; font-size: 0.86rem; }
+.modaalrij strong { font-family: var(--ph-mono); font-weight: 600; }
+.modaalrij.let-op { background: var(--ph-red-soft); }
+
+.banner { background: var(--ph-accent-soft); border-color: rgba(247,147,26,.4); color: var(--ph-accent); }
+
+/* Hoofdlijst / Pot / Dalpot: op de computer rechtsboven, op de telefoon een vaste balk */
+.sprongbalk, html[data-thema="licht"] .sprongbalk { background: rgba(11,14,19,.9); border-bottom-color: var(--ph-border); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
+.sprong { border-color: var(--ph-border); background: var(--ph-card); color: var(--ph-muted); font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.sprong::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--kleur); }
+.sprong.hoofdlijst { --kleur: var(--ph-accent); --tint: var(--ph-inner); --rand: var(--ph-border-2); }
+.sprong.pot { --kleur: var(--ph-blue); --tint: var(--ph-inner); --rand: var(--ph-border-2); }
+.sprong.dalpot { --kleur: var(--ph-red); --tint: var(--ph-inner); --rand: var(--ph-border-2); }
+.sprong:hover, .sprong.actief { color: var(--ph-text); }
+@media (min-width: 900px) {
+  .sprongbalk {
+    display: flex !important; position: absolute; top: 0; right: 0; margin: 0; padding: 4px;
+    background: var(--ph-card) !important; border: 1px solid var(--ph-border); border-radius: 12px; gap: 4px;
+    backdrop-filter: none;
+  }
+  .sprong { flex: none; padding: 8px 14px; border-color: transparent; background: none; }
+  .paneelgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 16px; align-items: start; }
+  .kolom { display: block; }
+}
+@media (max-width: 899px) {
+  .actierij { flex-direction: column; align-items: stretch; }
+  .actie-form { width: 100%; }
+  .actie-form select, .actie-form input { flex: 1; min-width: 0; width: auto; }
+  .actie-uitleg { max-width: none; }
+  .legenda { padding: 11px 14px; }
+}
+</style>
 </head>
-<body>
+<body data-demo="{{ 1 if demo_modus else 0 }}">
 <div class="wrap">
 
   <div class="kop">
-    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>Beheren</h1>
+    <div class="merk"><div><span class="ph-sub">Elke actie vraagt eerst om bevestiging</span><h1>Beheren</h1></div></div>
   </div>
 
   <nav class="sprongbalk" aria-label="Spring naar een onderdeel">
@@ -1125,5 +1210,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
+<script src="/static/ph.js?v=1"></script>
 </body>
 </html>

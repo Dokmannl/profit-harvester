@@ -1,0 +1,384 @@
+/* Profit Harvester: gedeelde stijl (ontwerp "pro").
+   Wordt NA de eigen <style> van elke pagina geladen en overschrijft die.
+   Alleen uiterlijk: alle ID's, formulieren en scripts blijven van de pagina zelf. */
+
+:root {
+  --ph-bg: #0B0E13;
+  --ph-sidebar: #0F1318;
+  --ph-card: #11151B;
+  --ph-inner: #181D25;
+  --ph-border: #1C222B;
+  --ph-border-2: #2A323D;
+  --ph-text: #E6EAF0;
+  --ph-text-hi: #F2F4F7;
+  --ph-muted: #8B95A3;
+  --ph-dim: #6B7684;
+  --ph-accent: #F7931A;
+  --ph-accent-ink: #0B0E13;
+  --ph-green: #3FB950;
+  --ph-red: #FF7B72;
+  --ph-red-strong: #F85149;
+  --ph-blue: #58A6FF;
+  --ph-accent-soft: rgba(247,147,26,.14);
+  --ph-green-soft: rgba(63,185,80,.14);
+  --ph-red-soft: rgba(248,81,73,.14);
+  --ph-blue-soft: rgba(88,166,255,.14);
+  --ph-font: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --ph-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* de namen die de pagina's zelf gebruiken, op de nieuwe kleuren gezet */
+  --bg: var(--ph-bg);
+  --surface: var(--ph-card);
+  --surface2: var(--ph-inner);
+  --line: var(--ph-border);
+  --text: var(--ph-text);
+  --dim: var(--ph-muted);
+  --dimmer: var(--ph-dim);
+  --up: var(--ph-green);
+  --down: var(--ph-red);
+  --gold: var(--ph-accent);
+  --goldsoft: rgba(247,147,26,.08);
+  --shadow: none;
+  --r: 14px;
+}
+
+html[data-thema="licht"] {
+  --ph-bg: #F3F5F8;
+  --ph-sidebar: #FFFFFF;
+  --ph-card: #FFFFFF;
+  --ph-inner: #EEF1F5;
+  --ph-border: #DEE3EA;
+  --ph-border-2: #CBD3DD;
+  --ph-text: #121820;
+  --ph-text-hi: #0B0E13;
+  --ph-muted: #56616F;
+  --ph-dim: #667180;
+  --ph-accent: #E07C00;
+  --ph-accent-ink: #FFFFFF;
+  --ph-green: #1A7F37;
+  --ph-red: #CF222E;
+  --ph-red-strong: #CF222E;
+  --ph-blue: #0969DA;
+  --ph-accent-soft: rgba(224,124,0,.12);
+  --ph-green-soft: rgba(26,127,55,.10);
+  --ph-red-soft: rgba(207,34,46,.09);
+  --ph-blue-soft: rgba(9,105,218,.10);
+  --bg: var(--ph-bg); --surface: var(--ph-card); --surface2: var(--ph-inner); --line: var(--ph-border);
+  --text: var(--ph-text); --dim: var(--ph-muted); --dimmer: var(--ph-dim);
+  --up: var(--ph-green); --down: var(--ph-red); --gold: var(--ph-accent);
+  --goldsoft: rgba(224,124,0,.07);
+  --shadow: 0 1px 2px rgba(16,24,40,.05);
+}
+
+/* ---------------- basis ---------------- */
+
+body, html[data-thema="licht"] body {
+  background: var(--ph-bg);
+  color: var(--ph-text);
+  font-family: var(--ph-font);
+  font-size: 15px;
+  letter-spacing: -0.003em;
+}
+
+:focus-visible { box-shadow: 0 0 0 2px var(--ph-bg), 0 0 0 4px rgba(247,147,26,.55); }
+input:focus, select:focus, textarea:focus { border-color: var(--ph-accent) !important; box-shadow: 0 0 0 3px var(--ph-accent-soft) !important; }
+
+/* bedragen en getallen: mono, vaste cijferbreedte, nooit afbreken */
+.ph-num,
+.kaart .groot, .kaart .klein, .grafiekwaarde strong,
+.rij .bedrag, .rij .winst, .spoorregel span:last-child,
+.potcijfers strong, .voet b,
+.sk-waarde, .sk-sub,
+.ballon b {
+  font-family: var(--ph-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+.aslabel { font-family: var(--ph-mono) !important; font-size: 10px !important; fill: var(--ph-dim) !important; }
+
+/* kleine HOOFDLETTER-labels */
+.kaart .etiket, .grafiekkop .etiket, .potcijfers .etiket, .ph-label {
+  font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim);
+}
+
+/* kaarten en panelen: vlak, dunne rand */
+.kaart, .paneel, .grafiekkaart, .strategiekaart {
+  background: var(--ph-card);
+  border: 1px solid var(--ph-border);
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+/* ---------------- knoppen ---------------- */
+
+button {
+  font-family: var(--ph-font);
+  border-radius: 9px;
+  border: 1px solid var(--ph-border-2);
+  background: transparent;
+  color: var(--ph-text);
+  font-weight: 600;
+}
+button:hover:not(:disabled), html[data-thema="licht"] button:hover:not(:disabled) { background: var(--ph-inner); border-color: var(--ph-border-2); }
+button.hoofd, html[data-thema="licht"] button.hoofd {
+  background: var(--ph-accent); border-color: var(--ph-accent); color: var(--ph-accent-ink);
+}
+button.hoofd:hover:not(:disabled), html[data-thema="licht"] button.hoofd:hover:not(:disabled) {
+  background: #FFA53D; border-color: #FFA53D; color: var(--ph-accent-ink);
+}
+html[data-thema="licht"] button.hoofd:hover:not(:disabled) { background: #C96F00; border-color: #C96F00; }
+button.bevestig, html[data-thema="licht"] button.bevestig { background: var(--ph-red-strong); border-color: var(--ph-red-strong); color: #fff; }
+button.plat, a.plat { border-color: transparent; background: none; color: var(--ph-muted); }
+
+/* gesegmenteerde knoppen (sorteren, periode) */
+.sorteer, .tabs, .segment {
+  background: var(--ph-bg);
+  border: 1px solid var(--ph-border);
+  border-radius: 10px;
+  padding: 3px;
+}
+html[data-thema="licht"] .sorteer, html[data-thema="licht"] .tabs, html[data-thema="licht"] .segment { background: var(--ph-inner); }
+.sorteer button, .tabs button, .segment button { border: 1px solid transparent; color: var(--ph-muted); font-weight: 500; }
+.sorteer button[aria-pressed="true"], .tabs button[aria-pressed="true"], .segment button.actief {
+  background: var(--ph-inner); color: var(--ph-text); border-color: var(--ph-border-2); font-weight: 600;
+}
+html[data-thema="licht"] .sorteer button[aria-pressed="true"],
+html[data-thema="licht"] .tabs button[aria-pressed="true"],
+html[data-thema="licht"] .segment button.actief { background: var(--ph-card); }
+
+/* ---------------- statusbadges ---------------- */
+
+.ph-badge {
+  display: inline-flex; align-items: center;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  line-height: 1.5; white-space: nowrap;
+}
+.ph-badge--top    { background: var(--ph-accent); color: var(--ph-accent-ink); }
+.ph-badge--onder  { background: var(--ph-green-soft); color: var(--ph-green); }
+.ph-badge--budget { background: var(--ph-red-soft); color: var(--ph-red); }
+.ph-badge--wacht  { background: var(--ph-inner); color: var(--ph-muted); }
+.ph-badge--info   { background: var(--ph-blue-soft); color: var(--ph-blue); }
+
+/* ---------------- kop van de pagina ---------------- */
+
+.kop { padding-bottom: 18px; margin-bottom: 20px; border-bottom: 1px solid var(--ph-border); }
+.kop h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; }
+.kop h1 .ic { display: none; }
+.ph-sub { display: block; font-size: 0.8rem; color: var(--ph-muted); font-weight: 400; margin-bottom: 2px; }
+.ph-merkje {
+  width: 40px; height: 40px; flex-shrink: 0; border-radius: 11px;
+  background: var(--ph-accent);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 18px -6px rgba(247,147,26,.65);
+}
+.ph-merkje svg { width: 24px; height: 24px; }
+.ph-kopblok { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.merk .mark { display: none; }
+@media (min-width: 900px) { .ph-kopmerk { display: none !important; } }
+.merk h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.03em; }
+.merk span.ph-sub { font-size: 0.8rem; color: var(--ph-muted); font-weight: 400; }
+
+.leeft {
+  background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 9px;
+  padding: 8px 13px; font-size: 0.8rem; color: var(--ph-muted);
+}
+.leeft i { background: var(--ph-green); box-shadow: 0 0 0 3px var(--ph-green-soft); }
+
+/* ---------------- zijbalk (computer) en onderbalk (telefoon) ---------------- */
+
+.ph-zijstatus { display: none; }
+.ph-zijmerk, .ph-zijlabel, .navbalk .ph-zijmerk, .navbalk .ph-zijlabel, .navbalk .ph-alleenbreed { display: none !important; }
+
+.navbalk {
+  background: var(--ph-sidebar);
+  border-color: var(--ph-border);
+  box-shadow: none;
+}
+.navbalk a { font-family: var(--ph-font); }
+.navbalk a.actief, .navbalk a.actief:hover { color: var(--ph-accent); }
+.navbalk .navstip, .navstip { background: var(--ph-red-strong) !important; }
+
+/* onderbalk: Ververs / Licht / Help / Uitloggen */
+.onderbalk { gap: 6px; }
+.onderbalk .plat { display: inline-flex; align-items: center; gap: 6px; }
+.onderbalk .plat svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+@media (min-width: 900px) {
+  body { padding: 28px 32px 40px 264px !important; }
+  .wrap { max-width: 1240px !important; }
+
+  .navbalk {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: 232px; max-width: none; margin: 0;
+    flex-direction: column; gap: 2px;
+    border: 0; border-right: 1px solid var(--ph-border); border-radius: 0;
+    padding: 20px 16px 170px;
+    overflow-y: auto;
+  }
+  .navbalk .ph-zijmerk { display: flex !important; align-items: center; gap: 12px; padding: 4px 6px 22px; text-decoration: none; color: var(--ph-text); }
+  .ph-zijmerk .ph-merkje { width: 36px; height: 36px; border-radius: 10px; }
+  .ph-zijmerk .ph-merkje svg { width: 21px; height: 21px; }
+  .ph-zijmerk b { display: block; font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
+  .ph-zijmerk small { display: block; font-size: 0.72rem; color: var(--ph-muted); }
+  .navbalk .ph-alleenbreed { display: flex !important; order: 99; }
+  .navbalk .ph-hulplabel { order: 98; margin-top: 14px; }
+  .navbalk .ph-zijlabel { display: block !important; padding: 6px 12px 8px; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim); }
+
+  .navbalk a, .navbalk button.navknop {
+    flex: none !important;
+    flex-direction: row !important; justify-content: flex-start !important; gap: 12px !important;
+    padding: 10px 12px !important;
+    font-size: 0.94rem !important; font-weight: 500 !important;
+    color: var(--ph-muted) !important;
+    border: 0; border-radius: 9px !important;
+    position: relative;
+    width: 100%; text-align: left; background: none;
+  }
+  .navbalk a svg, .navbalk button.navknop svg { width: 18px !important; height: 18px !important; }
+  .navbalk a:hover, .navbalk button.navknop:hover { background: var(--ph-inner) !important; color: var(--ph-text) !important; }
+  .navbalk a.actief { background: var(--ph-inner) !important; color: var(--ph-text) !important; font-weight: 600 !important; }
+  .navbalk a.actief svg { color: var(--ph-accent); }
+  .navbalk a.actief::before {
+    content: ""; position: absolute; left: -16px; top: 9px; bottom: 9px; width: 3px;
+    border-radius: 0 3px 3px 0; background: var(--ph-accent);
+  }
+  .navbalk .navstip { top: 50% !important; left: auto !important; right: 12px !important; transform: translateY(-50%); }
+
+  .meldpaneel { left: 248px !important; right: auto !important; bottom: auto !important; top: 24px !important; }
+
+  /* statuskaartje + knoppen onderin de zijbalk */
+  .ph-zijstatus {
+    display: block; position: fixed; left: 16px; bottom: 76px; width: 200px; z-index: 41;
+    background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .onderbalk {
+    position: fixed; left: 16px; bottom: 16px; width: 200px; z-index: 41;
+    display: grid !important; grid-template-columns: repeat(4, 1fr); gap: 6px !important;
+    padding: 0 !important;
+  }
+  .onderbalk form { display: contents; }
+  .onderbalk .plat {
+    flex-direction: column; justify-content: center; gap: 3px !important;
+    padding: 7px 2px !important; min-height: 50px;
+    font-size: 0.66rem !important; font-weight: 500 !important;
+    border: 1px solid var(--ph-border) !important; border-radius: 9px !important;
+    color: var(--ph-muted) !important; background: var(--ph-card) !important;
+  }
+  .onderbalk .plat:hover { color: var(--ph-text) !important; background: var(--ph-inner) !important; }
+  .onderbalk .plat.actief { color: var(--ph-accent) !important; }
+}
+
+/* statusregel (zijbalk en telefoon-dashboard) */
+.ph-stat-kop { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.86rem; font-weight: 600; }
+.ph-stat-kop span { font-family: var(--ph-mono); font-size: 0.72rem; font-weight: 400; color: var(--ph-dim); }
+.ph-stip { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; background: var(--ph-green); box-shadow: 0 0 0 3px var(--ph-green-soft); vertical-align: 1px; }
+.ph-stip.uit { background: var(--ph-accent); box-shadow: 0 0 0 3px var(--ph-accent-soft); }
+.ph-stip.fout { background: var(--ph-red-strong); box-shadow: 0 0 0 3px var(--ph-red-soft); }
+.ph-stat-rij { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 10px; }
+.ph-stat-rij small { display: block; font-size: 0.68rem; color: var(--ph-dim); }
+.ph-stat-rij b { font-family: var(--ph-mono); font-size: 0.74rem; font-weight: 500; color: var(--ph-text); white-space: nowrap; }
+.ph-pauze { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px; font-size: 0.86rem; }
+.ph-pauze svg { width: 13px; height: 13px; }
+.ph-pauze.hervat { background: var(--ph-accent); border-color: var(--ph-accent); color: var(--ph-accent-ink); }
+.ph-pauze.hervat:hover:not(:disabled) { background: #FFA53D !important; border-color: #FFA53D !important; }
+
+/* statusbalk bovenaan het dashboard (alleen telefoon) */
+.ph-statusbalk {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 12px;
+}
+.ph-statusbalk .ph-stat-kop { justify-content: flex-start; font-size: 0.92rem; }
+.ph-statusbalk small { display: block; font-family: var(--ph-mono); font-size: 0.72rem; color: var(--ph-dim); margin-top: 2px; }
+.ph-statusbalk form { margin: 0; flex-shrink: 0; }
+.ph-statusbalk .ph-pauze { width: auto; padding: 0 14px; min-height: 44px; }
+@media (min-width: 900px) { .ph-statusbalk { display: none; } }
+
+/* gepauzeerd: duidelijke balk bovenaan elke pagina */
+.ph-pauzebalk {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--ph-accent-soft); color: var(--ph-accent);
+  border: 1px solid rgba(247,147,26,.4); border-radius: 12px;
+  padding: 10px 14px; margin-bottom: 14px; font-size: 0.88rem; font-weight: 600;
+}
+
+/* ---------------- telefoon ---------------- */
+
+@media (max-width: 899px) {
+  .kop { border-bottom: 0; padding-bottom: 0; margin-bottom: 16px; }
+  .kop h1, .merk h1 { font-size: 1.45rem; }
+  .ph-sub { font-size: 0.76rem; }
+  .navbalk { border-radius: 0; border-left: 0; border-right: 0; max-width: none; }
+  .navbalk a.actief { position: relative; }
+  .navbalk a.actief::before {
+    content: ""; position: absolute; top: -6px; left: 22%; right: 22%; height: 2px; border-radius: 2px; background: var(--ph-accent);
+  }
+  button, .ph-btn { min-height: 44px; }
+  .sorteer button, .tabs button, .segment button { min-height: 36px; }
+  .onderbalk { justify-content: center !important; flex-wrap: wrap; gap: 2px !important; }
+  .onderbalk .plat { min-height: 40px; padding: 8px 10px !important; font-size: 0.82rem !important; }
+  input, select, textarea { font-size: 16px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------------- gedeelde onderdelen: kop, panelen, positieregels ---------------- */
+
+.kop { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; text-align: left; }
+.kop h1 { display: block; }
+.kop .merk { display: flex; align-items: center; gap: 12px; }
+
+.paneelkop { padding: 16px 20px; }
+.paneelkop h2 { font-size: 1.08rem; font-weight: 600; letter-spacing: -0.015em; }
+.paneelkop h2 .ic { display: none; }
+.ph-vlag { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 9px; vertical-align: 1px; flex-shrink: 0; }
+.ph-vlag.hoofd { background: var(--ph-accent); }
+.ph-vlag.pot { background: var(--ph-blue); }
+.ph-vlag.dalpot { background: var(--ph-red); }
+
+.klaarchip { background: var(--ph-accent-soft) !important; color: var(--ph-accent) !important; border: 0 !important; }
+.klaarchip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ph-accent); }
+.noodstopchip { background: var(--ph-red-soft) !important; color: var(--ph-red) !important; border: 0 !important; border-radius: 4px !important; font-size: 11px !important; text-transform: uppercase; letter-spacing: .04em; font-weight: 700 !important; }
+.slotje { background: var(--ph-red-soft); color: var(--ph-red); border: 0; border-radius: 4px; text-transform: uppercase; font-size: 10px; letter-spacing: .04em; }
+
+.zoekdoos input, .filterbalk input, .filterbalk select { background: var(--ph-bg); border: 1px solid var(--ph-border-2); }
+html[data-thema="licht"] .zoekdoos input { background: var(--ph-card); }
+
+.rij { padding: 15px 20px; }
+.rij.klaar, html[data-thema="licht"] .rij.klaar { background: linear-gradient(90deg, rgba(247,147,26,.10), transparent 65%); box-shadow: inset 3px 0 0 var(--ph-accent); }
+.rij:hover, .rij.klaar:hover { background-color: rgba(127,127,127,.04); }
+.naam { font-weight: 600; font-size: 1rem; }
+.ph-budget { display: block; font-family: var(--ph-mono); font-size: 0.74rem; font-weight: 400; color: var(--ph-dim); }
+.rij .bedrag { font-weight: 500; }
+.rij .winst { font-weight: 600; }
+.rij .winst small { font-weight: 500; }
+.spoorregel { align-items: center; margin-bottom: 8px; color: var(--ph-muted); }
+.spoorregel span:last-child { font-size: 0.74rem; }
+.spoor { height: 4px; background: var(--ph-border); }
+.spoor i { background: var(--ph-green); }
+.spoor i.vol { background: var(--ph-accent); }
+.spoor.onder { background: var(--ph-border); }
+.potstatus { font-size: 0.76rem; color: var(--ph-muted); display: flex; align-items: center; gap: 6px; }
+.voet { background: none !important; font-family: var(--ph-mono); font-size: 0.76rem; }
+.logo, .valtterug { width: 32px; height: 32px; }
+.potcijfers .etiket { margin-bottom: 4px; }
+.potcijfers strong { font-weight: 600; font-size: 1.05rem; }
+.rijkop { font-size: 11px !important; font-weight: 600 !important; letter-spacing: .08em !important; color: var(--ph-dim) !important; padding: 11px 20px !important; }
+
+/* lege staat en meldbalken */
+.geenmunten { color: var(--ph-muted); }
+.banner { border-radius: 12px; }
+
+/* bevestigvenster voor pauzeren */
+.ph-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(5,8,13,.72); backdrop-filter: blur(3px); }
+html[data-thema="licht"] .ph-overlay { background: rgba(16,24,40,.45); }
+.ph-modaal { width: 100%; max-width: 400px; background: var(--ph-card); border: 1px solid var(--ph-border-2); border-radius: 16px; padding: 22px; }
+.ph-modaal h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+.ph-modaal p { font-size: 0.9rem; color: var(--ph-muted); line-height: 1.55; margin-bottom: 18px; }
+.ph-knoppen { display: flex; justify-content: flex-end; gap: 8px; }
+.ph-knoppen button { padding: 10px 16px; }

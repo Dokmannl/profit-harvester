@@ -6,16 +6,17 @@
 <meta name="color-scheme" content="dark">
 <title>Profit Harvester</title>
 <link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Harvester">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -23,7 +24,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -52,8 +53,8 @@
   --dimmer:   #5d6e80;
   --up:       #35c491;
   --down:     #e8654f;
-  --gold:     #f2b53b;
-  --goldsoft: rgba(242, 181, 59, .09);
+  --gold:     #F7931A;
+  --goldsoft: rgba(247,147,26, .09);
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -67,7 +68,7 @@ body {
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
@@ -77,8 +78,8 @@ body {
 
 .wrap { max-width: 1280px; margin: 0 auto; }
 
-:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
-input:focus, select:focus { outline: none; border-color: rgba(242,181,59,.55); box-shadow: 0 0 0 3px rgba(242,181,59,.12); }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(247,147,26,.5); border-radius: 6px; }
+input:focus, select:focus { outline: none; border-color: rgba(247,147,26,.55); box-shadow: 0 0 0 3px rgba(247,147,26,.12); }
 
 /* laadstaat: een rustige glans in plaats van een leeg vlak */
 .skelet {
@@ -109,7 +110,7 @@ input:focus, select:focus { outline: none; border-color: rgba(242,181,59,.55); b
   background: linear-gradient(145deg, var(--gold), #d38f18);
   display: grid; place-items: center;
   color: #1a1206; font-weight: 800; font-size: 0.95rem;
-  box-shadow: 0 4px 14px -6px rgba(242,181,59,.8);
+  box-shadow: 0 4px 14px -6px rgba(247,147,26,.8);
 }
 
 .merk h1 { font-size: 1.02rem; font-weight: 700; letter-spacing: -0.02em; }
@@ -344,7 +345,7 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
   display: inline-flex; align-items: center; gap: 6px;
   background: var(--goldsoft);
   color: var(--gold);
-  border: 1px solid rgba(242,181,59,.28);
+  border: 1px solid rgba(247,147,26,.28);
   border-radius: 99px;
   padding: 3px 10px;
   font-size: 0.74rem;
@@ -375,16 +376,16 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 
 .zoekdoos .wis:hover { color: var(--text); background: var(--surface2); }
 
-.reservekaart { border-color: rgba(242,181,59,.3); }
+.reservekaart { border-color: rgba(247,147,26,.3); }
 .reservekaart .klein { color: var(--gold); }
 .reservekaart .reserverij + .reserverij { border-top: 1px solid var(--line); margin-top: 10px; padding-top: 10px; }
 .reservekaart .etiket { justify-content: space-between; gap: 8px; }
 .reservekaart .etiket .munt { display: flex; align-items: center; }
 .actiefchip {
   display: inline-flex; align-items: center; flex-shrink: 0;
-  background: rgba(242,181,59,.12);
+  background: rgba(247,147,26,.12);
   color: var(--gold);
-  border: 1px solid rgba(242,181,59,.35);
+  border: 1px solid rgba(247,147,26,.35);
   border-radius: 99px;
   padding: 1px 9px;
   font-size: 0.66rem;
@@ -430,7 +431,7 @@ a.plat:hover { background: var(--surface2); color: var(--text); }
 .rij:last-child { border-bottom: none; }
 .rij:hover { background: rgba(255,255,255,.017); }
 .rij.klaar { background: var(--goldsoft); box-shadow: inset 3px 0 0 var(--gold); }
-.rij.klaar:hover { background: rgba(242,181,59,.13); }
+.rij.klaar:hover { background: rgba(247,147,26,.13); }
 
 .logo {
   width: 30px; height: 30px; border-radius: 50%;
@@ -665,7 +666,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -678,22 +679,126 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: alleen het dashboard ---- */
+.kop { align-items: flex-end; }
+.kaarten { gap: 14px; margin-bottom: 14px; }
+.kaart { padding: 18px 20px; }
+.kaart .etiket .ic { display: none; }
+.kaart .groot { font-size: 2rem; font-weight: 600; color: var(--ph-text-hi); margin-top: 6px; }
+.kaart .klein { font-size: 1.45rem; font-weight: 600; color: var(--ph-text-hi); margin-top: 6px; }
+.kaart .bij { font-size: 0.76rem; color: var(--ph-muted); margin-top: 8px; }
+
+.reservekaart { border-color: var(--ph-border); }
+.reservekaart .ph-reservekop { margin-bottom: 10px; }
+.reservekaart .reserverij {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 7px 10px; border: 1px solid transparent; border-radius: 10px;
+}
+.reservekaart .reserverij + .reserverij { border-top: 1px solid transparent; margin-top: 4px; padding-top: 7px; }
+.reservekaart .reserverij.actief { border-color: rgba(247,147,26,.55); background: var(--ph-accent-soft); }
+.reservekaart .reserverij .etiket { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.86rem; color: var(--ph-text); font-weight: 500; gap: 8px; }
+.reservekaart .reserverij .klein { margin: 0; font-size: 1.1rem; color: var(--ph-text-hi); }
+.reservekaart .ph-lang { display: none; }
+.ph-kort { display: none; }
+@media (max-width: 899px) { .bereik .ph-lang { display: none; } .bereik .ph-kort { display: inline; } }
+.ph-muntrond {
+  display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  font-size: 0.8rem; font-weight: 700; margin-right: 8px; color: #fff; flex-shrink: 0;
+}
+.ph-muntrond.btc { background: #F7931A; }
+.ph-muntrond.eth { background: #627EEA; }
+.actiefchip {
+  background: var(--ph-accent); color: var(--ph-accent-ink); border: 0; border-radius: 4px;
+  padding: 1px 6px; font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
+}
+
+/* grafiek: volle breedte, oranje lijn */
+.grafiekkaart { padding: 20px 22px 16px; margin-bottom: 14px; }
+.grafiekwaarde strong { font-size: 1.6rem; font-weight: 600; color: var(--ph-text-hi); }
+.verschil { font-family: var(--ph-mono); font-size: 0.82rem; }
+.ordermark.koop, .mk.koop { fill: var(--ph-blue); background: var(--ph-blue); }
+.ordermark.verkoop, .mk.verkoop { fill: var(--ph-green); background: var(--ph-green); }
+.ordermark.mix, .mk.mix { fill: var(--ph-accent); background: var(--ph-accent); }
+.ballon { background: var(--ph-inner); border-color: var(--ph-border-2); font-family: var(--ph-font); }
+.ballon .orderregel.koop { color: var(--ph-blue); }
+
+/* posities */
+.paneelkop { padding: 18px 20px; }
+.paneelkop h2 { font-size: 1.1rem; font-weight: 600; }
+.klaarchip { background: var(--ph-accent-soft); color: var(--ph-accent); border: 0; }
+.klaarchip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ph-accent); }
+.zoekdoos input { background: var(--ph-bg); border-color: var(--ph-border-2); padding: 9px 30px 9px 12px; }
+.rij { padding: 15px 20px; }
+.rij.klaar { background: linear-gradient(90deg, rgba(247,147,26,.10), transparent 60%); box-shadow: inset 3px 0 0 var(--ph-accent); }
+.rij:hover, .rij.klaar:hover { background-color: rgba(255,255,255,.02); }
+.naam { font-weight: 600; font-size: 1rem; }
+.ph-budget { display: block; font-family: var(--ph-mono); font-size: 0.74rem; font-weight: 400; color: var(--ph-dim); }
+.rij .bedrag { font-weight: 500; }
+.rij .winst { font-weight: 600; }
+.rij .winst small { font-weight: 500; }
+.spoorregel { align-items: center; margin-bottom: 8px; color: var(--ph-muted); }
+.spoorregel span:last-child { font-size: 0.74rem; }
+.spoor { height: 4px; background: var(--ph-border); }
+.spoor i { background: var(--ph-green); }
+.spoor i.vol { background: var(--ph-accent); }
+.spoor.onder { background: var(--ph-border); }
+.voet { background: none; font-family: var(--ph-mono); font-size: 0.76rem; }
+.voet b { font-weight: 600; }
+.ph-kolomkop { display: none; }
+.logo, .valtterug { width: 32px; height: 32px; }
+
+/* breed scherm: grafiek over de volle breedte, posities als tabel eronder */
+@media (min-width: 900px) {
+  .hoofdgrid { display: block !important; }
+  .hoofdgrid > .grafiekkaart { position: static !important; margin-bottom: 14px !important; }
+  .grafiekvlak svg, .grafiekleeg { height: 260px !important; }
+  .ph-kolomkop {
+    display: grid; grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, .8fr) minmax(0, .8fr) minmax(200px, 1.8fr);
+    gap: 14px; padding: 11px 20px; border-bottom: 1px solid var(--ph-border);
+    font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim);
+  }
+  .ph-kolomkop span:nth-child(3), .ph-kolomkop span:nth-child(4) { text-align: right; }
+  .hoofdgrid .rij, .rij {
+    grid-template-columns: 34px minmax(0, 1.1fr) minmax(0, .8fr) minmax(0, .8fr) minmax(200px, 1.8fr) !important;
+    grid-template-areas: none !important;
+    gap: 14px !important;
+  }
+  .hoofdgrid .rij > *, .rij > * { grid-area: auto !important; }
+  .hoofdgrid .rij > .bedrag { text-align: right !important; }
+  .hoofdgrid .rij > .voortgang { margin-top: 0 !important; }
+}
+@media (max-width: 899px) {
+  .kaarten { grid-template-columns: 1fr 1fr; grid-template-areas: "totaal totaal" "vrij belegd" "reserve reserve"; gap: 10px; }
+  .kaart { padding: 15px 16px; }
+  .kaart .groot { font-size: 1.8rem; }
+  .kaart .klein { font-size: 1.15rem; }
+  .reservekaart { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .reservekaart .ph-reservekop { grid-column: 1 / -1; margin-bottom: 2px; }
+  .reservekaart .reserverij { flex-direction: column; align-items: flex-start; gap: 2px; margin: 0 !important; padding: 9px 10px !important; }
+  .reservekaart .reserverij + .reserverij { margin-top: 0; }
+  .grafiekkaart { padding: 16px 14px 12px; }
+  .rij { padding: 15px 16px; }
+}
+</style>
 </head>
-<body>
+<body data-demo="{{ 1 if demo_modus else 0 }}">
 <div class="wrap">
 
   <div class="kop">
     <div class="merk">
-      <div class="mark">PH</div>
       <div>
-        <h1>Profit Harvester</h1>
-        <span>Bitvavo{% if demo_modus %} · DEMO{% endif %}</span>
+        <span class="ph-sub" data-datum="1">{% if demo_modus %}demo{% endif %}</span>
+        <h1>Dashboard</h1>
       </div>
     </div>
     <div class="koprechts">
       <div class="leeft" id="leeft"><i></i><span id="leeftTekst">laden</span></div>
     </div>
   </div>
+
+  <div id="phStatusPlek"></div>
 
   <div class="kaarten" id="kaarten">
     <div class="kaart" id="kaartTotaal">
@@ -714,16 +819,17 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <div class="bij" id="belegdBijDalpot" hidden></div>
     </div>
     <div class="kaart reservekaart" id="kaartReserve">
-      <div class="reserverij">
+      <div class="etiket ph-reservekop">Afgeroomd</div>
+      <div class="reserverij" id="reserveRijBTC">
         <div class="etiket">
-          <span class="munt"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg>Afgeroomd naar BTC</span>
+          <span class="munt"><span class="ph-muntrond btc">&#8383;</span><span class="ph-lang">Afgeroomd naar </span>BTC</span>
           <span class="actiefchip" id="reserveActiefBTC" hidden>actief</span>
         </div>
         <div class="klein" id="reserveBTC">&euro; 0,00</div>
       </div>
-      <div class="reserverij">
+      <div class="reserverij" id="reserveRijETH">
         <div class="etiket">
-          <span class="munt"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5l3.2 5.2L12 13.4 8.8 11.7z"/><path d="M8.8 13.3L12 17.5l3.2-4.2"/></svg>Afgeroomd naar ETH</span>
+          <span class="munt"><span class="ph-muntrond eth">&#926;</span><span class="ph-lang">Afgeroomd naar </span>ETH</span>
           <span class="actiefchip" id="reserveActiefETH" hidden>actief</span>
         </div>
         <div class="klein" id="reserveETH">&euro; 0,00</div>
@@ -744,7 +850,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <div class="sorteer bereik" id="bereik">
         <button type="button" data-bereik="dag" aria-pressed="true">Vandaag</button>
         <button type="button" data-bereik="maand" aria-pressed="false">Maand</button>
-        <button type="button" data-bereik="kwartaal" aria-pressed="false">3 maanden</button>
+        <button type="button" data-bereik="kwartaal" aria-pressed="false">3 <span class="ph-lang">maanden</span><span class="ph-kort">mnd</span></button>
         <button type="button" data-bereik="alles" aria-pressed="false">Alles</button>
       </div>
     </div>
@@ -773,6 +879,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       </div>
     </div>
 
+    <div class="ph-kolomkop" aria-hidden="true"><span></span><span>Munt</span><span>Waarde</span><span>Winst</span><span>Status</span></div>
     <div id="lijst"></div>
 
     <div class="voet">
@@ -902,8 +1009,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     var nietGekocht = p.waarde !== undefined && p.waarde < 1 && !klaar;
 
     var links = nietGekocht
-      ? "Nog niet gekocht"
-      : (klaar ? "<b>Volgt de top</b>" : (winst < 0 ? "Onder budget" : "Onderweg"));
+      ? '<span class="ph-badge ph-badge--wacht">Nog niet gekocht</span>'
+      : (klaar ? '<span class="ph-badge ph-badge--top">Volgt de top</span>'
+               : (winst < 0 ? '<span class="ph-badge ph-badge--budget">Onder budget</span>'
+                            : '<span class="ph-badge ph-badge--onder">Onderweg</span>'));
 
     var rechts = nietGekocht
       ? "budget " + geld.format(p.budget)
@@ -932,9 +1041,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
     return '' +
       '<div class="logowrap">' + logoHtml(p) + '</div>' +
-      '<div class="naam">' + p.coin +
+      '<div class="naam"><span class="ph-munt">' + p.coin + '</span>' +
         (p.op_slot ? '<span class="slotje" title="Inlegplafond bereikt, wordt niet meer bijgevuld">op slot</span>' : "") +
         '<svg class="pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>' +
+        '<span class="ph-budget">budget ' + geld.format(p.budget) + '</span>' +
         '<small>' + detailRegels.join('<br>') + '</small></div>' +
       '<div class="bedrag">' + geld.format(p.waarde) +
         '<small>' + koersTekst(p.koers) + '</small></div>' +
@@ -972,6 +1082,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     ["BTC", "ETH"].forEach(function (m) {
       el["reserve" + m].textContent = geld.format(verdeling[m] || 0);
       el["reserveActief" + m].hidden = (actiefeMunt !== m);
+      var rrij = document.getElementById("reserveRij" + m);
+      if (rrij) { rrij.classList.toggle("actief", actiefeMunt === m); }
     });
 
     if (pot.cash > 0) {
@@ -1198,8 +1310,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
     var defs = document.createElementNS(ns, "defs");
     var vul = maak("linearGradient", { id: "grafiekvulling", x1: "0", y1: "0", x2: "0", y2: "1" });
-    vul.appendChild(maak("stop", { offset: "0%", "stop-color": "#f2b53b", "stop-opacity": "0.26" }));
-    vul.appendChild(maak("stop", { offset: "100%", "stop-color": "#f2b53b", "stop-opacity": "0" }));
+    vul.appendChild(maak("stop", { offset: "0%", "stop-color": "#F7931A", "stop-opacity": "0.26" }));
+    vul.appendChild(maak("stop", { offset: "100%", "stop-color": "#F7931A", "stop-opacity": "0" }));
     defs.appendChild(vul);
     svg.appendChild(defs);
 
@@ -1527,5 +1639,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
+<script src="/static/ph.js?v=1"></script>
 </body>
 </html>

@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Uitleg — Profit Harvester</title>
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -18,7 +19,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -47,8 +48,8 @@
   --dimmer:   #5d6e80;
   --up:       #35c491;
   --down:     #e8654f;
-  --gold:     #f2b53b;
-  --goldsoft: rgba(242, 181, 59, .09);
+  --gold:     #F7931A;
+  --goldsoft: rgba(247,147,26, .09);
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -57,7 +58,7 @@ body {
   background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   padding: 24px 18px 92px;
@@ -179,7 +180,7 @@ button.plat:hover { background: var(--surface2); color: var(--text); }
   height: fit-content;
 }
 .knopnaam.gevaar { color: var(--down); border-color: rgba(232,101,79,.35); }
-.knopnaam.hoofd { color: var(--gold); border-color: rgba(242,181,59,.35); }
+.knopnaam.hoofd { color: var(--gold); border-color: rgba(247,147,26,.35); }
 .knoptekst { font-size: 0.87rem; color: var(--dim); }
 .knoptekst b { color: var(--text); }
 
@@ -197,7 +198,7 @@ button.plat:hover { background: var(--surface2); color: var(--text); }
 .tip {
   margin-top: 14px;
   background: var(--goldsoft);
-  border: 1px solid rgba(242,181,59,.3);
+  border: 1px solid rgba(247,147,26,.3);
   border-radius: 10px;
   padding: 12px 14px;
   font-size: 0.85rem;
@@ -275,7 +276,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -287,8 +288,111 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: alleen de uitleg ---- */
+.ph-uitleglayout { display: block; }
+.inhoud { background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
+.inhoud h2 { font-size: 11px; font-weight: 600; letter-spacing: .08em; color: var(--ph-dim); margin-bottom: 10px; }
+.inhoud a { color: var(--ph-muted); font-weight: 500; font-size: 0.88rem; }
+.inhoud a .ic { display: none; }
+.inhoud a:hover { color: var(--ph-text); text-decoration: none; }
+.inhoud a.actief { color: var(--ph-text); font-weight: 600; }
+
+.intro, .paneel { background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 14px; }
+.intro { padding: 20px 22px; color: var(--ph-text); }
+.ph-introzin { margin: 8px 0 14px; font-size: 0.95rem; }
+.ph-drie { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.ph-mini { border: 1px solid var(--ph-border); border-radius: 10px; padding: 12px 14px; font-size: 0.84rem; color: var(--ph-muted); line-height: 1.5; }
+.ph-mini b { display: flex; align-items: center; color: var(--ph-text); font-size: 0.92rem; margin-bottom: 4px; }
+.ph-mini strong { color: var(--ph-text); }
+
+.paneel { overflow: visible; scroll-margin-top: 20px; }
+.paneelkop { border: 0; padding: 20px 22px 4px; font-size: 1.25rem; font-weight: 600; letter-spacing: -0.02em; }
+.paneelkop .ic { display: none; }
+.paneelinhoud { padding: 4px 22px 22px; }
+.paneelinhoud p { font-size: 0.93rem; line-height: 1.65; }
+.paneelinhoud p.dim { color: var(--ph-muted); }
+.term { background: none; border: 0; border-top: 1px solid var(--ph-border); border-radius: 0; padding: 16px 0 4px; margin: 12px 0 0; }
+.term .naam { color: var(--ph-text); font-size: 0.98rem; font-weight: 600; margin-bottom: 8px; }
+.term .wat { font-size: 0.9rem; line-height: 1.65; color: var(--ph-text); }
+.stappen li::marker { color: var(--ph-muted); font-family: var(--ph-mono); font-size: 0.85em; }
+
+/* "Snel aan de slag": genummerde rondjes met een lijntje ertussen */
+#start .stappen { list-style: none; margin: 10px 0 6px; counter-reset: stap; padding: 0; }
+#start .stappen li { counter-increment: stap; position: relative; padding: 0 0 16px 46px; margin: 0; font-size: 0.92rem; color: var(--ph-muted); }
+#start .stappen li b { display: block; color: var(--ph-text); font-size: 0.98rem; margin-bottom: 2px; }
+#start .stappen li::before {
+  content: counter(stap); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid var(--ph-accent); color: var(--ph-accent); display: grid; place-items: center;
+  font-family: var(--ph-mono); font-size: 0.78rem; font-weight: 600; background: var(--ph-card); z-index: 1;
+}
+#start .stappen li:last-child::before { background: var(--ph-accent); color: var(--ph-accent-ink); }
+#start .stappen li:not(:last-child)::after { content: ""; position: absolute; left: 13.5px; top: 30px; bottom: 2px; width: 1px; background: var(--ph-border-2); }
+
+.ph-instellingen { border: 1px solid var(--ph-border); border-radius: 10px; margin: 18px 0 4px; overflow: hidden; }
+.ph-instellingen .ph-label { padding: 11px 14px; border-bottom: 1px solid var(--ph-border); }
+.ph-instrij { display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px; font-size: 0.88rem; color: var(--ph-muted); }
+.ph-instrij + .ph-instrij { border-top: 1px solid var(--ph-border); }
+.ph-instrij b { font-family: var(--ph-mono); color: var(--ph-text); font-weight: 600; white-space: nowrap; }
+
+table.regels td { border-top-color: var(--ph-border); padding: 9px 10px 9px 0; }
+table.regels th { color: var(--ph-dim); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var(--ph-accent); font-family: var(--ph-mono); font-size: 0.8em; }
+
+.knopnaam { background: var(--ph-inner); border-color: var(--ph-border-2); border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
+.knopnaam.hoofd { background: var(--ph-accent); border-color: var(--ph-accent); color: var(--ph-accent-ink); }
+.knopnaam.gevaar { background: transparent; border-color: rgba(248,81,73,.5); color: var(--ph-red-strong); }
+.knopuitleg { border-bottom-color: var(--ph-border); }
+.knopgroep .ic { display: none; }
+
+.tip, .let-op { border-radius: 10px; padding: 13px 15px 13px 42px; position: relative; font-size: 0.88rem; line-height: 1.6; }
+.tip { background: var(--ph-accent-soft); border: 1px solid rgba(247,147,26,.35); color: var(--ph-text); }
+.tip b { color: var(--ph-accent); }
+.let-op { background: var(--ph-red-soft); border: 1px solid rgba(248,81,73,.35); color: var(--ph-text); }
+.let-op b { color: var(--ph-red); }
+.tip::before, .let-op::before {
+  content: ""; position: absolute; left: 14px; top: 14px; width: 16px; height: 16px;
+  -webkit-mask: var(--ph-icoon) center / contain no-repeat; mask: var(--ph-icoon) center / contain no-repeat;
+}
+.tip::before { background: var(--ph-accent); --ph-icoon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cline x1='12' y1='7.5' x2='12' y2='13'/%3E%3Ccircle cx='12' cy='16.5' r='.6' fill='black'/%3E%3C/svg%3E"); }
+.let-op::before { background: var(--ph-red); --ph-icoon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5 2.5 20h19z'/%3E%3Cline x1='12' y1='10' x2='12' y2='14'/%3E%3Ccircle cx='12' cy='17' r='.6' fill='black'/%3E%3C/svg%3E"); }
+
+.ph-vraag { border: 1px solid var(--ph-border); border-radius: 10px; margin-top: 10px; background: var(--ph-card); }
+.ph-vraag + .ph-vraag { margin-top: 8px; }
+.ph-vraag summary {
+  list-style: none; cursor: pointer; padding: 14px 44px 14px 16px; font-weight: 600; font-size: 0.92rem; position: relative;
+}
+.ph-vraag summary::-webkit-details-marker { display: none; }
+.ph-vraag summary::after {
+  content: ""; position: absolute; right: 18px; top: 50%; width: 8px; height: 8px; margin-top: -6px;
+  border-right: 1.6px solid var(--ph-muted); border-bottom: 1.6px solid var(--ph-muted); transform: rotate(45deg); transition: transform .15s;
+}
+.ph-vraag[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+.ph-vraag .wat { padding: 0 16px 15px; font-size: 0.9rem; color: var(--ph-muted); line-height: 1.65; }
+
+.donatie .adres { font-family: var(--ph-mono); }
+
+@media (min-width: 900px) {
+  .ph-uitleglayout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 28px; align-items: start; }
+  .inhoud { position: sticky; top: 20px; background: none; border: 0; padding: 4px 0 0; margin: 0; max-height: calc(100vh - 40px); overflow-y: auto; }
+  .inhoud ul { display: block; border-left: 1px solid var(--ph-border); }
+  .inhoud li { margin: 0; }
+  .inhoud a { display: block; padding: 7px 0 7px 14px; margin-left: -1px; border-left: 2px solid transparent; }
+  .inhoud a.actief { border-left-color: var(--ph-accent); }
+  .uitleggrid { column-count: 1 !important; }
+}
+@media (max-width: 899px) {
+  .ph-drie { grid-template-columns: 1fr; }
+  .inhoud ul { grid-template-columns: 1fr 1fr !important; gap: 2px 12px; }
+  .inhoud a { font-size: 0.8rem; padding: 4px 0; }
+  .paneelkop { padding: 18px 16px 2px; font-size: 1.15rem; }
+  .paneelinhoud { padding: 4px 16px 18px; }
+  .intro { padding: 18px 16px; }
+}
+</style>
 </head>
-<body>
+<body data-demo="{{ 1 if demo_modus else 0 }}">
 <div class="wrap">
 
 
@@ -317,31 +421,12 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 {% set ic_vraag %}<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M9.3 9.3a2.7 2.7 0 1 1 3.9 2.4c-.9.5-1.2 1-1.2 2"/><circle cx="12" cy="16.3" r="0.9" fill="currentColor" stroke="none"/></svg>{% endset %}
 
   <div class="kop">
-    <h1>{{ ic_vraag }}Uitleg</h1>
+    <div class="merk"><div><span class="ph-sub">Hoe de bot werkt, met jouw huidige instellingen</span><h1>Uitleg</h1></div></div>
   </div>
 
-  <div class="intro">
-    <strong>Profit Harvester</strong> bewaakt dag en nacht je munten op Bitvavo en bestaat uit drie delen:
-    <ul class="opsom">
-      <li><strong>Hoofdlijst</strong>: jouw eigen munten, elk met een budget. Stijgt een munt genoeg, dan
-        verkoopt de bot automatisch <strong>alleen de winst</strong>; je budget blijft belegd.</li>
-      <li><strong>Pot</strong>: een apart potje waarin de bot <strong>zelf</strong> beweeglijke munten kiest,
-        koopt en verkoopt.</li>
-      <li><strong>Dalpot</strong>: een apart potje waarin de bot <strong>zelf</strong> de grootste daler van de
-        dag koopt en verkoopt zodra die herstelt.</li>
-    </ul>
-    Van de winst uit de hoofdlijst gaat {{ pct(h.reserve_pct) }} naar je <strong>reserve</strong>
-    ({{ h.reserve_keuzes | join(" of ") }}, nu {{ h.reserve_actief }}). De bot koopt <strong>nooit vanzelf</strong>
-    voor de hoofdlijst (dat doe jij met een knop) en heeft <strong>geen stop-loss</strong>: een munt die daalt,
-    blijft liggen tot hij terugkomt.
-    {% if h.demo %}
-    <div class="tip"><b>Demo-modus staat aan.</b> Alles werkt met echte koersen van Bitvavo, maar met nepgeld:
-      er worden geen echte orders geplaatst. Zie <a href="#demo">Demo-modus</a>.</div>
-    {% endif %}
-  </div>
-
-  <div class="inhoud">
-    <h2>Inhoud</h2>
+  <div class="ph-uitleglayout">
+  <nav class="inhoud" id="inhoud" aria-label="Op deze pagina">
+    <h2>Op deze pagina</h2>
     <ul>
       <li><a href="#start">{{ ic_start }}Snel aan de slag</a></li>
       <li><a href="#hoofdlijst">{{ ic_hoofd }}De Hoofdlijst</a></li>
@@ -361,6 +446,28 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <li><a href="#vragen">{{ ic_vraag }}Veelgestelde vragen</a></li>
       {% if h.donatie %}<li><a href="#steun"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Steun dit project</a></li>{% endif %}
     </ul>
+  </nav>
+
+  <div class="ph-uitleginhoud">
+  <div class="intro">
+    <div class="ph-label">In het kort</div>
+    <p class="ph-introzin"><strong>Profit Harvester</strong> bewaakt dag en nacht je munten op Bitvavo en bestaat uit drie delen:</p>
+    <div class="ph-drie">
+      <div class="ph-mini"><b><i class="ph-vlag hoofd"></i>Hoofdlijst</b>jouw eigen munten, elk met een budget. Stijgt een munt genoeg, dan
+        verkoopt de bot automatisch <strong>alleen de winst</strong>; je budget blijft belegd.</div>
+      <div class="ph-mini"><b><i class="ph-vlag pot"></i>Pot</b>een apart potje waarin de bot <strong>zelf</strong> beweeglijke munten kiest,
+        koopt en verkoopt.</div>
+      <div class="ph-mini"><b><i class="ph-vlag dalpot"></i>Dalpot</b>een apart potje waarin de bot <strong>zelf</strong> de grootste daler van de
+        dag koopt en verkoopt zodra die herstelt.</div>
+    </div>
+    <div class="tip ph-info">Van de winst uit de hoofdlijst gaat {{ pct(h.reserve_pct) }} naar je <strong>reserve</strong>
+    ({{ h.reserve_keuzes | join(" of ") }}, nu {{ h.reserve_actief }}). De bot koopt <strong>nooit vanzelf</strong>
+    voor de hoofdlijst (dat doe jij met een knop) en heeft <strong>geen stop-loss</strong>: een munt die daalt,
+    blijft liggen tot hij terugkomt.</div>
+    {% if h.demo %}
+    <div class="tip"><b>Demo-modus staat aan.</b> Alles werkt met echte koersen van Bitvavo, maar met nepgeld:
+      er worden geen echte orders geplaatst. Zie <a href="#demo">Demo-modus</a>.</div>
+    {% endif %}
   </div>
 
   <!-- ===================== SNEL AAN DE SLAG ===================== -->
@@ -386,7 +493,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
   <!-- ===================== HOOFDLIJST ===================== -->
   <div class="paneel" id="hoofdlijst">
-    <div class="paneelkop">{{ ic_hoofd }}De Hoofdlijst</div>
+    <div class="paneelkop"><i class="ph-vlag hoofd"></i>De Hoofdlijst</div>
     <div class="paneelinhoud">
       <p>De hoofdlijst is je eigen portefeuille: munten die jij kiest, elk met een <b>budget</b>. Het budget is
         het bedrag dat je in die munt wilt hebben. De bot vergelijkt steeds de <b>actuele waarde</b> van je saldo
@@ -454,6 +561,16 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
         </div>
       </div>
 
+      <div class="ph-instellingen">
+        <div class="ph-label">Jouw huidige instellingen</div>
+        <div class="ph-instrij"><span>Winstdoel per nieuwe munt</span><b>{{ eur(h.hoofd_doel) }} netto</b></div>
+        <div class="ph-instrij"><span>Vangnet (minimale oogst)</span><b>{{ eur(h.min_oogst) }} netto</b></div>
+        <div class="ph-instrij"><span>Trailing-stop</span><b>1%</b></div>
+        <div class="ph-instrij"><span>Naar reserve</span><b>{{ pct(h.reserve_pct) }} &middot; {{ h.reserve_actief }}</b></div>
+        <div class="ph-instrij"><span>Maximale inleg per munt</span><b>{{ h.max_inleg|string|replace('.', ',') }}&times; budget</b></div>
+        <div class="ph-instrij"><span>Handelskosten</span><b>{{ pct(h.fee_pct) }}</b></div>
+      </div>
+
       <div class="let-op">
         <b>Geen stop-loss.</b> Daalt een munt, dan grijpt de bot niet in. Hij wacht tot de waarde weer boven budget +
         winstdoel komt. Dat kan lang duren, en soms gebeurt het niet.
@@ -463,7 +580,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
   <!-- ===================== POT ===================== -->
   <div class="paneel" id="pot">
-    <div class="paneelkop">{{ ic_pot }}De Pot</div>
+    <div class="paneelkop"><i class="ph-vlag pot"></i>De Pot</div>
     <div class="paneelinhoud">
       <p>De pot is een apart potje geld waarin de bot <b>helemaal zelf</b> handelt: munten kiezen, kopen,
         bijkopen en verkopen. Dit is het actievere, risicovollere deel.</p>
@@ -524,7 +641,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
   <!-- ===================== DALPOT ===================== -->
   <div class="paneel" id="dalpot">
-    <div class="paneelkop">{{ ic_dal }}De Dalpot</div>
+    <div class="paneelkop"><i class="ph-vlag dalpot"></i>De Dalpot</div>
     <div class="paneelinhoud">
       <p>De dalpot werkt als de pot, maar kiest bewust de munt die de laatste 24 uur <b>het hardst gedaald</b>
         is, in de hoop dat die herstelt. Volledig apart: eigen cash, eigen munten, eigen instellingen.</p>
@@ -620,10 +737,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
         <div class="naam">Posities: de status per munt</div>
         <div class="wat">
           <table class="regels">
-            <tr><td><b>Nog niet gekocht</b></td><td>De munt staat in de lijst, maar je hebt er nog niets van.</td></tr>
-            <tr><td><b>Onder budget</b></td><td>De waarde is lager dan je budget. Aanvullen kan, volgens de lagen.</td></tr>
-            <tr><td><b>Onderweg</b></td><td>Boven budget, nog niet bij het winstdoel. De balk toont hoe ver.</td></tr>
-            <tr><td><b>Volgt de top</b></td><td>Winstdoel gehaald. De bot verkoopt bij een terugval van de trailing.</td></tr>
+            <tr><td><span class="ph-badge ph-badge--wacht">Nog niet gekocht</span></td><td>De munt staat in de lijst, maar je hebt er nog niets van.</td></tr>
+            <tr><td><span class="ph-badge ph-badge--budget">Onder budget</span></td><td>De waarde is lager dan je budget. Aanvullen kan, volgens de lagen.</td></tr>
+            <tr><td><span class="ph-badge ph-badge--onder">Onderweg</span></td><td>Boven budget, nog niet bij het winstdoel. De balk toont hoe ver.</td></tr>
+            <tr><td><span class="ph-badge ph-badge--top">Volgt de top</span></td><td>Winstdoel gehaald. De bot verkoopt bij een terugval van de trailing.</td></tr>
             <tr><td><span class="slotje">op slot</span></td><td>Inlegplafond bereikt: deze munt wordt niet meer aangevuld.</td></tr>
           </table>
           Tik op een munt voor meer: budget, ingelegd, geoogst en de koers. Met <i>Zoek munt</i> filter je de lijst,
@@ -631,9 +748,18 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       </div>
       <div class="term">
         <div class="naam">Op een laptop of groot scherm</div>
-        <div class="wat">Is je scherm breed genoeg, dan staat de grafiek links en staan de posities rechts. Op een
-          telefoon staat alles onder elkaar. Zolang er nog gegevens worden geladen, zie je een grijze laadbalk in
-          plaats van een leeg vlak.</div>
+        <div class="wat">Is je scherm breed genoeg, dan staat het menu als <b>zijbalk</b> links, staat de grafiek over
+          de volle breedte en staan de posities eronder als <b>tabel</b> (Munt, Waarde, Winst, Status). Op een
+          telefoon staat alles onder elkaar en zit het menu onderaan. Zolang er nog gegevens worden geladen, zie je een
+          grijze laadbalk in plaats van een leeg vlak.</div>
+      </div>
+      <div class="term">
+        <div class="naam">Status en pauzeren</div>
+        <div class="wat">Onderin de zijbalk (op een telefoon bovenaan het dashboard) zie je of de bot <b>actief</b> is,
+          hoe lang hij al draait, wanneer hij voor het laatst een ronde maakte (<i>laatste run</i>) en de temperatuur
+          van de Pi. Met <b>Bot pauzeren</b> zet je hem stil: hij koopt en verkoopt dan niets meer, ook geen winst
+          afromen, tot je op <b>Bot hervatten</b> drukt. Je krijgt daarvan een melding in Telegram, en op elke pagina
+          staat een oranje balk zolang hij gepauzeerd is. Na een herstart staat de bot altijd weer aan.</div>
       </div>
     </div>
   </div>
@@ -668,8 +794,9 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     <div class="paneelkop">{{ ic_rendement }}Rendement</div>
     <div class="paneelinhoud">
       <p>Een winstoverzicht per periode (<i>Vandaag</i>, <i>Week</i>, <i>Maand</i> of <i>Alles</i>): totaal geoogst,
-        aantal oogsten, gemiddelde per oogst en betaalde fees. Daarnaast een staafdiagram van het verloop en de best
-        presterende munten. Alles komt uit hetzelfde logboek als de Activiteit-pagina.</p>
+        aantal oogsten, gemiddelde per oogst en betaalde fees. Onder "Totaal geoogst" staat hoeveel daarvan naar je
+        reserve ging. Daarnaast een staafdiagram per dag (bij <i>Alles</i> per maand), met het hoogste bedrag erboven,
+        en de munten met per munt een balkje. Alles komt uit hetzelfde logboek als de Activiteit-pagina.</p>
       <p class="dim">"Totaal geoogst" telt alleen verkopen met winst. Het omzetten naar je reserve telt niet nog eens
         als winst: dat is geld dat al geoogst was.</p>
     </div>
@@ -681,9 +808,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     <div class="paneelinhoud">
       <p>Het logboek van de laatste 100 orders als <b>tabel</b>: Tijd, Munt, Soort (koop of verkoop), Bron, Fee en
         Bedrag. Klik op een kolomkop om te sorteren, en filter bovenaan op kopen of verkopen, op bron of op munt.
-        Daarboven staat het totaal dat in die selectie gekocht en verkocht is. Op een telefoon past de tabel in het
-        scherm, zonder zijwaarts te scrollen. De pagina ververst elke 30 seconden. De bron vertelt wie of wat de
-        order deed:</p>
+        Rechtsboven staat het totaal dat in die selectie gekocht en verkocht is, onderaan de fees. Met de knop
+        <b>CSV</b> download je de orders die je op dat moment ziet (met je filters) als bestand voor Excel of je
+        boekhouding. Op een telefoon past de tabel in het scherm, zonder zijwaarts te scrollen. De pagina ververst
+        elke 30 seconden. De bron vertelt wie of wat de order deed:</p>
       <table class="regels">
         <tr><td><b>automatisch afgeroomd</b></td><td>de bot verkocht winst uit de hoofdlijst</td></tr>
         <tr><td><b>handmatig afgeroomd</b></td><td>jij drukte op Afromen, of verwijderde een pot-munt</td></tr>
@@ -699,7 +827,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   <div class="paneel" id="beheren">
     <div class="paneelkop">{{ ic_beheren }}De Beheren-pagina</div>
     <div class="paneelinhoud">
-      <p>Bovenaan staat een <b>sprongbalk</b> (Hoofdlijst, Pot, Dalpot) die blijft staan als je scrolt. Elk blok is
+      <p>Bovenaan staat een <b>sprongbalk</b> (Hoofdlijst, Pot, Dalpot): op een telefoon blijft die staan als je
+        scrolt, op een computer staat hij rechtsboven en staan de blokken in twee kolommen. Elk blok is
         <b>in- en uit te klappen</b>; de pagina onthoudt je keuze. De instellingen van pot en dalpot staan standaard
         dicht, omdat je die zelden nodig hebt. Elke knop heeft een label:</p>
       <table class="regels">
@@ -819,7 +948,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <div class="term">
         <div class="naam">Meldingen (het belletje)</div>
         <div class="wat">Alles wat de bot naar Telegram stuurt, staat ook op de site: tik op <b>Meldingen</b> in het
-          menu onderaan. Zo zie je ook zonder Telegram wat er gebeurd is. De laatste 100 berichten worden bewaard.
+          menu (op een telefoon onderaan, op een computer in de zijbalk). Zo zie je ook zonder Telegram wat er gebeurd is. De laatste 100 berichten worden bewaard.
           <ul class="opsom">
             <li>Een bericht met ⚠️, 🚨, ❌ of 🛑 geldt als <b>belangrijk</b> en zet een <b>rode stip</b> op het belletje.</li>
             <li>Open je het paneel, dan verdwijnt de stip: alles is dan gelezen.</li>
@@ -829,8 +958,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       </div>
       <div class="term">
         <div class="naam">Licht of donker</div>
-        <div class="wat">Onderaan elke pagina staat een knop <b>Licht</b> (of <b>Donker</b>, als het lichte thema aan
-          staat). Standaard is alles donker. Je keuze wordt per apparaat onthouden, ook op de inlogpagina.</div>
+        <div class="wat">Onderaan elke pagina (op een computer onderin de zijbalk) staat een knop <b>Licht</b> (of
+          <b>Donker</b>, als het lichte thema aan staat). Standaard is alles donker. Je keuze wordt per apparaat onthouden, ook op de inlogpagina.</div>
       </div>
     </div>
   </div>
@@ -875,8 +1004,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
         <b>nep-saldo</b>. Orders worden nagebootst tegen de actuele koop- en verkoopprijs, inclusief fees. Er gaat
         geen echt geld om, en er is geen Bitvavo-sleutel nodig.</p>
       <ul class="opsom">
-        <li>Je herkent hem aan <b>"Bitvavo · DEMO"</b> bovenaan het dashboard, en aan <b>🧪 [DEMO]</b> voor elk
-          Telegram-bericht.</li>
+        <li>Je herkent hem aan <b>"DEMO"</b> bij de naam in de zijbalk en bovenaan het dashboard, en aan
+          <b>🧪 [DEMO]</b> voor elk Telegram-bericht.</li>
         <li>Demo-gegevens staan in aparte bestanden. Stap je over naar echt, dan begin je met een schone administratie.</li>
         <li>Aan- en uitzetten gaat in het instellingenbestand (<code>.env</code>) met <code>DEMO_MODUS=1</code> of
           <code>0</code>, en <code>DEMO_STARTKAPITAAL</code> voor het nepgeld. Daarna de bot herstarten.</li>
@@ -906,31 +1035,31 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   <div class="paneel" id="vragen">
     <div class="paneelkop">{{ ic_vraag }}Veelgestelde vragen</div>
     <div class="paneelinhoud">
-      <div class="term">
-        <div class="naam">Ik druk op Alles Aanvullen, maar er wordt niets gekocht.</div>
+      <details class="ph-vraag" open>
+        <summary>Ik druk op Alles Aanvullen, maar er wordt niets gekocht.</summary>
         <div class="wat">Meestal staat de munt minder dan {{ pct(h.lagen[0]) }} onder budget, daalt hij nog (wachten op
           een bodem), is het inlegplafond bereikt, of is er te weinig vrije cash (pot- en dalpotgeld telt niet mee).
           Telegram vertelt per munt waarom.</div>
-      </div>
-      <div class="term">
-        <div class="naam">Mijn munt staat op "Volgt de top", maar er wordt niet verkocht.</div>
+      </details>
+      <details class="ph-vraag">
+        <summary>Mijn munt staat op "Volgt de top", maar er wordt niet verkocht.</summary>
         <div class="wat">De bot wacht tot de koers de trailing (bijvoorbeeld 1%) onder de hoogste koers zakt. Zolang de
           koers stijgt of maar weinig terugvalt, wacht hij.</div>
-      </div>
-      <div class="term">
-        <div class="naam">Het dashboard wijkt een paar euro af van Bitvavo.</div>
+      </details>
+      <details class="ph-vraag">
+        <summary>Het dashboard wijkt een paar euro af van Bitvavo.</summary>
         <div class="wat">Munten die je buiten de bot om hebt (niet in een lijst en geen reserve), en kleine restjes
           ("dust"), tellen niet mee. Ook rekent de bot met de laatste koers; Bitvavo soms met een andere prijs.</div>
-      </div>
-      <div class="term">
-        <div class="naam">Kan ik BTC of ETH in de hoofdlijst zetten?</div>
+      </details>
+      <details class="ph-vraag">
+        <summary>Kan ik BTC of ETH in de hoofdlijst zetten?</summary>
         <div class="wat">Nee, dat zijn reservemunten. Zie <a href="#reserve">De Reserve</a>.</div>
-      </div>
-      <div class="term">
-        <div class="naam">Wat gebeurt er als de bot even uit staat?</div>
+      </details>
+      <details class="ph-vraag">
+        <summary>Wat gebeurt er als de bot even uit staat?</summary>
         <div class="wat">Niets gaat verloren: alle gegevens staan in bestanden en je munten staan gewoon op Bitvavo. Na
           het herstarten gaat hij verder waar hij was. Alleen een stijging en daling tijdens de pauze heeft hij gemist.</div>
-      </div>
+      </details>
     </div>
   </div>
 
@@ -958,6 +1087,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     <b>Geen financieel advies.</b> Profit Harvester is software die jouw eigen instellingen uitvoert. Handelen in
     crypto is risicovol en je kunt (een deel van) je inleg verliezen. Resultaten uit het verleden bieden geen garantie
     voor de toekomst. Gebruik op eigen risico.
+  </div>
+  </div>
   </div>
 
   <div class="onderbalk">
@@ -1142,5 +1273,23 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     });
   });
 </script>
+<script>
+(function () {
+  "use strict";
+  var links = Array.prototype.slice.call(document.querySelectorAll("#inhoud a[href^='#']"));
+  if (!links.length || !("IntersectionObserver" in window)) { return; }
+  var perId = {};
+  links.forEach(function (a) { perId[a.getAttribute("href").slice(1)] = a; });
+  var zichtbaar = {};
+  var io = new IntersectionObserver(function (items) {
+    items.forEach(function (it) { zichtbaar[it.target.id] = it.isIntersecting; });
+    var eerste = links.map(function (a) { return a.getAttribute("href").slice(1); }).filter(function (id) { return zichtbaar[id]; })[0];
+    if (!eerste) { return; }
+    links.forEach(function (a) { a.classList.toggle("actief", a === perId[eerste]); });
+  }, { rootMargin: "-10% 0px -70% 0px" });
+  Object.keys(perId).forEach(function (id) { var e = document.getElementById(id); if (e) { io.observe(e); } });
+})();
+</script>
+<script src="/static/ph.js?v=1"></script>
 </body>
 </html>

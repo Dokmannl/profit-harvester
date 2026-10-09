@@ -1,3 +1,4 @@
+// versie 2 (nieuw ontwerp en iconen)
 // Minimale service worker, puur om aan Chrome/Android's installatie-eisen
 // voor een PWA te voldoen. Geen caching: dit is een live handelsdashboard,
 // verouderde cijfers uit een cache zijn hier erger dan geen offline-modus.

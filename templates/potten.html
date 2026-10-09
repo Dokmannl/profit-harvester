@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Potten — Profit Harvester</title>
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -18,7 +19,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -47,8 +48,8 @@
   --dimmer:   #5d6e80;
   --up:       #35c491;
   --down:     #e8654f;
-  --gold:     #f2b53b;
-  --goldsoft: rgba(242, 181, 59, .09);
+  --gold:     #F7931A;
+  --goldsoft: rgba(247,147,26, .09);
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -58,7 +59,7 @@ body {
   background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
@@ -66,7 +67,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 .wrap { max-width: 1280px; margin: 0 auto; }
-:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(247,147,26,.5); border-radius: 6px; }
 
 /* laadstaat: een rustige glans in plaats van lege vlakken met nulwaarden */
 .skelet, body[data-laden] .strategiekaart .sk-waarde, body[data-laden] .strategiekaart .sk-sub, body[data-laden] .strategiekaart .sk-munten {
@@ -111,7 +112,7 @@ body[data-laden] .strategiekaart .sk-munten { width: 28%; min-height: 1em; }
 .strategiekaart .sk-sub.op { color: var(--up); }
 .strategiekaart .sk-sub.af { color: var(--down); }
 .strategiekaart .sk-munten { font-size: 0.73rem; color: var(--dimmer); margin-top: 3px; }
-.strategiekaart.hoofdlijst { border-color: rgba(242,181,59,.3); }
+.strategiekaart.hoofdlijst { border-color: rgba(247,147,26,.3); }
 .strategiekaart.pot { border-color: rgba(61,110,168,.4); }
 .strategiekaart.dalpot { border-color: rgba(232,101,79,.35); }
 
@@ -170,7 +171,7 @@ body[data-laden] .strategiekaart .sk-munten { width: 28%; min-height: 1em; }
 .rij:last-child { border-bottom: none; }
 .rij:hover { background: rgba(255,255,255,.017); }
 .rij.klaar { background: var(--goldsoft); box-shadow: inset 3px 0 0 var(--gold); }
-.rij.klaar:hover { background: rgba(242,181,59,.13); }
+.rij.klaar:hover { background: rgba(247,147,26,.13); }
 
 .logo { width: 30px; height: 30px; border-radius: 50%; object-fit: contain; background: var(--surface2); }
 .valtterug { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--surface2); color: var(--dim); font-size: 0.66rem; font-weight: 700; }
@@ -344,7 +345,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -356,12 +357,56 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: alleen potten ---- */
+.strategiekaarten { gap: 14px; margin-bottom: 16px; }
+.strategiekaart {
+  padding: 18px 20px;
+  display: grid; grid-template-columns: 1fr auto; grid-template-areas: "naam naam" "waarde waarde" "munten sub";
+  align-items: end; row-gap: 4px;
+}
+.strategiekaart.hoofdlijst, .strategiekaart.pot, .strategiekaart.dalpot { border-color: var(--ph-border); }
+.strategiekaart .sk-naam { grid-area: naam; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim); margin-bottom: 4px; }
+.strategiekaart .sk-naam svg { display: none; }
+.strategiekaart .sk-naam::before { content: ""; width: 9px; height: 9px; border-radius: 2px; margin-right: 3px; background: var(--ph-accent); }
+.strategiekaart.pot .sk-naam::before { background: var(--ph-blue); }
+.strategiekaart.dalpot .sk-naam::before { background: var(--ph-red); }
+.strategiekaart .sk-waarde { grid-area: waarde; font-size: 1.85rem; font-weight: 600; color: var(--ph-text-hi); margin-bottom: 6px; }
+.strategiekaart .sk-sub { grid-area: sub; margin: 0; font-size: 0.8rem; text-align: right; }
+.strategiekaart .sk-munten { grid-area: munten; margin: 0; font-size: 0.8rem; color: var(--ph-muted); }
+.paneelkop h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 0; }
+.ph-uitleg { font-size: 0.8rem; font-weight: 400; color: var(--ph-muted); margin-left: 10px; letter-spacing: 0; }
+.potcijfers { padding: 14px 20px; }
+.potstatus { margin-top: 10px; }
+@media (min-width: 900px) {
+  .potgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+  .potgrid > .paneel { margin-bottom: 0; }
+  .potgrid .rijkop { display: none; }
+  .potgrid .rij {
+    grid-template-columns: 34px 1fr auto;
+    grid-template-areas: "logo naam winst" "logo bedr winst" "spoor spoor spoor";
+    gap: 2px 12px; padding: 16px 20px;
+  }
+  .potgrid .rij > .logowrap { grid-area: logo; align-self: start; }
+  .potgrid .rij > .naam     { grid-area: naam; }
+  .potgrid .rij > .bedrag   { grid-area: bedr; font-size: 0.88rem; text-align: left; }
+  .potgrid .rij > .winst    { grid-area: winst; text-align: right; }
+  .potgrid .rij > .voortgang{ grid-area: spoor; margin-top: 11px; }
+}
+@media (max-width: 899px) {
+  .strategiekaarten { grid-template-columns: 1fr; gap: 10px; }
+  .strategiekaart { padding: 15px 16px; }
+  .strategiekaart .sk-waarde { font-size: 1.5rem; }
+  .ph-uitleg { display: block; margin: 2px 0 0; width: 100%; }
+}
+</style>
 </head>
-<body data-laden>
+<body data-laden data-demo="{{ 1 if demo_modus else 0 }}">
 <div class="wrap">
 
   <div class="kop">
-    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>Potten</h1>
+    <div class="merk"><div><span class="ph-sub">Hoofdlijst, pot en dalpot</span><h1>Potten</h1></div></div>
   </div>
 
   <div class="strategiekaarten">
@@ -392,7 +437,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   <div class="potgrid">
   <div class="paneel potpaneel" id="potPaneel" hidden>
     <div class="paneelkop">
-      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot <span class="noodstopchip" id="potNoodstopChip" hidden>noodstop actief</span></h2>
+      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg><i class="ph-vlag pot"></i>Pot <small class="ph-uitleg">bot kiest en handelt zelf</small> <span class="noodstopchip" id="potNoodstopChip" hidden>noodstop actief</span></h2>
     </div>
     <div class="potcijfers">
       <div><span class="etiket">Pot totaal</span><strong id="potTotaal">&euro; 0,00</strong></div>
@@ -403,7 +448,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
   <div class="paneel potpaneel" id="dalpotPaneel" hidden>
     <div class="paneelkop">
-      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot <span class="noodstopchip" id="dalpotNoodstopChip" hidden>noodstop actief</span></h2>
+      <h2><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg><i class="ph-vlag dalpot"></i>Dalpot <small class="ph-uitleg">grootste daler van de dag</small> <span class="noodstopchip" id="dalpotNoodstopChip" hidden>noodstop actief</span></h2>
     </div>
     <div class="potcijfers">
       <div><span class="etiket">Dalpot totaal</span><strong id="dalpotTotaal">&euro; 0,00</strong></div>
@@ -519,8 +564,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     var nietGekocht = p.waarde !== undefined && p.waarde < 1 && !klaar;
 
     var links = nietGekocht
-      ? "Nog niet gekocht"
-      : (klaar ? "<b>Volgt de top</b>" : (winst < 0 ? "Onder budget" : "Onderweg"));
+      ? '<span class="ph-badge ph-badge--wacht">Nog niet gekocht</span>'
+      : (klaar ? '<span class="ph-badge ph-badge--top">Volgt de top</span>'
+               : (winst < 0 ? '<span class="ph-badge ph-badge--budget">Onder budget</span>'
+                            : '<span class="ph-badge ph-badge--onder">Onderweg</span>'));
     var rechts = nietGekocht
       ? "budget " + geld.format(p.budget)
       : (klaar ? geld.format(winst) + " te oogsten" : "nog " + geld.format(tekort));
@@ -544,6 +591,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       '<div class="logowrap">' + logoHtml(p) + '</div>' +
       '<div class="naam">' + p.coin +
         '<svg class="pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>' +
+        '<span class="ph-budget">budget ' + geld.format(p.budget) + '</span>' +
         '<small>' + detailRegels.join('<br>') + '</small></div>' +
       '<div class="bedrag">' + geld.format(p.waarde) +
         '<small>' + koersTekst(p.koers) + '</small></div>' +
@@ -563,7 +611,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
   function potRijHtml(p) {
     var klaar = isKlaar(p);
-    var status = '<div class="potstatus">' + potKoopStatusTekst(p) + '</div>';
+    var status = '<div class="potstatus"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>' + potKoopStatusTekst(p) + '</div>';
     return rijHtml(p, klaar, status);
   }
 
@@ -810,5 +858,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
+<script src="/static/ph.js?v=1"></script>
 </body>
 </html>

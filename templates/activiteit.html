@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Activiteit — Profit Harvester</title>
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -18,7 +19,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -47,7 +48,7 @@
   --dimmer:   #5d6e80;
   --up:       #35c491;
   --down:     #e8654f;
-  --gold:     #f2b53b;
+  --gold:     #F7931A;
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -56,7 +57,7 @@ body {
   background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   font-variant-numeric: tabular-nums;
@@ -65,7 +66,7 @@ body {
 }
 .wrap { max-width: 1280px; margin: 0 auto; }
 
-:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(242,181,59,.5); border-radius: 6px; }
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(247,147,26,.5); border-radius: 6px; }
 
 /* laadstaat: een rustige glans in plaats van een leeg paneel */
 .skelet {
@@ -138,7 +139,7 @@ body {
 }
 .segment button:last-child { border-right: none; }
 .segment button:hover { background: var(--surface2); color: var(--text); }
-.segment button.actief { background: rgba(242,181,59,.12); color: var(--gold); }
+.segment button.actief { background: rgba(247,147,26,.12); color: var(--gold); }
 .filterbalk select, .filterbalk input {
   font: inherit; font-size: 0.82rem; color: var(--text);
   background: var(--bg); border: 1px solid var(--line); border-radius: 9px;
@@ -146,7 +147,7 @@ body {
 }
 .filterbalk input { width: 120px; text-transform: uppercase; }
 .filterbalk input::placeholder { text-transform: none; color: var(--dimmer); }
-.filterbalk input:focus, .filterbalk select:focus { outline: none; border-color: rgba(242,181,59,.55); }
+.filterbalk input:focus, .filterbalk select:focus { outline: none; border-color: rgba(247,147,26,.55); }
 .samenvatting { margin-left: auto; font-size: 0.8rem; color: var(--dim); }
 .samenvatting b { color: var(--text); font-weight: 700; }
 
@@ -239,7 +240,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -251,12 +252,60 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: alleen activiteit ---- */
+.paneel > .paneelkop { display: none; }
+.ph-kopcijfers { display: flex; gap: 24px; text-align: right; }
+.ph-kopcijfers small { display: block; font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-dim); }
+.ph-kopcijfers b { font-family: var(--ph-mono); font-size: 1.05rem; font-weight: 600; white-space: nowrap; }
+.ph-blauw { color: var(--ph-blue); }
+.filterbalk { padding: 14px 20px; gap: 10px; }
+.segment { overflow: visible; }
+.segment button { border-right: 0; border-radius: 7px; padding: 7px 13px; }
+.segment button.actief { background: var(--ph-inner); color: var(--ph-text); border: 1px solid var(--ph-border-2); }
+.filterbalk select, .filterbalk input { padding: 9px 11px; border-radius: 9px; }
+.filterbalk input { width: 170px; }
+.samenvatting { display: none; }
+.ph-csv { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 8px 14px; color: var(--ph-muted); }
+table.orders th { background: none !important; color: var(--ph-dim); font-size: 11px; font-weight: 600; padding: 13px 20px; }
+table.orders th.gesorteerd { color: var(--ph-accent); }
+table.orders td { padding: 12px 20px; font-size: 0.9rem; }
+table.orders td.tijd { font-family: var(--ph-mono); font-size: 0.78rem; color: var(--ph-muted); }
+table.orders td.fee { font-family: var(--ph-mono); font-size: 0.78rem; color: var(--ph-dim); }
+table.orders td.bedrag b { font-family: var(--ph-mono); font-weight: 600; }
+table.orders td.munt b { font-weight: 600; }
+.ph-muntcel { display: inline-flex; align-items: center; gap: 10px; }
+.ph-muntlogo { width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0; background: var(--ph-inner); object-fit: contain; }
+.ph-letters { display: inline-grid; place-items: center; font-size: 0.5rem; font-weight: 700; color: var(--ph-muted); }
+.soort { border-radius: 4px; padding: 2px 8px; font-size: 11px; }
+.soort.koop, html[data-thema="licht"] .soort.koop { background: var(--ph-blue-soft); color: var(--ph-blue); }
+.soort.verkoop { background: var(--ph-green-soft); color: var(--ph-green); }
+.ph-tabelvoet { display: flex; justify-content: space-between; gap: 12px; padding: 13px 20px; border-top: 1px solid var(--ph-border); font-size: 0.78rem; color: var(--ph-muted); }
+.ph-tabelvoet span:last-child { font-family: var(--ph-mono); }
+@media (max-width: 899px) {
+  .kop { flex-wrap: wrap; }
+  .ph-kopcijfers { width: 100%; justify-content: space-between; text-align: left; gap: 10px; }
+  .ph-kopcijfers b { font-size: 0.95rem; }
+  .filterbalk { padding: 12px 14px; }
+  .filterbalk input { flex: 1 1 120px; width: auto; }
+  .filterbalk select { flex: 1 1 140px; }
+  .segment { flex: 1 1 100%; display: flex; }
+  .segment button { flex: 1; }
+  .ph-csv { margin-left: 0; }
+  table.orders td { padding: 11px 8px; }
+  .ph-muntlogo { display: none; }
+  .ph-muntcel { gap: 0; }
+  .ph-kopcijfers small { font-size: 10px; }
+}
+</style>
 </head>
-<body>
+<body data-demo="{{ 1 if demo_modus else 0 }}">
 <div class="wrap">
 
   <div class="kop">
-    <h1><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>Activiteit</h1>
+    <div class="merk"><div><span class="ph-sub">Alle orders van de bot</span><h1>Activiteit</h1></div></div>
+    <div class="ph-kopcijfers" id="kopCijfers"></div>
   </div>
 
   <div class="paneel">
@@ -270,6 +319,9 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <select id="filterBron" aria-label="Bron"><option value="">Alle bronnen</option></select>
       <input type="text" id="filterMunt" placeholder="Munt zoeken" aria-label="Munt zoeken" autocomplete="off">
       <div class="samenvatting" id="samenvatting"></div>
+      <button type="button" class="ph-csv" id="knopCsv" title="Download de getoonde orders als CSV-bestand">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 19h14"/></svg>CSV
+      </button>
     </div>
     <div id="activiteitLijst" aria-busy="true"><div class="skeletlijst">
       <div class="skelet"></div><div class="skelet"></div><div class="skelet"></div>
@@ -386,6 +438,11 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     });
     document.getElementById("samenvatting").innerHTML =
       '<b>' + rijen.length + '</b> orders · gekocht <b>' + geld.format(gekocht) + '</b> · verkocht <b>' + geld.format(verkocht) + '</b>';
+    var fees = rijen.reduce(function (s, t) { return s + (Number(t.fee) || 0); }, 0);
+    document.getElementById("kopCijfers").innerHTML =
+      '<div><small>Orders</small><b>' + rijen.length + '</b></div>' +
+      '<div><small>Gekocht</small><b class="ph-blauw">' + geld.format(gekocht) + '</b></div>' +
+      '<div><small>Verkocht</small><b class="op">' + geld.format(verkocht) + '</b></div>';
 
     if (!rijen.length) {
       lijst.innerHTML = '<div class="geenmunten">' + (alle.length ? "Geen orders met deze filters." : "Nog geen activiteit.") + '</div>';
@@ -401,15 +458,48 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       var isVerkoop = t.kant === "verkoop";
       return '<tr>' +
         '<td class="tijd">' + esc(volLabelISO(t.tijd)) + '</td>' +
-        '<td class="munt"><b>' + esc(t.munt) + '</b><small>' + esc(bronTekst(t.bron)) + '</small></td>' +
+        '<td class="munt"><span class="ph-muntcel">' + muntLogo(t.munt) + '<span><b>' + esc(t.munt) + '</b><small>' + esc(bronTekst(t.bron)) + '</small></span></span></td>' +
         '<td class="soortkol"><span class="soort ' + (isVerkoop ? "verkoop" : "koop") + '">' + (isVerkoop ? "Verkocht" : "Gekocht") + '</span></td>' +
         '<td class="bron">' + esc(bronTekst(t.bron)) + '</td>' +
         '<td class="fee rechts">' + (t.fee ? geld.format(t.fee) : "—") + '</td>' +
         '<td class="bedrag rechts"><b>' + geld.format(t.bedrag || 0) + '</b></td>' +
       '</tr>';
     }).join("");
-    lijst.innerHTML = '<div class="tabelwrap"><table class="orders"><thead><tr>' + kop + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+    lijst.innerHTML = '<div class="tabelwrap"><table class="orders"><thead><tr>' + kop + '</tr></thead><tbody>' + body + '</tbody></table></div>' +
+      '<div class="ph-tabelvoet"><span>' + rijen.length + ' van ' + alle.length + ' orders</span><span>fees totaal ' + geld.format(fees) + '</span></div>';
+    lijst.querySelectorAll("img.ph-muntlogo").forEach(function (img) {
+      img.addEventListener("error", function () {
+        var blok = document.createElement("span");
+        blok.className = "ph-muntlogo ph-letters";
+        blok.textContent = img.alt;
+        img.replaceWith(blok);
+      }, { once: true });
+    });
   }
+
+  // muntlogo uit dezelfde iconenset als het dashboard; lukt dat niet, dan een rondje met letters
+  function muntLogo(munt) {
+    var code = String(munt || "").split("/")[0].toUpperCase();
+    return '<img class="ph-muntlogo" alt="' + esc(code.slice(0, 4)) + '" loading="lazy" src="https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/128/color/' +
+           esc(code.toLowerCase()) + '.png">';
+  }
+
+  // CSV-export van wat er nu in de tabel staat (met de filters), puur in de browser
+  document.getElementById("knopCsv").addEventListener("click", function () {
+    var rijen = zichtbaar();
+    var regels = [["tijd", "munt", "soort", "bron", "fee_eur", "bedrag_eur"].join(";")];
+    rijen.forEach(function (t) {
+      var velden = [t.tijd || "", t.munt || "", t.kant === "verkoop" ? "verkocht" : "gekocht", bronTekst(t.bron),
+                    String(Number(t.fee) || 0).replace(".", ","), String(Number(t.bedrag) || 0).replace(".", ",")];
+      regels.push(velden.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(";"));
+    });
+    var blob = new Blob(["\ufeff" + regels.join("\r\n")], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "profit-harvester-orders-" + new Date().toISOString().slice(0, 10) + ".csv";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+  });
 
   function vulBronnen() {
     var sel = document.getElementById("filterBron");
@@ -603,5 +693,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
 })();
 </script>
+<script src="/static/ph.js?v=1"></script>
 </body>
 </html>

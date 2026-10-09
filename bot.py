@@ -819,6 +819,14 @@ handel_lock = threading.RLock()
 
 INSTELLINGEN_MODUS = None
 BOT_ACTIVE = True
+BOT_GESTART = time.time()   # voor de uptime in het dashboard
+LAATSTE_RUN = 0.0           # einde van de laatste ronde van de hoofdloop
+
+
+def markeer_run():
+    """Onthoudt wanneer de hoofdloop voor het laatst een ronde afmaakte (alleen voor het dashboard)."""
+    global LAATSTE_RUN
+    LAATSTE_RUN = time.time()
 
 
 def met_lock(func):
@@ -4248,6 +4256,49 @@ def help_pagina():
     return render_template("help.html", h=instellingen)
 
 
+def pi_temperatuur():
+    """CPU-temperatuur van de Pi in °C, of None als die niet uit te lezen is (bv. op een pc)."""
+    try:
+        with open("/sys/class/thermal/thermal_zone0/temp") as f:
+            return round(int(f.read().strip()) / 1000.0, 1)
+    except (OSError, ValueError):
+        return None
+
+
+@app.route("/api/status")
+def api_status():
+    """Kleine statusregel voor de zijbalk: actief/gepauzeerd, uptime, laatste ronde, Pi-temperatuur."""
+    nu = time.time()
+    return jsonify({
+        "bot_actief": BOT_ACTIVE,
+        "uptime_sec": int(nu - BOT_GESTART),
+        "laatste_run": datetime.fromtimestamp(LAATSTE_RUN, NL_TZ).strftime("%H:%M:%S") if LAATSTE_RUN else None,
+        "laatste_run_sec_geleden": int(nu - LAATSTE_RUN) if LAATSTE_RUN else None,
+        "pi_temp": pi_temperatuur(),
+        "demo": DEMO_MODUS,
+    })
+
+
+@app.route("/beheren/pauzeer", methods=["POST"])
+def beheren_pauzeer():
+    """
+    Zet de bot op pauze of weer aan. Gebruikt de bestaande BOT_ACTIVE-vlag:
+    gepauzeerd slaat de bot alle koop- en verkoopchecks over, er verandert
+    verder niets. Na een herstart staat de bot altijd weer aan.
+    """
+    global BOT_ACTIVE
+    BOT_ACTIVE = not BOT_ACTIVE
+    if BOT_ACTIVE:
+        send_telegram_message("▶️ *Bot hervat* via het dashboard. Kopen en verkopen gaan weer gewoon door.")
+    else:
+        send_telegram_message("⏸️ *Bot gepauzeerd* via het dashboard. Er wordt niets gekocht of verkocht "
+                              "tot je hem weer aanzet (of de bot herstart).")
+    terug = request.form.get("terug", "/")
+    if not terug.startswith("/") or terug.startswith("//"):
+        terug = "/"
+    return redirect(terug)
+
+
 @app.route("/beheren/aanvullen", methods=["POST"])
 def beheren_aanvullen():
     try:
@@ -4900,6 +4951,7 @@ def main():
             check_portfolio()
             check_pot_kopen()
             noteer_historie()
+            markeer_run()
 
             nu = nu_nl()
             vandaag_str = nu.strftime("%Y-%m-%d")

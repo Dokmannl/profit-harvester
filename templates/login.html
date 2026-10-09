@@ -6,16 +6,17 @@
 <meta name="color-scheme" content="dark">
 <title>Inloggen — Profit Harvester</title>
 <link rel="manifest" href="/static/manifest.json">
-<meta name="theme-color" content="#0a0e14">
+<meta name="theme-color" content="#0B0E13">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Harvester">
 <link rel="apple-touch-icon" href="/static/icon-180.png">
-<link rel="icon" href="/static/icon-192.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script>
 (function () {
   var KEY = "thema";
@@ -23,7 +24,7 @@
   function zet(t) {
     document.documentElement.setAttribute("data-thema", t);
     var m = document.querySelector('meta[name="theme-color"]');
-    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0a0e14"); }
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
     var c = document.querySelector('meta[name="color-scheme"]');
     if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
     var b = document.getElementById("knopThema");
@@ -51,7 +52,7 @@
   --dim:      #8496a8;
   --dimmer:   #5d6e80;
   --down:     #e8654f;
-  --gold:     #f2b53b;
+  --gold:     #F7931A;
   --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --r:        14px;
 }
@@ -64,7 +65,7 @@ body {
     var(--bg);
   background-attachment: fixed;
   color: var(--text);
-  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -94,7 +95,7 @@ body {
   background: linear-gradient(145deg, var(--gold), #d38f18);
   display: grid; place-items: center;
   color: #1a1206; font-weight: 800; font-size: 0.98rem;
-  box-shadow: 0 4px 14px -6px rgba(242,181,59,.8);
+  box-shadow: 0 4px 14px -6px rgba(247,147,26,.8);
   flex-shrink: 0;
 }
 
@@ -174,7 +175,7 @@ html[data-thema="licht"] button:hover:not(:disabled),
 html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
 html[data-thema="licht"] button.hoofd,
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
-html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #f2b53b, #dd9c1f); }
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
 html[data-thema="licht"] button.hoofd:hover,
 html[data-thema="licht"] button.hoofd:hover:not(:disabled),
 html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
@@ -186,15 +187,38 @@ html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,2
 html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<style>
+/* ---- nieuw ontwerp: inloggen ---- */
+body, html[data-thema="licht"] body {
+  background-color: var(--ph-bg);
+  background-image:
+    linear-gradient(rgba(127,127,127,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127,127,127,.06) 1px, transparent 1px);
+  background-size: 48px 48px;
+  padding: 24px 16px !important;
+}
+.kaart { max-width: 380px; padding: 32px 32px 26px; border-radius: 16px; box-shadow: 0 30px 60px -30px rgba(0,0,0,.7); }
+html[data-thema="licht"] .kaart { box-shadow: 0 24px 50px -28px rgba(16,24,40,.25); }
+.merk { display: block; margin-bottom: 24px; }
+.merk .ph-merkje { width: 44px; height: 44px; border-radius: 12px; margin-bottom: 16px; }
+.merk .ph-merkje svg { width: 27px; height: 27px; }
+.merk h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.merk span { display: block; font-size: 0.86rem; color: var(--ph-muted); margin-top: 2px; }
+label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ph-muted); }
+input[type="password"] { background: var(--ph-bg); border-color: var(--ph-border-2); padding: 13px 14px; margin-bottom: 18px; min-height: 46px; }
+button, html[data-thema="licht"] button { background: var(--ph-accent); border-color: var(--ph-accent); color: var(--ph-accent-ink); font-weight: 700; padding: 13px; min-height: 46px; }
+button:hover, html[data-thema="licht"] button:hover:not(:disabled) { background: #FFA53D; border-color: #FFA53D; color: var(--ph-accent-ink); }
+.fout { background: var(--ph-red-soft); border-color: rgba(248,81,73,.4); color: var(--ph-red); }
+.ph-slot { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 18px; font-size: 0.78rem; color: var(--ph-muted); }
+</style>
 </head>
-<body>
+<body data-demo="{{ 1 if demo_modus else 0 }}">
   <div class="kaart">
     <div class="merk">
-      <div class="mark">PH</div>
-      <div>
-        <h1>Profit Harvester</h1>
-        <span>Bitvavo{% if demo_modus %} · DEMO{% endif %}</span>
-      </div>
+      <div class="ph-merkje"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="9" y="27" width="7.5" height="12" rx="2" fill="#0B0E13"/><rect x="20.25" y="21" width="7.5" height="18" rx="2" fill="#0B0E13"/><rect x="31.5" y="17" width="7.5" height="22" rx="2" fill="#0B0E13"/><path d="M35.25 15C35.25 10 38.5 7 43 7c0 4.5-3.25 8-7.75 8z" fill="#0B0E13"/></svg></div>
+      <h1>Welkom terug</h1>
+      <span>Log in op Profit Harvester{% if demo_modus %} · DEMO{% endif %}</span>
     </div>
     <form method="post" action="/login">
       {% if volgende %}<input type="hidden" name="volgende" value="{{ volgende }}">{% endif %}
@@ -203,6 +227,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <input type="password" id="wachtwoord" name="wachtwoord" autocomplete="current-password" autofocus>
       <button type="submit">Inloggen</button>
     </form>
+    <p class="ph-slot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Na 5 foute pogingen 15 minuten geblokkeerd</p>
   </div>
 </body>
 </html>
