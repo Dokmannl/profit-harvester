@@ -288,7 +288,7 @@ html[data-thema="licht"] .segment button.actief { background: var(--ph-card); }
 .ph-statusbalk {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   background: var(--ph-card); border: 1px solid var(--ph-border); border-radius: 14px;
-  padding: 12px 14px; margin-bottom: 12px;
+  padding: 12px 14px; margin: 14px 0 0;
 }
 .ph-statusbalk .ph-stat-kop { justify-content: flex-start; font-size: 0.92rem; }
 .ph-statusbalk small { display: block; font-family: var(--ph-mono); font-size: 0.72rem; color: var(--ph-dim); margin-top: 2px; }
@@ -318,7 +318,8 @@ html[data-thema="licht"] .segment button.actief { background: var(--ph-card); }
   button, .ph-btn { min-height: 44px; }
   .sorteer button, .tabs button, .segment button { min-height: 36px; }
   .onderbalk { justify-content: center !important; flex-wrap: wrap; gap: 2px !important; }
-  .onderbalk .plat { min-height: 40px; padding: 8px 10px !important; font-size: 0.82rem !important; }
+  .onderbalk .plat { min-height: 40px; padding: 8px 7px !important; font-size: 0.8rem !important; gap: 5px !important; }
+  body { padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important; }
   input, select, textarea { font-size: 16px !important; }
 }
 
