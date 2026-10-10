@@ -2683,6 +2683,13 @@ def verwerk_munt_toevoegen(invoer_tekst):
             )
             return
 
+        if coin in coins:
+            send_telegram_message(
+                f"ℹ️ *{coin}* staat al in de hoofdlijst. Gebruik 'Budget Wijzigen' om het budget aan te passen.",
+                include_keyboard=True,
+            )
+            return
+
         gs = config.get("global_settings", {})
         winstdoel_eur = float(gs.get("hoofdlijst_winstdoel_eur", STANDAARD_HOOFDLIJST_WINSTDOEL_EUR))
         tp_pct = round(winstdoel_eur / nieuw_budget * 100, 2) if nieuw_budget else 7.33
@@ -2696,9 +2703,44 @@ def verwerk_munt_toevoegen(invoer_tekst):
         bewaar_config(config)
         # Logo van de nieuwe munt op de achtergrond ophalen
         threading.Thread(target=ververs_iconen, daemon=True).start()
+
+        # Meteen kopen tot het budget, net als bij de pot. Wat je al van deze
+        # munt hebt, telt mee: dan wordt alleen het verschil gekocht. Alleen
+        # vrije handelscash, nooit geld van de pot, dalpot of reserve.
+        fee = fee_fractie(config)
+        kocht_tekst = ""
+        try:
+            balans = cache.balans(force=True)
+            koers = koers_van(cache.tickers(force=True), market) or 0.0
+            al_waarde = balans["total"].get(coin, 0.0) * koers
+            tekort = nieuw_budget - al_waarde
+            beschikbaar = handelscash(balans["free"].get("EUR", 0.0), laad_state())
+            if tekort < MIN_ORDER_EUR:
+                kocht_tekst = f"• Je had al {euro(al_waarde)} aan {coin}, er hoeft niets bij.\n"
+            elif beschikbaar < MIN_ORDER_EUR:
+                kocht_tekst = (f"• Te weinig vrije cash ({euro(beschikbaar)}), er is niets gekocht. "
+                               f"Gebruik later Alles Aanvullen.\n")
+            else:
+                # Compenseer de koopfee, anders landt de positie net onder budget
+                bedrag = round(min(tekort / (1.0 - fee) if fee < 1 else tekort, beschikbaar), 2)
+                besteed, _ = plaats_marktorder("buy", market, bedrag, "aankoop")
+                cache.invalideer()
+                if besteed > 0:
+                    log_trade(market, "koop", None, None, besteed, besteed * fee, "toegevoegd")
+                    registreer_koop(coin, besteed)
+                    kocht_tekst = f"• Meteen gekocht: {euro(besteed)}\n"
+                    if besteed < tekort - MIN_ORDER_EUR:
+                        kocht_tekst += "• Niet genoeg vrije cash voor het hele budget; de rest kan later via Alles Aanvullen.\n"
+                else:
+                    kocht_tekst = "• De kooporder is niet gevuld door Bitvavo. Probeer later Alles Aanvullen.\n"
+        except Exception as koop_e:
+            log_error(f"verwerk_munt_toevoegen.koop.{coin}", koop_e)
+            kocht_tekst = "• Meteen kopen is mislukt. De munt staat wel in de lijst; probeer later Alles Aanvullen.\n"
+
         send_telegram_message(
             f"🎉 *Munt {coin} succesvol toegevoegd!*\n"
             f"• Budget: {euro(nieuw_budget)}\n"
+            f"{kocht_tekst}"
             f"• Winstdoel: {euro(winstdoel_eur)} (vast, 1% trailing)",
             include_keyboard=True,
         )
@@ -2711,18 +2753,65 @@ def verwerk_munt_toevoegen(invoer_tekst):
 
 @met_lock
 def verwerk_munt_verwijderen(coin_code):
+    """
+    Verwijdert een munt uit de hoofdlijst en verkoopt daarbij het hele saldo,
+    net als bij de pot. De opbrengst wordt gewone vrije cash (geen oogst, dus
+    niets naar de reserve). Lukt de verkoop niet, dan blijft de munt staan.
+    Een restje onder Bitvavo's minimum kan niet verkocht worden en blijft staan.
+    """
     try:
         coin = coin_code.replace("/EUR", "").strip().upper()
         config = laad_config()
         coins = config["coins"]
 
         if coin in coins:
-            del coins[coin]
-            bewaar_config(config)
-            db.remove(Trade.munt == f"{coin}/EUR")
+            market = f"{coin}/EUR"
+            budget = coins[coin].get("budget_eur", 0.0)
+            balans = cache.balans(force=True)
+            koers = koers_van(cache.tickers(force=True), market) or 0.0
+            aantal = balans["total"].get(coin, 0.0)
+            waarde = aantal * koers
+
+            verkoop_tekst = ""
+            if waarde >= MIN_ORDER_EUR:
+                fee = fee_fractie(config)
+                try:
+                    ontvangen, verkocht = plaats_marktorder("sell", market, aantal, "verkoop")
+                except Exception as order_e:
+                    log_error(f"verwerk_munt_verwijderen.verkoop.{coin}", order_e)
+                    send_telegram_message(
+                        f"🚨 Verkoop van {coin} is mislukt. De munt blijft in de hoofdlijst staan; probeer het nog eens.",
+                        include_keyboard=True,
+                    )
+                    return
+                cache.invalideer()
+                if verkocht < aantal * 0.99:
+                    send_telegram_message(
+                        f"⚠️ De verkooporder voor {coin} is niet (volledig) gevuld. De munt blijft in de hoofdlijst "
+                        f"staan; probeer het later nog eens.",
+                        include_keyboard=True,
+                    )
+                    return
+                resultaat = round(ontvangen - budget, 2)
+                log_trade(market, "verkoop", aantal, koers, resultaat, ontvangen * fee, "verwijderd")
+                verkoop_tekst = (
+                    f"• Verkocht voor {euro(ontvangen)} "
+                    f"({'+' if resultaat >= 0 else '−'}{euro(abs(resultaat))} t.o.v. het budget van {euro(budget)})\n"
+                    f"• Het geld staat nu als vrije cash op je rekening.\n"
+                )
+            elif waarde > 0:
+                verkoop_tekst = (f"• Een restje van {euro(waarde)} is te klein om te verkopen "
+                                 f"(Bitvavo-minimum {euro(MIN_ORDER_EUR)}) en blijft in je wallet.\n")
+
+            verse_config = laad_config()
+            verse_config["coins"].pop(coin, None)
+            bewaar_config(verse_config)
+            db.remove(Trade.munt == market)
+            state = laad_state()
+            state["ingelegd"].pop(coin, None)
+            bewaar_state(state)
             send_telegram_message(
-                f"🗑️ *Munt {coin} is verwijderd uit de monitoring!*\n\n"
-                f"_Let op: eventuele munten blijven gewoon in je wallet staan._",
+                f"🗑️ *Munt {coin} is verwijderd uit de hoofdlijst.*\n{verkoop_tekst}",
                 include_keyboard=True,
             )
         else:
@@ -3760,6 +3849,7 @@ def cmd_toon_actieve_munten_voor_verwijdering():
     msg = (
         "➖ *Kies een munt om te verwijderen*:\n\n"
         + "\n".join(lijst)
+        + "\n\n⚠️ _Let op: de bot verkoopt dan meteen je hele saldo van die munt._"
         + "\n\n_Typ de afkorting van de munt:_"
     )
     send_telegram_message(msg, custom_keyboard=TERUG_KEYBOARD)
@@ -3783,7 +3873,8 @@ def _actie_munt_toevoegen():
     global INSTELLINGEN_MODUS
     INSTELLINGEN_MODUS = "ADD_COIN"
     send_telegram_message(
-        "➕ *Voeg munt & budget toe*\n\n_Typ de munt en het budget (bijvoorbeeld_ `SOL 250`_):_",
+        "➕ *Voeg munt & budget toe*\n\n_De bot koopt de munt meteen voor dat budget (wat je al hebt telt mee)._\n\n"
+        "_Typ de munt en het budget (bijvoorbeeld_ `SOL 250`_):_",
         custom_keyboard=TERUG_KEYBOARD,
     )
 

@@ -476,10 +476,10 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
     <div class="paneelinhoud">
       <ol class="stappen">
         <li><b>Munten toevoegen.</b> Ga naar <i>Beheren → Hoofdlijst → Munt Toevoegen</i> en geef per munt een
-          budget op, bijvoorbeeld <code>SOL</code> met {{ eur(250.0) }}. Heb je die munt al op Bitvavo, dan telt
-          de bot je bestaande saldo gewoon mee.</li>
-        <li><b>Kopen.</b> Druk op <i>Alles Aanvullen</i>. De bot koopt bij in munten die onder hun budget staan,
-          volgens de regels hieronder. Een nieuwe munt die je nog niet hebt, staat 100% onder budget.</li>
+          budget op, bijvoorbeeld <code>SOL</code> met {{ eur(250.0) }}. De bot koopt de munt <b>meteen</b> voor dat
+          bedrag. Heb je die munt al op Bitvavo, dan telt je bestaande saldo mee en koopt hij alleen het verschil.</li>
+        <li><b>Bijkopen.</b> Zakt een munt later onder zijn budget, druk dan op <i>Alles Aanvullen</i>. De bot koopt
+          bij volgens de regels hieronder.</li>
         <li><b>Pot en dalpot vullen</b> (optioneel). Kies <i>Pot Storten</i> en/of <i>Dalpot Storten</i> met een
           bedrag. Vanaf dan kiest en handelt de bot daar zelf.</li>
         <li><b>Reserve kiezen.</b> Bij <i>Beheren → Reserve</i> kies je of afgeroomde winst naar BTC of ETH gaat.</li>
@@ -816,6 +816,9 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
         <tr><td><b>automatisch afgeroomd</b></td><td>de bot verkocht winst uit de hoofdlijst</td></tr>
         <tr><td><b>handmatig afgeroomd</b></td><td>jij drukte op Afromen, of verwijderde een pot-munt</td></tr>
         <tr><td><b>aangevuld</b></td><td>gekocht via Alles Aanvullen</td></tr>
+        <tr><td><b>toegevoegd en gekocht</b></td><td>gekocht bij Munt Toevoegen</td></tr>
+        <tr><td><b>verwijderd en verkocht</b></td><td>verkocht bij Munt Verwijderen; het bedrag is het resultaat
+          ten opzichte van het budget en telt zo ook mee in Rendement</td></tr>
         <tr><td><b>pot, automatisch</b></td><td>de pot kocht of verkocht zelf</td></tr>
         <tr><td><b>dalpot, automatisch</b></td><td>de dalpot kocht of verkocht zelf</td></tr>
         <tr><td><b>omgezet naar BTC</b> / <b>ETH</b></td><td>winst omgezet naar je reserve</td></tr>
@@ -852,14 +855,20 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
           er minstens {{ eur(h.min_winst) }} netto winst is. De reserve-regel geldt ook hier.</div>
       </div>
       <div class="knopuitleg">
-        <div class="knopnaam">Munt Toevoegen</div>
-        <div class="knoptekst">Nieuwe munt met budget. Krijgt een vast winstdoel van {{ eur(h.hoofd_doel) }} en 1%
-          trailing. Reservemunten en munten die al in de pot staan, worden geweigerd.</div>
+        <div class="knopnaam hoofd">Munt Toevoegen</div>
+        <div class="knoptekst">Nieuwe munt met budget, die de bot <b>meteen koopt</b> voor dat bedrag (plus de kleine
+          handelskosten, zodat je precies op je budget uitkomt). Heb je de munt al, dan koopt hij alleen het verschil.
+          Is er te weinig vrije cash, dan koopt hij wat er is; de rest kan later via Alles Aanvullen. Krijgt een vast
+          winstdoel van {{ eur(h.hoofd_doel) }} en 1% trailing. Reservemunten, munten die al in de pot staan en munten
+          die al in de hoofdlijst staan, worden geweigerd.</div>
       </div>
       <div class="knopuitleg">
         <div class="knopnaam gevaar">Munt Verwijderen</div>
-        <div class="knoptekst">De bot stopt met deze munt. Er wordt <b>niets verkocht</b>: je munten blijven op
-          Bitvavo staan, maar tellen niet meer mee op het dashboard.</div>
+        <div class="knoptekst">De bot <b>verkoopt je hele saldo</b> van deze munt en haalt hem uit de hoofdlijst. De
+          opbrengst wordt vrije cash; er gaat niets naar de reserve, want het is geen oogst. Let op: Bitvavo kent maar
+          één saldo per munt, dus ook wat je buiten de bot om van die munt hebt, wordt verkocht. Lukt de verkoop niet,
+          dan blijft de munt gewoon staan. Een restje onder {{ eur(h.min_order) }} kan niet verkocht worden en blijft
+          in je wallet.</div>
       </div>
       <div class="knopuitleg">
         <div class="knopnaam">Budget Wijzigen</div>

@@ -483,11 +483,11 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
     <div class="groepkop">Munten</div>
     <div class="actierij">
       <div>
-        <div class="actie-titel">Munt Toevoegen <span class="tag boeking">boeking</span></div>
-        <div class="actie-uitleg">Nieuwe munt aan de hoofdlijst toevoegen met een budget.</div>
+        <div class="actie-titel">Munt Toevoegen <span class="tag koopt">koopt</span></div>
+        <div class="actie-uitleg">Nieuwe munt aan de hoofdlijst toevoegen en meteen kopen voor het budget.</div>
       </div>
       <form class="actie-form" method="post" action="/beheren/munt-toevoegen"
-            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de hoofdlijst met budget €{}?">
+            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de hoofdlijst en meteen kopen voor €{}?">
         <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld SOL" autocomplete="off" required>
         <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
         <button type="submit">Toevoegen</button>
@@ -496,11 +496,11 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
 
     <div class="actierij">
       <div>
-        <div class="actie-titel">Munt Verwijderen <span class="tag boeking">boeking</span></div>
-        <div class="actie-uitleg">Stopt met het volgen van deze munt in de hoofdlijst.</div>
+        <div class="actie-titel">Munt Verwijderen <span class="tag verkoopt">verkoopt</span></div>
+        <div class="actie-uitleg">Verkoopt de munt helemaal en haalt hem uit de hoofdlijst. Het geld wordt vrije cash.</div>
       </div>
       {% if hoofdlijst_munten %}
-      <form class="actie-form" method="post" action="/beheren/munt-verwijderen" data-bevestig-template="{} verwijderen uit de hoofdlijst? De munt blijft gewoon in je wallet staan.">
+      <form class="actie-form" method="post" action="/beheren/munt-verwijderen" data-bevestig-template="{} helemaal verkopen en uit de hoofdlijst halen?">
         <select name="munt">
           {% for m in hoofdlijst_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
         </select>
@@ -890,9 +890,21 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
         r.push(winstRij("Winst nu", p.winst));
         if (p.winst <= 0) { r.push(["Let op", "Er is nu geen winst om af te romen", "let-op"]); }
       }
+    } else if (actie === "munt-toevoegen") {
+      var b0 = getal(form, "budget");
+      if (b0 !== null) {
+        r.push(["Koopt direct voor", "≈ " + eur(b0)]);
+        r.push(["Vrije cash nu", eur(data.portfolio.cash)]);
+        if (b0 > data.portfolio.cash + 0.005) { r.push(["Let op", "Te weinig vrije cash voor het hele bedrag", "let-op"]); }
+        if (zoek(data.posities, coin)) { r.push(["Let op", coin + " staat al in de hoofdlijst", "let-op"]); }
+      }
     } else if (actie === "munt-verwijderen") {
       p = zoek(data.posities, coin);
-      if (p) { r.push(["Blijft in je wallet, waard nu", eur(p.waarde)]); }
+      if (p) {
+        r.push(["Verkoopt alles, nu waard", "≈ " + eur(p.waarde)]);
+        r.push(winstRij("Ten opzichte van budget", p.waarde - p.budget));
+        if (p.waarde < 5) { r.push(["Let op", "Te weinig om te verkopen (minimum €5), alleen verwijderen", "let-op"]); }
+      }
     } else if (actie === "budget-wijzigen") {
       p = zoek(data.posities, coin);
       var nb = getal(form, "bedrag");
