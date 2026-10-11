@@ -150,7 +150,7 @@ Open op je computer of telefoon (in hetzelfde wifi-netwerk) de browser en ga naa
 http://<ip-van-je-pi>:5000
 ```
 
-Log in met je `DASHBOARD_TOKEN`. Bovenaan staat **"Bitvavo · DEMO"**.
+Log in met je `DASHBOARD_TOKEN`. Op het dashboard staat **"demo"** boven de titel, en op een laptop staat in de zijbalk **"v5.7 · Bitvavo · DEMO"**.
 
 **Als app op je telefoon:** open het dashboard en kies in het browsermenu *Toevoegen aan beginscherm*.
 
@@ -231,7 +231,7 @@ BITVAVO_API_SECRET=jouw-secret
 docker compose up -d --force-recreate
 ```
 
-In het logboek staat nu geen "DEMO-MODUS" meer, en op het dashboard staat alleen "Bitvavo".
+In het logboek staat nu geen "DEMO-MODUS" meer, en op het dashboard en in de zijbalk staat geen "demo" meer.
 
 De echte administratie begint leeg. De demo-gegevens (`demo_*.json`) blijven apart bewaard en worden niet gebruikt.
 

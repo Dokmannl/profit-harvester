@@ -18,7 +18,9 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Je kiest zelf munten en een budget per munt, bijvoorbeeld SOL met €250.
 - Staat een munt een vast bedrag in de winst (standaard **€11 netto**), dan volgt de bot de koers omhoog.
 - Zakt de koers **1%** vanaf de top, dan verkoopt hij **alleen de winst**. Je budget blijft belegd.
-- **Kopen gebeurt nooit vanzelf.** Jij drukt op "Alles Aanvullen", en de bot koopt in lagen bij munten die onder hun budget staan. Hij wacht op een bodem als de koers nog daalt, en legt per munt nooit meer in dan 1,5× het budget.
+- **Vangnet:** zakt de winst tijdens het volgen van de top terug tot €10,50, dan verkoopt hij meteen. Zo is de helft altijd groot genoeg voor je reserve.
+- **Kopen gebeurt nooit vanzelf.** Bij "Munt toevoegen" koopt de bot meteen voor het budget dat jij invult. Met "Alles Aanvullen" koopt hij in lagen bij munten die onder hun budget staan. Hij wacht op een bodem als de koers nog daalt, en legt per munt nooit meer in dan 1,5× het budget.
+- **Munt verwijderen** verkoopt je hele saldo van die munt; de opbrengst wordt vrije cash.
 
 ### 💎 Reserve: BTC of ETH
 - **50%** van elke oogst gaat direct naar je reservemunt. Op het dashboard kies je **BTC of ETH**, en dat kun je per maand wisselen.
@@ -33,8 +35,9 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Het risicovolste onderdeel, met een eigen noodstop.
 
 ### 📊 Dashboard en meldingen
-- Webdashboard met totale waarde, een grafiek met stippen voor elke aankoop en verkoop, posities, potten en rendement per periode. Op een laptop in twee kolommen.
-- **Activiteit** als sorteerbare tabel met filters op koop/verkoop, bron en munt.
+- Webdashboard met totale waarde, een grafiek met stippen voor elke aankoop en verkoop, posities, potten en rendement per periode. Op een laptop met een zijbalk, op je telefoon als app.
+- **Status en pauzeknop**: zie of de bot draait, wanneer hij voor het laatst keek en hoe warm je Pi is. Met één knop zet je hem op pauze.
+- **Activiteit** als sorteerbare tabel met filters op koop/verkoop, bron en munt, en export naar CSV.
 - Alles te bedienen vanaf de **Beheren**-pagina, met een sprongbalk, inklapbare blokken en een bevestiging met de bedragen erbij bij elke actie.
 - **Meldingen op de site**: een belletje in het menu met alle berichten van de bot, en een rode stip bij belangrijke.
 - **Licht of donker** thema, per apparaat onthouden.
