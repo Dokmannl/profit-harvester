@@ -576,11 +576,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     var vulBreedte = nietGekocht ? 0 : (winst < 0 ? 0 : breedte);
     var baanKlasse = (!nietGekocht && winst < 0) ? " onder" : "";
 
-    var toonIngelegd = p.ingelegd > 0 && !nietGekocht && Math.abs(p.ingelegd - p.budget) >= 0.01;
-    var detailRegels = [geld.format(p.budget) + ' budget'];
-    if (toonIngelegd) { detailRegels.push(geld.format(p.ingelegd) + ' ingelegd'); }
-    if (p.geoogst) { detailRegels.push(geld.format(p.geoogst) + ' geoogst'); }
-
     var winstHtml = nietGekocht
       ? '<div class="winst wacht">&mdash;<small>wacht op aankoop</small></div>'
       : '<div class="winst ' + (winst >= 0 ? "op" : "af") + '">' +
@@ -591,8 +586,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       '<div class="logowrap">' + logoHtml(p) + '</div>' +
       '<div class="naam">' + p.coin +
         '<svg class="pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>' +
-        '<span class="ph-budget">budget ' + geld.format(p.budget) + '</span>' +
-        '<small>' + detailRegels.join('<br>') + '</small></div>' +
+        '<span class="ph-budget">budget ' + geld.format(p.budget) + '</span></div>' +
       '<div class="bedrag">' + geld.format(p.waarde) +
         '<small>' + koersTekst(p.koers) + '</small></div>' +
       winstHtml +
