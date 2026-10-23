@@ -711,6 +711,12 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 }
 .ph-muntrond.btc { background: #F7931A; }
 .ph-muntrond.eth { background: #627EEA; }
+.ph-muntrond.bnb { background: #F3BA2F; color: #1E1E1E; }
+.ph-muntrond.sol { background: #9945FF; }
+.ph-muntrond.xrp { background: #23292F; }
+a.reservekaart { display: block; color: inherit; text-decoration: none; }
+a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
+.ph-naarpagina { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--ph-accent); text-transform: none; letter-spacing: 0; }
 .actiefchip {
   background: var(--ph-accent); color: var(--ph-accent-ink); border: 0; border-radius: 4px;
   padding: 1px 6px; font-size: 10px; letter-spacing: .05em; text-transform: uppercase;
@@ -818,23 +824,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       <div class="bij" id="belegdBij" hidden></div>
       <div class="bij" id="belegdBijDalpot" hidden></div>
     </div>
-    <div class="kaart reservekaart" id="kaartReserve">
-      <div class="etiket ph-reservekop">Afgeroomd</div>
-      <div class="reserverij" id="reserveRijBTC">
-        <div class="etiket">
-          <span class="munt"><span class="ph-muntrond btc">&#8383;</span><span class="ph-lang">Afgeroomd naar </span>BTC</span>
-          <span class="actiefchip" id="reserveActiefBTC" hidden>actief</span>
-        </div>
-        <div class="klein" id="reserveBTC">&euro; 0,00</div>
-      </div>
-      <div class="reserverij" id="reserveRijETH">
-        <div class="etiket">
-          <span class="munt"><span class="ph-muntrond eth">&#926;</span><span class="ph-lang">Afgeroomd naar </span>ETH</span>
-          <span class="actiefchip" id="reserveActiefETH" hidden>actief</span>
-        </div>
-        <div class="klein" id="reserveETH">&euro; 0,00</div>
-      </div>
-    </div>
+    <a class="kaart reservekaart" id="kaartReserve" href="/afgeroomd" title="Bekijk de verdeling van je afgeroomde winst">
+      <div class="etiket ph-reservekop">Afgeroomd <span class="ph-naarpagina">bekijk &rsaquo;</span></div>
+      <div id="reserveRijen"></div>
+    </a>
   </div>
 
   <div class="hoofdgrid">
@@ -913,6 +906,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
     Rendement
   </a>
+  <a href="/afgeroomd" class="ph-alleenpc">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="6.5" ry="2.5"/><path d="M5.5 6.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 10.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 14.5v3c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-3"/></svg>
+    Afgeroomd
+  </a>
   <a href="/beheren">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
     Beheren
@@ -947,7 +944,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   ["leeft", "leeftTekst", "totaal", "totaalBij", "cash", "cashBij", "cashBijDalpot", "belegd", "belegdBij", "belegdBijDalpot",
    "lijst",
    "klaarChip", "voetRechts",
-   "reserveBTC", "reserveETH", "reserveActiefBTC", "reserveActiefETH", "zoek", "zoekWis",
+   "reserveRijen", "zoek", "zoekWis",
    "grafiekVlak", "grafiekLeeg", "grafiekNu", "grafiekVerschil", "grafiekEtiket", "ballon",
    "kaarten", "grafiekKaart", "positiesPaneel"].forEach(function (id) {
     el[id] = document.getElementById(id);
@@ -1058,6 +1055,44 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 
   function isKlaar(p) { return p.voortgang >= 100 || p.status === "PUMPING"; }
 
+  // Afgeroomd-kaart: maximaal drie munten (de grootste, plus de volgende); alles op /afgeroomd
+  var MUNTTEKEN = { BTC: "₿", ETH: "Ξ", BNB: "B", SOL: "◎", XRP: "X" };
+  function tekenReserve(verdeling, volgende) {
+    var munten = Object.keys(verdeling).filter(function (m) { return (verdeling[m] || 0) >= 1 || m === volgende; });
+    munten.sort(function (a, b) { return (verdeling[b] || 0) - (verdeling[a] || 0); });
+    if (munten.length > 3) {
+      munten = munten.slice(0, 3);
+      if (munten.indexOf(volgende) < 0) { munten[2] = volgende; }
+    }
+    el.reserveRijen.textContent = "";
+    munten.forEach(function (m) {
+      var rij = document.createElement("div");
+      rij.className = "reserverij" + (m === volgende ? " actief" : "");
+      var etiket = document.createElement("div");
+      etiket.className = "etiket";
+      var munt = document.createElement("span");
+      munt.className = "munt";
+      var rond = document.createElement("span");
+      rond.className = "ph-muntrond " + m.toLowerCase();
+      rond.textContent = MUNTTEKEN[m] || m.charAt(0);
+      munt.appendChild(rond);
+      munt.appendChild(document.createTextNode(m));
+      etiket.appendChild(munt);
+      if (m === volgende) {
+        var chip = document.createElement("span");
+        chip.className = "actiefchip";
+        chip.textContent = "volgende";
+        etiket.appendChild(chip);
+      }
+      var bedrag = document.createElement("div");
+      bedrag.className = "klein";
+      bedrag.textContent = geld.format(verdeling[m] || 0);
+      rij.appendChild(etiket);
+      rij.appendChild(bedrag);
+      el.reserveRijen.appendChild(rij);
+    });
+  }
+
   function teken(data) {
     laatste = data;
     var pf = data.portfolio || {};
@@ -1070,14 +1105,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     el.totaalBij.textContent = "Geoogst " + geld.format(pf.gerealiseerd || 0);
     el.cash.textContent = geld.format(pf.cash || 0);
     el.belegd.textContent = geld.format(pf.belegd || 0);
-    var verdeling = pf.reserve_verdeling || { BTC: pf.reserve || 0, ETH: 0 };
-    var actiefeMunt = pf.reserve_actief || "BTC";
-    ["BTC", "ETH"].forEach(function (m) {
-      el["reserve" + m].textContent = geld.format(verdeling[m] || 0);
-      el["reserveActief" + m].hidden = (actiefeMunt !== m);
-      var rrij = document.getElementById("reserveRij" + m);
-      if (rrij) { rrij.classList.toggle("actief", actiefeMunt === m); }
-    });
+    tekenReserve(pf.reserve_verdeling || { BTC: pf.reserve || 0 }, pf.reserve_actief || "BTC");
 
     if (pot.cash > 0) {
       el.cashBij.hidden = false;

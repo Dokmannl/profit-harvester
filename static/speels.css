@@ -177,3 +177,6 @@ table.orders tbody tr:hover td { background: var(--ph-inner); }
   .soort { padding: 2px 8px !important; font-size: 11px !important; }
 }
 @media (max-width: 899px) { table.orders th, table.orders td { padding-left: 6px !important; padding-right: 6px !important; } }
+
+/* Afgeroomd staat op de telefoon niet in de menubalk (te vol); daar via de kaart op het dashboard */
+@media (max-width: 899px) { .navbalk a.ph-alleenpc { display: none; } }

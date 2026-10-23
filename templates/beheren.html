@@ -535,17 +535,11 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
     <div class="groepkop">Instellingen</div>
     <div class="actierij">
       <div>
-        <div class="actie-titel">Reserve-munt <span class="tag boeking">boeking</span></div>
-        <div class="actie-uitleg">De helft van elke afgeroomde winst gaat naar deze munt. Nu: <b>{{ reserve_munt }}</b>.
-          Wisselen geldt alleen voor nieuwe omzettingen, wat je al hebt blijft staan.</div>
+        <div class="actie-titel">Afgeroomde winst</div>
+        <div class="actie-uitleg">De helft van elke afgeroomde winst gaat naar de reserve: BTC, ETH, BNB, SOL en XRP.
+          De verdeling en het herbalanceren regel je op de Afgeroomd-pagina. De volgende oogst gaat naar <b>{{ reserve_munt }}</b>.</div>
       </div>
-      <form class="actie-form" method="post" action="/beheren/reserve-munt"
-            data-bevestig-template="De helft van elke afgeroomde winst voortaan naar {} laten gaan?">
-        <select name="munt">
-          {% for m in reserve_munten %}<option value="{{ m }}"{% if m == reserve_munt %} selected{% endif %}>{{ m }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="hoofd">Opslaan</button>
-      </form>
+      <div class="actie-form"><a class="plat ph-btn" href="/afgeroomd" style="text-decoration:none;">Naar Afgeroomd &rsaquo;</a></div>
     </div>
   </div>
 
@@ -819,6 +813,10 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
   <a href="/rendement">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
     Rendement
+  </a>
+  <a href="/afgeroomd" class="ph-alleenpc">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="6.5" ry="2.5"/><path d="M5.5 6.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 10.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 14.5v3c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-3"/></svg>
+    Afgeroomd
   </a>
   <a href="/beheren" class="actief">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
