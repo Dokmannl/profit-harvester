@@ -30,7 +30,7 @@
   var nav = document.querySelector(".navbalk");
   if (nav) {
     var merk = maak("div", "ph-zijmerk",
-      '<span class="ph-merkje">' + LOGO + '</span><span><b>Profit Harvester</b><small>v5.7 · Bitvavo' +
+      '<span class="ph-merkje">' + LOGO + '</span><span><b>Profit Harvester</b><small>v6.0 · Bitvavo' +
       (document.body.dataset.demo === "1" ? " · DEMO" : "") + '</small></span>');
     nav.insertBefore(maak("span", "ph-zijlabel", "Menu"), nav.firstChild);
     nav.insertBefore(merk, nav.firstChild);

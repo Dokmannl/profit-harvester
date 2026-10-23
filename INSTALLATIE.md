@@ -127,7 +127,7 @@ Je ziet onder andere:
 
 ```
 DEMO-MODUS actief. Nep-saldo in demo_saldo.json, data in demo_*.json
-Profit Harvester V5.7 gestart. Dashboard op http://0.0.0.0:5000
+Profit Harvester V6.0 gestart. Dashboard op http://0.0.0.0:5000
 ```
 
 Stoppen met meekijken: **Ctrl+C**. De bot blijft gewoon draaien.
@@ -150,7 +150,7 @@ Open op je computer of telefoon (in hetzelfde wifi-netwerk) de browser en ga naa
 http://<ip-van-je-pi>:5000
 ```
 
-Log in met je `DASHBOARD_TOKEN`. Op het dashboard staat **"demo"** boven de titel, en op een laptop staat in de zijbalk **"v5.7 · Bitvavo · DEMO"**.
+Log in met je `DASHBOARD_TOKEN`. Op het dashboard staat **"demo"** boven de titel, en op een laptop staat in de zijbalk **"v6.0 · Bitvavo · DEMO"**.
 
 **Als app op je telefoon:** open het dashboard en kies in het browsermenu *Toevoegen aan beginscherm*.
 
