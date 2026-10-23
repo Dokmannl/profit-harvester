@@ -289,6 +289,8 @@ html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 <link rel="stylesheet" href="/static/ph.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/speels.css?v=1">
 <style>
 /* ---- nieuw ontwerp: alleen de uitleg ---- */
 .ph-uitleglayout { display: block; }
@@ -321,7 +323,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 /* "Snel aan de slag": genummerde rondjes met een lijntje ertussen */
 #start .stappen { list-style: none; margin: 10px 0 6px; counter-reset: stap; padding: 0; }
 #start .stappen li { counter-increment: stap; position: relative; padding: 0 0 16px 46px; margin: 0; font-size: 0.92rem; color: var(--ph-muted); }
-#start .stappen li b { display: block; color: var(--ph-text); font-size: 0.98rem; margin-bottom: 2px; }
+#start .stappen li > b:first-child { display: block; color: var(--ph-text); font-size: 0.98rem; margin-bottom: 2px; }
 #start .stappen li::before {
   content: counter(stap); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
   border: 1.5px solid var(--ph-accent); color: var(--ph-accent); display: grid; place-items: center;
