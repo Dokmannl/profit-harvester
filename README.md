@@ -4,7 +4,7 @@
 
 🌐 **Website met uitleg en screenshots:** https://dokmannl.github.io/profit-harvester/
 
-De meeste tradingbots kopen een munt en verkopen hem later weer helemaal. Profit Harvester werkt andersom: jij kiest je munten en een budget per munt, en de bot verkoopt automatisch **alleen het deel boven je budget** zodra een munt genoeg gestegen is. Je positie blijft staan en kan steeds opnieuw winst opleveren. Een deel van die winst gaat automatisch naar een reserve in **Bitcoin of Ethereum**.
+De meeste tradingbots kopen een munt en verkopen hem later weer helemaal. Profit Harvester werkt andersom: jij kiest je munten en een budget per munt, en de bot verkoopt automatisch **alleen het deel boven je budget** zodra een munt genoeg gestegen is. Je positie blijft staan en kan steeds opnieuw winst opleveren. Een deel van die winst gaat automatisch naar een reserve in grote munten, zoals **Bitcoin, Ethereum, BNB, Solana en XRP**, verdeeld zoals jij wilt.
 
 Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (ook als app op je telefoon) en meldingen via Telegram.
 
@@ -22,9 +22,12 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - **Kopen gebeurt nooit vanzelf.** Bij "Munt toevoegen" koopt de bot meteen voor het budget dat jij invult. Met "Alles Aanvullen" koopt hij in lagen bij munten die onder hun budget staan. Hij wacht op een bodem als de koers nog daalt, en legt per munt nooit meer in dan 1,5× het budget.
 - **Munt verwijderen** verkoopt je hele saldo van die munt; de opbrengst wordt vrije cash.
 
-### 💎 Reserve: BTC of ETH
-- **50%** van elke oogst gaat direct naar je reservemunt. Op het dashboard kies je **BTC of ETH**, en dat kun je per maand wisselen.
-- Je bestaande reserve blijft staan bij een wissel, en beide tellen mee in je totale waarde.
+### 💎 Afgeroomd: je reserve, verdeeld over grote munten
+- **50%** van elke oogst gaat direct naar je reserve. Standaard kun je kiezen uit **BTC, ETH, BNB, SOL en XRP**, en je kunt zelf munten toevoegen of weghalen (maximaal 10).
+- Op de **Afgeroomd**-pagina stel je per munt een **doelpercentage** in, bijvoorbeeld BTC 50%, ETH 30%, BNB 10%, SOL 5% en XRP 5%. Na elke oogst koopt de bot de munt die **het verst onder zijn doel** zit.
+- Met de knop **Herbalanceren** verkoopt de bot een deel van wat te zwaar is en koopt hij met precies die opbrengst wat te licht is. Je vrije cash en de potten blijven onaangeroerd, elke munt houdt een **minimum** (standaard €25), en je ziet vooraf precies wat er gebeurt.
+- Per munt zie je wat je erin hebt gestoken en wat het **resultaat** is, met een grafiek van het verloop. De telling kun je met één knop opnieuw laten beginnen.
+- Loopt de verdeling scheef (standaard meer dan 10 procentpunt), dan krijg je een **seintje via Telegram**. De bot herbalanceert nooit vanzelf.
 
 ### 🧪 Pot: de bot handelt zelf
 - Een apart potje waarin de bot zelf beweeglijke, goed verhandelde munten kiest, koopt, bijkoopt bij een dip en verkoopt.
@@ -35,7 +38,7 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Het risicovolste onderdeel, met een eigen noodstop.
 
 ### 📊 Dashboard en meldingen
-- Webdashboard met totale waarde, een grafiek met stippen voor elke aankoop en verkoop, posities, potten en rendement per periode. Op een laptop met een zijbalk, op je telefoon als app.
+- Webdashboard in een vrolijke **moestuin-stijl**: kaarten voor totale waarde, vrije cash, potten en je afgeroomde winst (met de munt waar de volgende oogst heen gaat), een grafiek met stippen voor elke aankoop en verkoop, posities met een plantje dat meegroeit naar het doel, en rendement per periode. Op een laptop met een zijbalk, op je telefoon als app.
 - **Status en pauzeknop**: zie of de bot draait, wanneer hij voor het laatst keek en hoe warm je Pi is. Met één knop zet je hem op pauze.
 - **Activiteit** als sorteerbare tabel met filters op koop/verkoop, bron en munt, en export naar CSV.
 - Alles te bedienen vanaf de **Beheren**-pagina, met een sprongbalk, inklapbare blokken en een bevestiging met de bedragen erbij bij elke actie.
