@@ -60,7 +60,7 @@ portfolio = {
     "cash": 250.00,
     "belegd": 708.60,
     "reserve": 55.00,
-    "reserve_verdeling": {"BTC": 40.00, "ETH": 15.00},
+    "reserve_verdeling": {"BTC": 40.00, "ETH": 15.00, "BNB": 0.0, "SOL": 0.0, "XRP": 0.0},
     "reserve_actief": "ETH",
     "gerealiseerd": 66.30,
 }
@@ -121,7 +121,7 @@ def beheren():
         dalpot_munten=dalpot_munten,
         dalpot_instellingen=dalpot_instellingen,
         reserve_munt="ETH",
-        reserve_munten=("BTC", "ETH"),
+        reserve_munten=("BTC", "ETH", "BNB", "SOL", "XRP"),
         verwerkt=request.args.get("verwerkt"),
         fout=None,
     )
@@ -146,6 +146,81 @@ def beheren_pauzeer():
     return redirect(terug if terug.startswith("/") and not terug.startswith("//") else "/")
 
 
+# Afgeroomd-pagina: voorbeeld met een scheve verdeling, zodat er iets te herbalanceren is
+_demo_afgeroomd = {
+    "waarden": {"BTC": 250.0, "ETH": 300.0, "BNB": 20.0, "SOL": 0.0, "XRP": 0.0},
+    "koersen": {"BTC": 62500.0, "ETH": 2300.0, "BNB": 540.0, "SOL": 150.0, "XRP": 0.52},
+    "doelen": {"BTC": 50.0, "ETH": 30.0, "BNB": 10.0, "SOL": 5.0, "XRP": 5.0},
+    "minimum": 25.0,
+    "melding": None,
+}
+
+
+def _demo_plan(d):
+    """Zelfde rekenregels als herbalanceer_plan in bot.py, op de nepdata."""
+    munten = [m for m, p in d["doelen"].items() if p > 0]
+    totaal = sum(d["waarden"][m] for m in munten)
+    som = sum(d["doelen"][m] for m in munten)
+    doel = {m: d["doelen"][m] / som * totaal for m in munten}
+    laag = [m for m in munten if doel[m] < d["minimum"]]
+    tekort = sum(d["minimum"] - doel[m] for m in laag)
+    ruimte = sum(doel[m] - d["minimum"] for m in munten if m not in laag)
+    for m in munten:
+        if m in laag:
+            doel[m] = d["minimum"]
+        elif ruimte > 0:
+            doel[m] -= tekort * (doel[m] - d["minimum"]) / ruimte
+    drempel = max(6.0, totaal * 0.02)
+    rijen, verkopen, kopen = [], [], []
+    for m in munten:
+        v = doel[m] - d["waarden"][m]
+        actie = "verkopen" if -v >= drempel else ("kopen" if v >= drempel else "")
+        rijen.append({"munt": m, "huidig": d["waarden"][m], "doel_eur": doel[m], "actie": actie, "bedrag": abs(v) if actie else 0.0})
+        (verkopen if actie == "verkopen" else kopen if actie == "kopen" else []).append(abs(v))
+    opbrengst = sum(verkopen) * 0.9975
+    factor = min(1.0, opbrengst / sum(kopen)) if kopen else 0.0
+    for r in rijen:
+        if r["actie"] == "kopen":
+            r["bedrag"] *= factor
+    return {"totaal": totaal, "rijen": rijen, "drempel": drempel, "uitvoerbaar": bool(verkopen and kopen),
+            "reden": "" if verkopen and kopen else "De reserve is in balans."}
+
+
+@app.route("/afgeroomd")
+def afgeroomd_pagina():
+    d = _demo_afgeroomd
+    totaal = sum(d["waarden"].values())
+    som = sum(d["doelen"].values())
+    gekocht = {"BTC": 236.0, "ETH": 281.5, "BNB": 20.6, "SOL": 0.0, "XRP": 0.0}
+    munten = [{"munt": m, "waarde": w, "aantal": w / d["koersen"][m], "koers": d["koersen"][m],
+               "pct": w / totaal * 100 if totaal else 0, "doel_pct": d["doelen"].get(m, 0.0), "icoon": "",
+               "gekocht": gekocht[m], "verkocht": 0.0, "resultaat": w - gekocht[m],
+               "resultaat_pct": (w - gekocht[m]) / gekocht[m] * 100 if gekocht[m] else 0.0}
+              for m, w in d["waarden"].items()]
+    volgende = max(d["doelen"], key=lambda m: d["doelen"][m] / som * totaal - d["waarden"][m])
+    nu = int(__import__("time").time())
+    dag = 86400
+    grafiek = {
+        "ingelegd": [[nu - 35 * dag + i * 3 * dag, round(45.0 * (i + 1), 2)] for i in range(12)],
+        "waarde": [[nu - 35 * dag + i * dag, round(40 + i * 15.5 + (i % 5) * 6, 2)] for i in range(36)],
+    }
+    a = {"totaal": totaal, "munten": munten, "volgende": volgende, "minimum": d["minimum"],
+         "melding_pp": 10.0, "max_munten": 10,
+         "resultaat": totaal - sum(gekocht.values()), "netto_ingelegd": sum(gekocht.values()), "grafiek": grafiek,
+         "doelen_ingesteld": True, "reserve_pct": 50.0, "plan": _demo_plan(d),
+         "recent": [{"tijd": "2026-10-23T13:58:00+00:00", "munt": "ETH", "kant": "koop", "bedrag": 5.51, "bron": "reserve-eth"},
+                    {"tijd": "2026-10-22T23:58:00+00:00", "munt": "BTC", "kant": "koop", "bedrag": 5.52, "bron": "reserve-btc"}]}
+    melding, d["melding"] = d["melding"], None
+    return render_template("afgeroomd.html", a=a, melding=melding)
+
+
+@app.route("/afgeroomd/<pad>", methods=["POST"])
+def afgeroomd_actie(pad):
+    print("ACTIE afgeroomd:", pad, dict(request.form))
+    _demo_afgeroomd["melding"] = {"ok": True, "tekst": "Demo: er is niets echt opgeslagen of verhandeld."}
+    return redirect(url_for("afgeroomd_pagina"))
+
+
 @app.route("/beheren/<path:pad>", methods=["POST"])
 def beheren_actie(pad):
     print("ACTIE:", pad, dict(request.form))
@@ -155,7 +230,7 @@ def beheren_actie(pad):
 HELP_INSTELLINGEN = {
     "demo": True, "fee_pct": 0.25, "min_winst": 5.5, "min_order": 5.0, "min_oogst": 10.5, "hoofd_doel": 11.0,
     "max_inleg": 1.5, "lagen": [4.0, 10.0, 18.0], "trailing_buy": 1.0, "wacht_op_bodem": True,
-    "reserve_pct": 50.0, "reserve_actief": "ETH", "reserve_keuzes": ["BTC", "ETH"],
+    "reserve_pct": 50.0, "reserve_actief": "ETH", "reserve_keuzes": ["BTC", "ETH", "BNB", "SOL", "XRP"],
     "pot_max": 2, "pot_budget": 25.0, "pot_min_order": 25.0, "pot_doel": 5.5, "pot_trail": 1.0,
     "pot_cooldown": 6.0, "pot_per_dag": 25.0, "pot_noodstop": 25.0, "pot_min_volume": 1_000_000.0,
     "pot_atr_min": 3.0, "pot_atr_max": 25.0, "pot_uitgesloten": [],

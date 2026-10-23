@@ -253,6 +253,8 @@ html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 <link rel="stylesheet" href="/static/ph.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/speels.css?v=1">
 <style>
 /* ---- nieuw ontwerp: alleen activiteit ---- */
 .paneel > .paneelkop { display: none; }
@@ -348,6 +350,10 @@ table.orders td.munt b { font-weight: 600; }
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
     Potten
   </a>
+  <a href="/afgeroomd">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="6.5" ry="2.5"/><path d="M5.5 6.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 10.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 14.5v3c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-3"/></svg>
+    Afgeroomd
+  </a>
   <a href="/rendement">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
     Rendement
@@ -378,7 +384,11 @@ table.orders td.munt b { font-weight: 600; }
     "pot-automatisch": "pot, automatisch",
     "dalpot-automatisch": "dalpot, automatisch",
     "reserve-btc": "omgezet naar BTC",
-    "reserve-eth": "omgezet naar ETH"
+    "reserve-eth": "omgezet naar ETH",
+    "reserve-bnb": "omgezet naar BNB",
+    "reserve-sol": "omgezet naar SOL",
+    "reserve-xrp": "omgezet naar XRP",
+    "herbalanceren": "reserve geherbalanceerd"
   };
 
   function volLabelISO(iso) {
@@ -406,7 +416,12 @@ table.orders td.munt b { font-weight: 600; }
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function bronTekst(b) { return BRON_LABEL[b] || b || ""; }
+  function bronTekst(b) {
+    if (BRON_LABEL[b]) { return BRON_LABEL[b]; }
+    // zelf toegevoegde reservemunten, bijvoorbeeld "reserve-ada"
+    if (/^reserve-/.test(b || "")) { return "omgezet naar " + b.slice(8).toUpperCase(); }
+    return b || "";
+  }
 
   function sorteerWaarde(t, veld) {
     if (veld === "tijd") { return Date.parse(t.tijd) || 0; }

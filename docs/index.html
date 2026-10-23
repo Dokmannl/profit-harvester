@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Profit Harvester: gratis Bitvavo-bot die alleen je winst oogst</title>
-<meta name="description" content="Gratis, open-source tradingbot voor Bitvavo. Laat je munten staan en verkoopt automatisch alleen de winst. Met dashboard, Telegram, demo-modus en een reserve in BTC of ETH.">
+<meta name="description" content="Gratis, open-source tradingbot voor Bitvavo. Laat je munten staan en verkoopt automatisch alleen de winst. Met dashboard, Telegram, demo-modus en een reserve die je zelf verdeelt over BTC, ETH, BNB, SOL en XRP.">
 <meta name="theme-color" content="#0B0E13">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="img/icon-192.png" sizes="192x192">
@@ -144,7 +144,7 @@ h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 700; margin-bottom: 1
 }
 
 /* ---------- screenshots ---------- */
-.galerij { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 34px; }
+.galerij { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 34px; }
 .galerij figure { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 8px; }
 .galerij img { border-radius: 14px; }
 .galerij figcaption { text-align: center; color: var(--dim); font-size: 0.72rem; font-weight: 600; padding: 10px 0 4px; text-transform: uppercase; letter-spacing: .1em; font-family: var(--mono); }
@@ -271,7 +271,7 @@ footer a { color: var(--dim); }
       </div>
     </div>
     <div class="telefoon">
-      <img src="img/dashboard-mobiel.webp" width="600" height="1298" alt="Het dashboard van Profit Harvester op een telefoon, met totale waarde, vrije cash, belegd, de reserve in BTC en ETH en een grafiek">
+      <img src="img/dashboard-mobiel.webp" width="600" height="1298" alt="Het dashboard van Profit Harvester op een telefoon, met totale waarde, vrije cash, potten, de afgeroomde reserve en een grafiek">
     </div>
   </div>
 </header>
@@ -327,7 +327,7 @@ footer a { color: var(--dim); }
       <ol class="stappen">
         <li><b>Jij kiest munten en een budget</b>Bijvoorbeeld SOL met €250. Heb je de munt al, dan telt je saldo gewoon mee.</li>
         <li><b>Doel gehaald? Dan volgt de bot de top</b>Staat de munt €11 netto in de winst, dan houdt de bot de hoogste koers bij.</li>
-        <li><b>1% terugval: alleen de winst wordt verkocht</b>Je €250 blijft belegd. De winst gaat voor de helft naar je reserve in BTC of ETH. Zakt de winst onderweg terug tot €10,50, dan verkoopt hij meteen: zo is de helft altijd groot genoeg voor je reserve.</li>
+        <li><b>1% terugval: alleen de winst wordt verkocht</b>Je €250 blijft belegd. De winst gaat voor de helft naar je reserve in grote munten. Zakt de winst onderweg terug tot €10,50, dan verkoopt hij meteen: zo is de helft altijd groot genoeg voor je reserve.</li>
         <li><b>En dat herhaalt zich</b>Elke keer dat de munt weer stijgt, oogst de bot opnieuw.</li>
       </ol>
     </div>
@@ -379,9 +379,10 @@ footer a { color: var(--dim); }
     <div class="raster r3" style="margin-top:16px">
       <div class="kaart">
         <div class="icoon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg></div>
-        <h3>Reserve in BTC of ETH</h3>
-        <p>De helft van elke oogst gaat automatisch naar je spaarpot. Wissel per maand tussen Bitcoin en Ethereum; je
-          bestaande reserve blijft staan.</p>
+        <h3>Afgeroomd: je reserve verdelen</h3>
+        <p>De helft van elke oogst gaat naar je spaarpot in grote munten: BTC, ETH, BNB, SOL, XRP of je eigen keuze.
+          Jij kiest de verdeling in procenten; de bot koopt steeds de munt die het verst achterloopt. Met één knop
+          herbalanceer je, en je ziet per munt je resultaat.</p>
       </div>
       <div class="kaart">
         <div class="icoon groen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></div>
@@ -439,12 +440,13 @@ footer a { color: var(--dim); }
 
     <div class="galerij">
       <figure><img src="img/dashboard-mobiel.webp" width="600" height="1298" loading="lazy" alt="Dashboard"><figcaption>Dashboard</figcaption></figure>
-      <figure><img src="img/potten-mobiel.webp" width="600" height="1298" loading="lazy" alt="Potten-pagina met hoofdlijst, pot en dalpot"><figcaption>Potten</figcaption></figure>
+      <figure><img src="img/potten-mobiel.webp" width="600" height="1298" loading="lazy" alt="Potten-pagina met het totaal van de potten, de pot en de dalpot"><figcaption>Potten</figcaption></figure>
       <figure><img src="img/rendement-mobiel.webp" width="600" height="1298" loading="lazy" alt="Rendement per week met oogsten per dag"><figcaption>Rendement</figcaption></figure>
-      <figure><img src="img/beheren-mobiel.webp" width="600" height="1298" loading="lazy" alt="Beheren-pagina met knoppen voor de hoofdlijst en reserve"><figcaption>Beheren</figcaption></figure>
+      <figure><img src="img/afgeroomd-mobiel.webp" width="600" height="1298" loading="lazy" alt="Afgeroomd-pagina met de verdeling van de reserve, doelen en resultaat per munt"><figcaption>Afgeroomd</figcaption></figure>
+      <figure><img src="img/beheren-mobiel.webp" width="600" height="1298" loading="lazy" alt="Beheren-pagina met knoppen voor de hoofdlijst, pot en dalpot"><figcaption>Beheren</figcaption></figure>
     </div>
     <div class="desktopshot">
-      <img src="img/dashboard-desktop.webp" width="1280" height="830" loading="lazy" alt="Het dashboard op een laptop: zijbalk met menu en status links, kaarten met totale waarde, cash, belegd en reserve, en een grafiek met stippen voor kopen en verkopen">
+      <img src="img/dashboard-desktop.webp" width="1280" height="830" loading="lazy" alt="Het dashboard op een laptop: zijbalk met menu en status links, kaarten met totale waarde, vrije cash, potten en afgeroomd, en een grafiek met stippen voor kopen en verkopen">
     </div>
     <p class="mid" style="color:var(--dimmer);font-size:.85rem;margin-top:12px">Alle bedragen op deze afbeeldingen zijn verzonnen.</p>
   </div>

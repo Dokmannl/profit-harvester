@@ -289,6 +289,8 @@ html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 <link rel="stylesheet" href="/static/ph.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/speels.css?v=1">
 <style>
 /* ---- nieuw ontwerp: alleen de uitleg ---- */
 .ph-uitleglayout { display: block; }
@@ -321,7 +323,7 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 /* "Snel aan de slag": genummerde rondjes met een lijntje ertussen */
 #start .stappen { list-style: none; margin: 10px 0 6px; counter-reset: stap; padding: 0; }
 #start .stappen li { counter-increment: stap; position: relative; padding: 0 0 16px 46px; margin: 0; font-size: 0.92rem; color: var(--ph-muted); }
-#start .stappen li b { display: block; color: var(--ph-text); font-size: 0.98rem; margin-bottom: 2px; }
+#start .stappen li > b:first-child { display: block; color: var(--ph-text); font-size: 0.98rem; margin-bottom: 2px; }
 #start .stappen li::before {
   content: counter(stap); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%;
   border: 1.5px solid var(--ph-accent); color: var(--ph-accent); display: grid; place-items: center;
@@ -432,7 +434,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
       <li><a href="#hoofdlijst">{{ ic_hoofd }}De Hoofdlijst</a></li>
       <li><a href="#pot">{{ ic_pot }}De Pot</a></li>
       <li><a href="#dalpot">{{ ic_dal }}De Dalpot</a></li>
-      <li><a href="#reserve">{{ ic_reserve }}De Reserve (BTC / ETH)</a></li>
+      <li><a href="#reserve">{{ ic_reserve }}De Reserve en Afgeroomd</a></li>
       <li><a href="#dashboard">{{ ic_dash }}Het Dashboard</a></li>
       <li><a href="#potten">{{ ic_potten }}De Potten-pagina</a></li>
       <li><a href="#grafiek">{{ ic_grafiek }}De grafiek</a></li>
@@ -461,7 +463,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
         dag koopt en verkoopt zodra die herstelt.</div>
     </div>
     <div class="tip ph-info">Van de winst uit de hoofdlijst gaat {{ pct(h.reserve_pct) }} naar je <strong>reserve</strong>
-    ({{ h.reserve_keuzes | join(" of ") }}, nu {{ h.reserve_actief }}). De bot koopt <strong>nooit vanzelf</strong>
+    ({{ h.reserve_keuzes | join(", ") }}; volgende: {{ h.reserve_actief }}). De bot koopt <strong>nooit vanzelf</strong>
     voor de hoofdlijst (dat doe jij met een knop) en heeft <strong>geen stop-loss</strong>: een munt die daalt,
     blijft liggen tot hij terugkomt.</div>
     {% if h.demo %}
@@ -482,7 +484,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
           bij volgens de regels hieronder.</li>
         <li><b>Pot en dalpot vullen</b> (optioneel). Kies <i>Pot Storten</i> en/of <i>Dalpot Storten</i> met een
           bedrag. Vanaf dan kiest en handelt de bot daar zelf.</li>
-        <li><b>Reserve kiezen.</b> Bij <i>Beheren → Reserve</i> kies je of afgeroomde winst naar BTC of ETH gaat.</li>
+        <li><b>Reserve verdelen.</b> Op de pagina <i>Afgeroomd</i> kies je hoe je afgeroomde winst over BTC, ETH, BNB, SOL en XRP verdeeld wordt.</li>
         <li><b>Volgen.</b> Op het dashboard, de Potten-pagina en via Telegram zie je wat de bot doet. Verder hoef
           je niets te doen: verkopen gaat vanzelf.</li>
       </ol>
@@ -523,7 +525,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
       <div class="term">
         <div class="naam">Waar gaat de winst heen?</div>
         <div class="wat">{{ pct(h.reserve_pct) }} van de netto winst wordt direct omgezet naar je
-          <a href="#reserve">reservemunt</a> (nu <b>{{ h.reserve_actief }}</b>). De rest blijft als vrije cash op je
+          <a href="#reserve">reservemunten</a> (de munt die het verst achterloopt, nu <b>{{ h.reserve_actief }}</b>). De rest blijft als vrije cash op je
           rekening, om bij te kopen of in een pot te storten.</div>
       </div>
 
@@ -678,33 +680,46 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
 
   <!-- ===================== RESERVE ===================== -->
   <div class="paneel" id="reserve">
-    <div class="paneelkop">{{ ic_reserve }}De Reserve (BTC / ETH)</div>
+    <div class="paneelkop">{{ ic_reserve }}De Reserve en de Afgeroomd-pagina</div>
     <div class="paneelinhoud">
       <p>Telkens als de hoofdlijst winst afroomt, gaat {{ pct(h.reserve_pct) }} daarvan direct naar een
         <b>reservemunt</b>: echte crypto in plaats van euro's die stilliggen. Zo bouw je langzaam een spaarpot op
-        in {{ h.reserve_keuzes | join(" en/of ") }}.</p>
+        in {{ h.reserve_keuzes | join(", ") }}. Alles daarover staat op de pagina <a href="/afgeroomd">Afgeroomd</a>
+        (op de telefoon: tik op de Afgeroomd-kaart op het dashboard).</p>
 
       <div class="term">
-        <div class="naam">Kiezen en wisselen</div>
-        <div class="wat">Op de Beheren-pagina kies je bij <i>Reserve-munt</i> naar welke munt <b>nieuwe</b> winst gaat.
-          Je kunt bijvoorbeeld de ene maand BTC kiezen en de andere maand ETH. Bij een wissel wordt er <b>niets verkocht
-          of omgezet</b>: je bestaande reserve blijft gewoon staan. Nu actief: <b>{{ h.reserve_actief }}</b>.</div>
+        <div class="naam">Doelverdeling</div>
+        <div class="wat">Per munt stel je een percentage in, samen 100%. Bijvoorbeeld BTC 50%, ETH 30%, BNB 10%,
+          SOL 5% en XRP 5%. Zet een munt op 0% om er niets meer bij te kopen; wat er al staat blijft dan staan.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Waar gaat de volgende oogst heen?</div>
+        <div class="wat">Naar de munt die in euro's het <b>verst onder zijn doel</b> zit. Zo groeit de reserve vanzelf
+          richting je verdeling. Per oogst gaat het om een klein bedrag (vaak € 5 à € 7), dus het geld gaat steeds
+          naar één munt; Bitvavo eist minimaal {{ eur(h.min_order) }} per order. Nu als volgende: <b>{{ h.reserve_actief }}</b>.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Herbalanceren</div>
+        <div class="wat">Met de knop <i>Herbalanceren</i> verkoopt de bot een deel van wat te zwaar is en koopt hij
+          met <b>precies die opbrengst</b> wat te licht is. Je vrije cash, de pot en de dalpot blijven onaangeroerd.
+          Elke munt houdt altijd minstens het <b>minimum per munt</b> (standaard € 25). Kleine afwijkingen blijven
+          staan om fees te sparen. Voor je drukt, zie je precies wat er gaat gebeuren; bij het uitvoeren wordt dat
+          opnieuw uitgerekend met de koersen van dat moment. Dit zijn echte orders op Bitvavo.</div>
       </div>
 
       <div class="term">
         <div class="naam">Wat telt mee?</div>
-        <div class="wat">Je <b>hele saldo</b> in {{ h.reserve_keuzes | join(" en ") }} telt als reserve, ook de munt die
-          niet actief is. Op het dashboard staat per munt een regel ("Afgeroomd naar BTC", "Afgeroomd naar ETH"),
-          en beide tellen mee in je totale waarde. In Telegram en het e-mailrapport heet dat bijvoorbeeld
-          "Afgeroomd naar BTC + ETH".</div>
+        <div class="wat">Je <b>hele saldo</b> in de reservemunten telt als reserve, ook munten met 0% doel. Alleen een
+          munt die in de hoofdlijst, pot of dalpot staat, telt niet als reserve: dat saldo hoort bij die positie.</div>
       </div>
 
       <div class="let-op">
-        <b>{{ h.reserve_keuzes | join(" en ") }} kunnen niet in de hoofdlijst, pot of dalpot.</b> Bitvavo geeft maar één
+        <b>Een munt met een doel kan niet ook in de hoofdlijst, pot of dalpot.</b> Bitvavo geeft maar één
         saldo per munt. Stond zo'n munt ook in een lijst, dan zou de bot hem dubbel tellen en je reserve als
-        "winst" kunnen verkopen. De bot weigert dat daarom, ook bij de automatische keuze van pot en dalpot, en
-        waarschuwt bij het opstarten als het toch zo is. Om dezelfde reden kun je niet wisselen naar een reservemunt
-        die nog in een lijst staat.
+        "winst" kunnen verkopen. De bot weigert dat daarom, en de automatische keuze van pot en dalpot slaat
+        alle reservemunten over.
       </div>
     </div>
   </div>
@@ -715,7 +730,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
     <div class="paneelinhoud">
       <div class="term">
         <div class="naam">Totale waarde</div>
-        <div class="wat">Alles samen: vrije cash + hoofdlijst + reserve (BTC én ETH) + pot + dalpot. Dit hoort, op
+        <div class="wat">Alles samen: vrije cash + hoofdlijst + reserve (alle reservemunten) + pot + dalpot. Dit hoort, op
           een paar cent na, gelijk te zijn aan je totaal op Bitvavo. Munten die je buiten de bot om hebt, tellen niet mee.
           Eronder staat <b>Geoogst</b>: het totaal aan winst dat de bot al heeft afgeroomd.</div>
       </div>
@@ -821,7 +836,8 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
           ten opzichte van het budget en telt zo ook mee in Rendement</td></tr>
         <tr><td><b>pot, automatisch</b></td><td>de pot kocht of verkocht zelf</td></tr>
         <tr><td><b>dalpot, automatisch</b></td><td>de dalpot kocht of verkocht zelf</td></tr>
-        <tr><td><b>omgezet naar BTC</b> / <b>ETH</b></td><td>winst omgezet naar je reserve</td></tr>
+        <tr><td><b>omgezet naar BTC</b> / <b>ETH</b> / …</td><td>winst omgezet naar je reserve</td></tr>
+        <tr><td><b>reserve geherbalanceerd</b></td><td>verkoop of aankoop door de knop Herbalanceren</td></tr>
       </table>
     </div>
   </div>
@@ -1117,6 +1133,10 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   <a href="/potten">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
     Potten
+  </a>
+  <a href="/afgeroomd">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="6.5" ry="2.5"/><path d="M5.5 6.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 10.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 14.5v3c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-3"/></svg>
+    Afgeroomd
   </a>
   <a href="/rendement">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>

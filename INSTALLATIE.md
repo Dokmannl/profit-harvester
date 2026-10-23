@@ -237,6 +237,8 @@ De echte administratie begint leeg. De demo-gegevens (`demo_*.json`) blijven apa
 
 > **Begin klein.** Voeg eerst één of twee munten toe met een laag budget. Kijk een paar dagen mee voor je meer inlegt.
 
+> **Je afgeroomde winst verdelen.** Standaard gaat de helft van elke oogst naar BTC. Op de pagina **Afgeroomd** stel je een verdeling in over BTC, ETH, BNB, SOL en XRP (of je eigen munten). Let op: de bot telt je **hele saldo** in die munten als reserve. Koop je die munten ook zelf, doe dat dan op een ander account of in een eigen wallet, anders kan *Herbalanceren* er ook van verkopen.
+
 ---
 
 ## 10. Dagelijks gebruik
@@ -316,6 +318,7 @@ Let op: zonder Docker luistert het dashboard standaard alleen op de computer zel
 | E-mail komt niet aan | Gebruik een app-wachtwoord, geen gewoon wachtwoord. Kijk ook in je spamfolder. |
 | Bitvavo weigert orders | Controleer of de API-sleutel het recht **Handelen** heeft, en of een eventuele IP-beperking klopt. |
 | Er wordt niets gekocht bij Aanvullen | Zie de *Veelgestelde vragen* op de uitlegpagina in het dashboard. |
-| BTC of ETH toevoegen lukt niet | Dat klopt: dat zijn reservemunten. Zie de uitlegpagina. |
+| Een munt toevoegen aan de hoofdlijst lukt niet | Die munt heeft waarschijnlijk een doel op de Afgeroomd-pagina. Zet hem daar op 0% of haal hem weg. |
+| Herbalanceren is grijs | De reserve is al in balans, of er staat te weinig in voor het minimum per munt. De reden staat onder de knop. |
 
 Meer uitleg over hoe de bot werkt staat op de **Uitleg**-pagina in het dashboard (rechtsonder **Help**).

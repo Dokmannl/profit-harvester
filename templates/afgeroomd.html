@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Afgeroomd — Profit Harvester</title>
+<meta name="theme-color" content="#0B0E13">
+<link rel="apple-touch-icon" href="/static/icon-180.png">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/static/icon-192.png" sizes="192x192">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+(function () {
+  var KEY = "thema";
+  function lees() { try { return localStorage.getItem(KEY) === "licht" ? "licht" : "donker"; } catch (e) { return "donker"; } }
+  function zet(t) {
+    document.documentElement.setAttribute("data-thema", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) { m.setAttribute("content", t === "licht" ? "#f3f5f9" : "#0B0E13"); }
+    var c = document.querySelector('meta[name="color-scheme"]');
+    if (c) { c.setAttribute("content", t === "licht" ? "light" : "dark"); }
+    var b = document.getElementById("knopThema");
+    if (b) { b.textContent = t === "licht" ? "Donker" : "Licht"; }
+  }
+  zet(lees());
+  document.addEventListener("DOMContentLoaded", function () {
+    zet(lees());
+    var b = document.getElementById("knopThema");
+    if (b) { b.addEventListener("click", function () {
+      var nieuw = lees() === "licht" ? "donker" : "licht";
+      try { localStorage.setItem(KEY, nieuw); } catch (e) {}
+      zet(nieuw);
+    }); }
+  });
+})();
+</script>
+<style>
+:root {
+  --bg:       #0a0e14;
+  --surface:  #121822;
+  --surface2: #182231;
+  --line:     #24303f;
+  --text:     #e8eef5;
+  --dim:      #8496a8;
+  --dimmer:   #5d6e80;
+  --up:       #35c491;
+  --down:     #e8654f;
+  --gold:     #F7931A;
+  --goldsoft: rgba(247,147,26, .09);
+  --shadow:   0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --r:        14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(1100px 500px at 15% -10%, #16202e 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+  padding: 24px 18px 92px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1280px; margin: 0 auto; }
+
+:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(247,147,26,.5); border-radius: 6px; }
+
+/* laadstaat: een rustige glans in plaats van lege vlakken met nulwaarden */
+body[data-laden] .kaart .groot, body[data-laden] .balkenvlak, body[data-laden] #topMunten {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,.055) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: skelet 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes skelet { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { body[data-laden] * { animation: none !important; } }
+body[data-laden] .kaart .groot { color: transparent; width: 58%; }
+body[data-laden] #topMunten { min-height: 150px; margin: 14px 18px 18px; }
+body[data-laden] .balkenvlak { margin: 14px 18px; padding: 0; }
+
+.rgrid { display: block; }
+
+.kop { text-align: center; margin-bottom: 18px; }
+.kop h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ic { width: 16px; height: 16px; flex-shrink: 0; }
+
+.navbalk {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex;
+  max-width: 1280px; margin: 0 auto;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  z-index: 40;
+  box-shadow: 0 -6px 20px -10px rgba(0,0,0,.5);
+}
+.navbalk a {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 7px 4px 6px;
+  color: var(--dimmer);
+  text-decoration: none;
+  font-size: 0.63rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: color .15s, background .15s;
+}
+.navbalk a svg { width: 20px; height: 20px; }
+.navbalk a.actief { color: var(--gold); }
+.navbalk a:hover { background: var(--surface2); color: var(--text); }
+.navbalk a.actief:hover { color: var(--gold); }
+
+.tabs {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 5px;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+.tabs button {
+  flex: 1;
+  font: inherit; font-size: 0.82rem; font-weight: 600;
+  background: none; border: none; border-radius: 9px;
+  color: var(--dim); padding: 9px 6px; cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.tabs button[aria-pressed="true"] { background: var(--surface2); color: var(--text); }
+
+.kaarten {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.kaart {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 14px 16px;
+}
+.kaart .etiket { font-size: 0.73rem; color: var(--dim); margin-bottom: 5px; }
+.kaart .groot { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+.kaart .groot.op { color: var(--up); }
+.kaart .groot.af { color: var(--down); }
+
+.paneel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.paneelkop {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem; font-weight: 700; letter-spacing: -0.01em;
+}
+
+.balkenvlak {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 18px 18px 14px;
+  height: 130px;
+}
+.balk {
+  flex: 1;
+  min-width: 4px;
+  background: linear-gradient(180deg, var(--gold), #d38f18);
+  border-radius: 4px 4px 0 0;
+  transition: opacity .15s;
+}
+.balk.leeg { background: var(--surface2); }
+.balklabels {
+  display: flex;
+  gap: 6px;
+  padding: 0 18px 16px;
+  font-size: 0.68rem;
+  color: var(--dimmer);
+}
+.balklabels span { flex: 1; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.muntrij {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.muntrij:last-child { border-bottom: none; }
+.muntrij .rang {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface2);
+  display: grid; place-items: center;
+  font-size: 0.72rem; font-weight: 700; color: var(--dim);
+}
+.muntrij.leeg { opacity: .55; }
+.muntrij.leeg .bedrag { color: var(--dimmer); }
+
+.muntrij.verlopen { box-shadow: inset 3px 0 0 var(--down); background: rgba(232,101,79,.05); }
+.muntrij.verlopen .naam small { color: var(--down); }
+.muntrij .naam { flex: 1; font-weight: 700; }
+.muntrij .naam small { display: block; font-size: 0.73rem; color: var(--dimmer); font-weight: 500; margin-top: 1px; }
+.muntrij .bedrag { font-weight: 700; color: var(--up); }
+.muntrij .bedrag.negatief { color: var(--down); }
+
+.geenmunten { padding: 44px 18px; text-align: center; color: var(--dim); font-size: 0.9rem; }
+
+.onderbalk { display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 14px 4px 0; }
+.onderbalk form { margin: 0; }
+a.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); text-decoration: none;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+a.plat:hover { background: var(--surface2); color: var(--text); }
+button.plat {
+  display: inline-flex; align-items: center;
+  font: inherit; font-size: 0.85rem; font-weight: 500;
+  color: var(--dim); cursor: pointer;
+  background: none; border: 1px solid transparent;
+  border-radius: 9px; padding: 9px 15px;
+  transition: background .15s, color .15s;
+}
+button.plat:hover { background: var(--surface2); color: var(--text); }
+
+@media (min-width: 1100px) {
+  body { padding-left: 28px; padding-right: 28px; }
+  .wrap { max-width: 1280px; }
+  .kaarten { grid-template-columns: repeat(4, 1fr); }
+  .rgrid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .rgrid > .paneel { margin-bottom: 0; }
+  .balkenvlak { height: 220px; }
+}
+
+@media (max-width: 560px) {
+  .kaarten { grid-template-columns: 1fr 1fr; }
+  .kaart .groot { font-size: 1.2rem; }
+}
+
+/* ---------------- licht thema (schakelaar onderaan) ---------------- */
+html[data-thema="licht"] {
+  --bg: #f3f5f9; --surface: #ffffff; --surface2: #edf1f6; --line: #dbe2ea;
+  --text: #16202b; --dim: #556476; --dimmer: #5f6f80;
+  --up: #0b7d55; --down: #c4402b; --gold: #9a6400; --goldsoft: rgba(154,100,0,.09);
+  --shadow: 0 1px 2px rgba(16,24,40,.06), 0 10px 26px -16px rgba(16,24,40,.22);
+}
+html[data-thema="licht"] body {
+  background: radial-gradient(1100px 500px at 15% -10%, #e3eaf4 0%, transparent 60%), var(--bg);
+  background-attachment: fixed;
+}
+html[data-thema="licht"] .skelet {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(16,24,40,.06) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+}
+html[data-thema="licht"] .rij:hover,
+html[data-thema="licht"] table.orders tbody tr:hover td { background: rgba(16,24,40,.03); }
+html[data-thema="licht"] table.orders th,
+html[data-thema="licht"] .groepkop { background: rgba(16,24,40,.035); }
+html[data-thema="licht"] .sprongbalk { background: rgba(243,245,249,.9); }
+html[data-thema="licht"] .overlay { background: rgba(16,24,40,.45); }
+html[data-thema="licht"] button:hover,
+html[data-thema="licht"] button:hover:not(:disabled),
+html[data-thema="licht"] .beheerknop:hover { background: var(--surface2); border-color: #c3cdd9; }
+html[data-thema="licht"] button.hoofd,
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"],
+html[data-thema="licht"] .merk .mark { background: linear-gradient(145deg, #F7931A, #dd9c1f); }
+html[data-thema="licht"] button.hoofd:hover,
+html[data-thema="licht"] button.hoofd:hover:not(:disabled),
+html[data-thema="licht"] .weergavekaart button[aria-pressed="true"]:hover { background: linear-gradient(145deg, #ffc65c, #e8a622); border-color: #dd9c1f; }
+html[data-thema="licht"] button.bevestig { background: var(--down); border-color: var(--down); color: #fff; }
+html[data-thema="licht"] .paneel.tema-pot .paneelkop,
+html[data-thema="licht"] .soort.koop { color: #2f5f99; }
+html[data-thema="licht"] .sprong.pot { --kleur: #2f5f99; }
+html[data-thema="licht"] .tag.boeking { color: var(--dim); background: rgba(16,24,40,.07); }
+html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
+html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
+</style>
+<link rel="stylesheet" href="/static/ph.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/speels.css?v=1">
+<style>
+/* ---- Afgeroomd-pagina ---- */
+.kaarten { gap: 14px; }
+.kaart { padding: 18px 20px; }
+.kaart .groot { font-size: 1.7rem; font-weight: 600; margin-top: 6px; color: var(--ph-text-hi); }
+.kaart .bij { font-size: 0.78rem; color: var(--ph-muted); margin-top: 6px; }
+.paneel { margin-bottom: 16px; }
+.paneelkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 20px; font-weight: 600; }
+.paneelkop small { font-size: 0.8rem; font-weight: 500; color: var(--ph-muted); }
+.agrid { display: block; }
+@media (min-width: 1000px) {
+  .kaarten { grid-template-columns: repeat(4, 1fr) !important; }
+  .agrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+}
+@media (max-width: 999px) { .kaarten { grid-template-columns: 1fr 1fr; gap: 10px; } .kaart .groot { font-size: 1.3rem; } }
+
+.ar-rij { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--ph-border); }
+.ar-logo { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; background: var(--ph-inner); font-size: 0.66rem; font-weight: 700; }
+.ar-logo img { width: 100%; height: 100%; object-fit: cover; }
+.ar-naam { font-weight: 700; }
+.ar-naam small { display: block; font-size: 0.74rem; color: var(--ph-muted); font-weight: 500; }
+.ar-waarde { text-align: right; font-weight: 800; white-space: nowrap; }
+.ar-waarde small { display: block; font-size: 0.74rem; color: var(--ph-muted); font-weight: 600; }
+.ar-balk { grid-column: 2 / -1; position: relative; height: 10px; border-radius: 99px; background: var(--ph-inner); }
+.ar-balk i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: var(--ph-accent); }
+.ar-balk b { position: absolute; top: -4px; bottom: -4px; width: 3px; border-radius: 2px; background: var(--ph-text); transform: translateX(-1px); }
+.ar-volgende { display: inline-block; margin-left: 6px; font-size: 0.7rem; font-weight: 700; padding: 1px 8px; border-radius: 99px; background: var(--ph-green-soft); color: var(--ph-green); vertical-align: 1px; }
+.ar-legenda { display: flex; gap: 16px; padding: 10px 20px 16px; font-size: 0.76rem; color: var(--ph-muted); border-top: 1px solid var(--ph-border); }
+.ar-legenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: var(--ph-accent); margin-right: 6px; vertical-align: -1px; }
+.ar-legenda b { display: inline-block; width: 3px; height: 12px; background: var(--ph-text); margin-right: 6px; vertical-align: -2px; }
+
+.ar-form { padding: 6px 20px 18px; }
+.ar-doelen { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin: 10px 0 14px; }
+.ar-doelen label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--ph-muted); }
+.ar-veld { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.ar-veld input { width: 100%; min-width: 0; padding: 9px 10px; border-radius: 12px; border: 2px solid var(--ph-border-2); background: var(--ph-bg); color: var(--ph-text); font: inherit; font-weight: 700; }
+.ar-som { font-weight: 800; }
+.ar-som.fout { color: var(--ph-red); }
+.ar-som.goed { color: var(--ph-green); }
+.ar-onder { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.ar-onder .ar-min { max-width: 180px; }
+.ar-uitleg { font-size: 0.82rem; color: var(--ph-muted); line-height: 1.5; padding: 0 20px 14px; }
+
+table.ar-plan { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+table.ar-plan th { text-align: left; font-size: 0.72rem; font-weight: 700; color: var(--ph-dim); padding: 8px 20px; border-top: 1px solid var(--ph-border); }
+table.ar-plan td { padding: 9px 20px; border-top: 1px solid var(--ph-border); white-space: nowrap; }
+table.ar-plan .r { text-align: right; }
+.ar-verkoop { color: var(--ph-red); font-weight: 800; }
+.ar-koop { color: var(--ph-green); font-weight: 800; }
+.ar-knop { padding: 14px 20px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.ar-knop p { font-size: 0.82rem; color: var(--ph-muted); flex: 1 1 220px; }
+.ar-knop button, #opslaan { padding: 11px 22px; font-size: 0.95rem; border-radius: 14px; min-height: 44px; }
+.ar-knop button:disabled, #opslaan:disabled { opacity: .45; cursor: not-allowed; }
+
+.ar-melding { display: flex; gap: 10px; align-items: flex-start; padding: 12px 16px; margin-bottom: 14px; border-radius: 14px; font-weight: 700; }
+.ar-melding.goed { background: var(--ph-green-soft); color: var(--ph-green); }
+.ar-melding.fout { background: var(--ph-red-soft); color: var(--ph-red); }
+.ar-recent { list-style: none; }
+.ar-recent li { display: flex; justify-content: space-between; gap: 10px; padding: 10px 20px; border-top: 1px solid var(--ph-border); font-size: 0.86rem; }
+.ar-recent small { color: var(--ph-muted); }
+.ar-leeg { padding: 18px 20px; color: var(--ph-muted); font-size: 0.88rem; border-top: 1px solid var(--ph-border); }
+.ar-resultaat { grid-column: 2 / -1; display: flex; justify-content: space-between; gap: 10px; font-size: 0.76rem; color: var(--ph-muted); }
+.ar-resultaat b.op, .groot.op { color: var(--ph-green); }
+.ar-resultaat b.af, .groot.af { color: var(--ph-red); }
+.ar-muntbeheer li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 20px; border-top: 1px solid var(--ph-border); }
+.ar-muntbeheer li small { color: var(--ph-muted); font-size: 0.78rem; }
+.ar-muntbeheer button { padding: 7px 14px; min-height: 36px; font-size: 0.84rem; border-radius: 12px; }
+.ar-muntbeheer button.weg { color: var(--ph-red); }
+.ar-toevoegen { display: flex; gap: 8px; padding: 12px 20px 18px; border-top: 1px solid var(--ph-border); }
+.ar-toevoegen input { flex: 1; min-width: 0; padding: 9px 12px; border-radius: 12px; border: 2px solid var(--ph-border-2); background: var(--ph-bg); color: var(--ph-text); font: inherit; font-weight: 700; text-transform: uppercase; }
+.ar-toevoegen button { padding: 9px 18px; border-radius: 12px; min-height: 44px; }
+.ar-grafiek { padding: 4px 12px 8px; }
+.ar-grafiek svg { display: block; width: 100%; height: 190px; overflow: visible; }
+.ar-grafiek .lijn-waarde { fill: none; stroke: var(--ph-accent); stroke-width: 2.5; stroke-linejoin: round; }
+.ar-grafiek .lijn-ingelegd { fill: none; stroke: var(--ph-muted); stroke-width: 1.6; stroke-dasharray: 5 4; }
+.ar-grafiek .as { font-size: 10px; fill: var(--ph-dim); }
+.ar-grafiek .raster { stroke: var(--ph-border); stroke-width: 1; }
+.ar-grafieklegenda { display: flex; flex-wrap: wrap; gap: 14px; padding: 0 20px 14px; font-size: 0.76rem; color: var(--ph-muted); }
+.ar-grafieklegenda i { display: inline-block; width: 16px; height: 0; border-top: 3px solid var(--ph-accent); margin-right: 6px; vertical-align: 3px; }
+.ar-grafieklegenda i.ingelegd { border-top: 2px dashed var(--ph-muted); }
+.ar-melding-veld { max-width: 200px; }
+.ar-legenda { align-items: center; }
+.ar-telling { padding: 6px 12px; min-height: 0; font-size: 0.78rem; border-radius: 10px; border: 1px solid var(--ph-border-2) !important; }
+@media (max-width: 899px) {
+  .ar-rij, .ar-form, .ar-uitleg, .ar-knop, .ar-legenda, .ar-muntbeheer li, .ar-toevoegen, .ar-grafieklegenda { padding-left: 14px; padding-right: 14px; }
+  table.ar-plan th, table.ar-plan td { padding-left: 10px; padding-right: 10px; }
+}
+</style>
+</head>
+{% macro eur(x) -%}&euro;&nbsp;{{ "{:,.2f}".format(x or 0).replace(",", "X").replace(".", ",").replace("X", ".") }}{%- endmacro %}
+{% macro pct(x) -%}{{ ("%.1f" % (x or 0)).replace(".0", "").replace(".", ",") }}%{%- endmacro %}
+{% macro logo(m) -%}
+<span class="ar-logo">{% if m.icoon %}<img src="{{ m.icoon }}" alt="" onerror="this.replaceWith(document.createTextNode('{{ m.munt }}'))">{% else %}<img src="https://cdn.jsdelivr.net/npm/cryptocurrency-icons@0.18.1/128/color/{{ m.munt|lower }}.png" alt="" onerror="this.replaceWith(document.createTextNode('{{ m.munt }}'))">{% endif %}</span>
+{%- endmacro %}
+<body data-demo="{{ 1 if demo_modus else 0 }}">
+<div class="wrap">
+
+  <div class="kop">
+    <div class="merk"><div><span class="ph-sub">De winst die opzij is gezet</span><h1>Afgeroomd</h1></div></div>
+  </div>
+
+  {% if melding %}
+  <div class="ar-melding {{ 'goed' if melding.ok else 'fout' }}">{{ melding.tekst }}</div>
+  {% endif %}
+
+  <div class="kaarten">
+    <div class="kaart">
+      <div class="etiket">Totaal afgeroomd</div>
+      <div class="groot">{{ eur(a.totaal) }}</div>
+      <div class="bij">over {{ a.munten|selectattr("waarde", "ge", 1)|list|length }} munten</div>
+    </div>
+    <div class="kaart">
+      <div class="etiket">Volgende oogst gaat naar</div>
+      <div class="groot">{{ a.volgende }}</div>
+      <div class="bij">de munt die het verst achterloopt</div>
+    </div>
+    <div class="kaart">
+      <div class="etiket">Per oogst naar de reserve</div>
+      <div class="groot">{{ pct(a.reserve_pct) }}</div>
+      <div class="bij">van de netto winst</div>
+    </div>
+    <div class="kaart">
+      <div class="etiket">Resultaat reserve</div>
+      <div class="groot {{ 'op' if a.resultaat >= 0 else 'af' }}">{{ '+' if a.resultaat >= 0 else '−' }}{{ eur(a.resultaat|abs) }}</div>
+      <div class="bij">{% if a.telling_sinds %}sinds <span data-datum="{{ a.telling_sinds }}"></span> &middot; {% endif %}ingelegd {{ eur(a.netto_ingelegd) }}</div>
+    </div>
+  </div>
+
+  <div class="agrid">
+  <div>
+    <div class="paneel">
+      <div class="paneelkop">Verdeling <small>nu tegenover je doel</small></div>
+      {% for m in a.munten if m.waarde >= 1 or m.doel_pct > 0 %}
+      <div class="ar-rij">
+        {{ logo(m) }}
+        <div class="ar-naam">{{ m.munt }}{% if m.munt == a.volgende and a.munten|selectattr("doel_pct", "gt", 0)|list|length > 1 %}<span class="ar-volgende">volgende</span>{% endif %}
+          <small>nu {{ pct(m.pct) }} &middot; doel {{ pct(m.doel_pct) }}</small></div>
+        <div class="ar-waarde">{{ eur(m.waarde) }}<small>{{ "%.6g"|format(m.aantal) }} {{ m.munt }}</small></div>
+        <div class="ar-balk" aria-hidden="true"><i style="width: {{ [m.pct, 100]|min }}%"></i>{% if m.doel_pct > 0 %}<b style="left: {{ [m.doel_pct, 100]|min }}%"></b>{% endif %}</div>
+        {% if m.gekocht > 0 %}
+        <div class="ar-resultaat"><span>gekocht {{ eur(m.gekocht) }}{% if m.verkocht > 0 %} &middot; verkocht {{ eur(m.verkocht) }}{% endif %}</span>
+          <span>resultaat <b class="{{ 'op' if m.resultaat >= 0 else 'af' }}">{{ '+' if m.resultaat >= 0 else '−' }}{{ eur(m.resultaat|abs) }} ({{ '+' if m.resultaat >= 0 else '−' }}{{ pct(m.resultaat_pct|abs) }})</b></span></div>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="ar-leeg">Er is nog niets afgeroomd.</div>
+      {% endfor %}
+      <div class="ar-legenda"><span><i></i>nu</span><span><b></b>doel</span>
+        <form method="post" action="/afgeroomd/telling-opnieuw" id="tellingForm" style="margin-left: auto;">
+          <button type="submit" class="plat ar-telling">Telling opnieuw beginnen</button>
+        </form></div>
+    </div>
+
+    <div class="paneel">
+      <div class="paneelkop">Verloop van de reserve <small id="grafiekBereik"></small></div>
+      <div class="ar-grafiek"><svg id="reserveGrafiek" role="img" aria-label="Verloop van de reserve"></svg></div>
+      <div class="ar-grafieklegenda"><span><i></i>waarde</span><span><i class="ingelegd"></i>netto ingelegd</span>
+        <span id="grafiekNoot"></span></div>
+    </div>
+
+    <div class="paneel">
+      <div class="paneelkop">Herbalanceren <small>totaal {{ eur(a.plan.totaal) }}</small></div>
+      <p class="ar-uitleg">Verkoopt een deel van wat te zwaar is en koopt met precies die opbrengst wat te licht is.
+        Je vrije cash, de pot en de dalpot blijven onaangeroerd, en elke munt houdt minstens {{ eur(a.minimum) }}.
+        Kleine afwijkingen (onder {{ eur(a.plan.drempel) }}) blijven staan, om fees te sparen.</p>
+      {% if a.plan.rijen %}
+      <table class="ar-plan">
+        <thead><tr><th>Munt</th><th class="r">Nu</th><th class="r">Doel</th><th class="r">Actie</th></tr></thead>
+        <tbody>
+        {% for r in a.plan.rijen %}
+          <tr><td><b>{{ r.munt }}</b></td><td class="r">{{ eur(r.huidig) }}</td><td class="r">{{ eur(r.doel_eur) }}</td>
+            <td class="r">{% if r.actie == "verkopen" %}<span class="ar-verkoop">verkoop {{ eur(r.bedrag) }}</span>{% elif r.actie == "kopen" %}<span class="ar-koop">koop {{ eur(r.bedrag) }}</span>{% else %}&mdash;{% endif %}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+      <form class="ar-knop" method="post" action="/afgeroomd/herbalanceren" id="herbalansForm">
+        <p>{% if a.plan.uitvoerbaar %}Dit plan wordt opnieuw uitgerekend met de koersen van dat moment.{% else %}{{ a.plan.reden }}{% endif %}</p>
+        <button type="submit" class="hoofd" {% if not a.plan.uitvoerbaar %}disabled{% endif %}>Herbalanceren</button>
+      </form>
+    </div>
+  </div>
+
+  <div>
+    <div class="paneel">
+      <div class="paneelkop">Doelverdeling <small>samen 100%</small></div>
+      <form class="ar-form" method="post" action="/afgeroomd/doelen" id="doelForm">
+        <p class="ar-uitleg" style="padding: 0;">Na elke oogst koopt de bot de munt die het verst onder zijn doel zit. Zet een munt op 0 om er niets meer bij te kopen; wat er al staat blijft dan staan.
+          Wijkt een munt meer procentpunt (pp) af dan bij <i>Melding</i>, dan krijg je een Telegram-seintje (0 = uit).</p>
+        <div class="ar-doelen">
+          {% for m in a.munten %}
+          <div><label for="doel_{{ m.munt }}">{{ m.munt }}</label>
+            <div class="ar-veld"><input type="number" inputmode="decimal" min="0" max="100" step="0.5" id="doel_{{ m.munt }}" name="doel_{{ m.munt }}" value="{{ ('%g' % m.doel_pct) if m.doel_pct else 0 }}" data-doel>%</div></div>
+          {% endfor %}
+        </div>
+        <div class="ar-onder">
+          <div class="ar-min"><label for="minimum">Minimum per munt</label>
+            <div class="ar-veld">&euro;<input type="number" inputmode="decimal" min="5" step="1" id="minimum" name="minimum" value="{{ '%g' % a.minimum }}"></div></div>
+          <div class="ar-min ar-melding-veld"><label for="melding">Melding bij afwijking</label>
+            <div class="ar-veld"><input type="number" inputmode="decimal" min="0" max="100" step="1" id="melding" name="melding" value="{{ '%g' % a.melding_pp }}">pp</div></div>
+          <div>Samen: <span class="ar-som" id="som">100%</span></div>
+          <button type="submit" class="hoofd" id="opslaan">Opslaan</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="paneel">
+      <div class="paneelkop">Munten <small>{{ a.munten|length }} van max. {{ a.max_munten }}</small></div>
+      <ul class="ar-muntbeheer" style="list-style: none;">
+        {% for m in a.munten %}
+        <li><span><b>{{ m.munt }}</b> <small>{{ eur(m.waarde) }}{% if m.doel_pct > 0 %} &middot; doel {{ pct(m.doel_pct) }}{% endif %}</small></span>
+          {% if a.munten|length > 1 %}
+          <form method="post" action="/afgeroomd/munt-verwijderen" class="ar-weg" data-munt="{{ m.munt }}" data-waarde="{{ '%.2f' % m.waarde }}" data-doel="{{ m.doel_pct }}">
+            <input type="hidden" name="munt" value="{{ m.munt }}">
+            <button type="submit" class="weg">Verwijderen</button>
+          </form>
+          {% endif %}</li>
+        {% endfor %}
+      </ul>
+      {% if a.munten|length < a.max_munten %}
+      <form class="ar-toevoegen" method="post" action="/afgeroomd/munt-toevoegen">
+        <input type="text" name="munt" placeholder="Munt, bijv. ADA" maxlength="12" autocomplete="off" spellcheck="false" aria-label="Munt toevoegen" required>
+        <button type="submit" class="hoofd">Toevoegen</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="paneel">
+      <div class="paneelkop">Laatste aankopen en verkopen</div>
+      {% if a.recent %}
+      <ul class="ar-recent">
+        {% for t in a.recent %}
+        <li><span><b>{{ t.munt }}</b> <small>{{ "gekocht" if t.kant == "koop" else "verkocht" }}{{ " · herbalanceren" if t.bron == "herbalanceren" else "" }}</small></span>
+          <span>{{ eur(t.bedrag) }} <small data-tijd="{{ t.tijd }}"></small></span></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="ar-leeg">Nog geen aankopen.</div>
+      {% endif %}
+    </div>
+  </div>
+  </div>
+
+  <div class="onderbalk">
+    <button type="button" class="plat" id="knopVernieuw">Ververs</button>
+    <button type="button" class="plat" id="knopThema">Licht</button>
+    <a href="/help" class="plat">Help</a>
+    <form method="post" action="/logout" id="uitlogFormulier">
+      <button type="submit" class="plat" title="Uitloggen">Uitloggen</button>
+    </form>
+  </div>
+</div>
+
+<nav class="navbalk">
+  <a href="/">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9a1 1 0 0 0 1 1H9v-6h6v6h2.5a1 1 0 0 0 1-1v-9"/></svg>
+    Dashboard
+  </a>
+  <a href="/potten">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
+    Potten
+  </a>
+  <a href="/afgeroomd" class="actief">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="6.5" ry="2.5"/><path d="M5.5 6.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 10.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 14.5v3c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-3"/></svg>
+    Afgeroomd
+  </a>
+  <a href="/rendement">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
+    Rendement
+  </a>
+  <a href="/beheren">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><circle cx="9" cy="7" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="13" x2="20" y2="13"/><circle cx="15" cy="13" r="2.2" fill="currentColor" stroke="none"/><line x1="4" y1="19" x2="20" y2="19"/><circle cx="7" cy="19" r="2.2" fill="currentColor" stroke="none"/></svg>
+    Beheren
+  </a>
+  <a href="/activiteit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3.2 1.8"/></svg>
+    Activiteit
+  </a>
+</nav>
+
+<script id="grafiekdata" type="application/json">{{ a.grafiek|tojson }}</script>
+<script>
+(function () {
+  "use strict";
+  var ververs = document.getElementById("knopVernieuw");
+  if (ververs) { ververs.addEventListener("click", function () { location.reload(); }); }
+
+  // tijden in het eigen tijdformaat van de browser
+  var fmt = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  document.querySelectorAll("[data-tijd]").forEach(function (e) {
+    var d = new Date(e.getAttribute("data-tijd"));
+    if (!isNaN(d)) { e.textContent = fmt.format(d); }
+  });
+
+  // optelsom van de doelpercentages, opslaan alleen bij precies 100%
+  var velden = document.querySelectorAll("[data-doel]");
+  var som = document.getElementById("som");
+  var opslaan = document.getElementById("opslaan");
+  function tel() {
+    var t = 0;
+    velden.forEach(function (v) { t += parseFloat(String(v.value).replace(",", ".")) || 0; });
+    t = Math.round(t * 10) / 10;
+    som.textContent = String(t).replace(".", ",") + "%";
+    var goed = Math.abs(t - 100) < 0.05;
+    som.className = "ar-som " + (goed ? "goed" : "fout");
+    opslaan.disabled = !goed;
+  }
+  velden.forEach(function (v) { v.addEventListener("input", tel); });
+  tel();
+
+  // verwijderen: eerst het doel op 0%, en duidelijk zeggen dat er verkocht wordt
+  var geldFmt = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" });
+  document.querySelectorAll("form.ar-weg").forEach(function (f) {
+    f.addEventListener("submit", function (e) {
+      var munt = f.getAttribute("data-munt");
+      var waarde = parseFloat(f.getAttribute("data-waarde")) || 0;
+      if ((parseFloat(f.getAttribute("data-doel")) || 0) > 0) {
+        e.preventDefault();
+        alert("Zet eerst het doel van " + munt + " op 0% en sla de verdeling op. Daarna kun je " + munt + " verwijderen.");
+        return;
+      }
+      var tekst = waarde >= 5
+        ? munt + " verwijderen? De bot verkoopt dan alle " + munt + " (ongeveer " + geldFmt.format(waarde) +
+          ") en koopt met de opbrengst de reservemunten die het verst achterlopen. Dit zijn echte orders."
+        : munt + " verwijderen van de Afgeroomd-pagina?";
+      if (!confirm(tekst)) { e.preventDefault(); }
+    });
+  });
+
+  // grafiek: waarde (sinds die wordt bijgehouden) en netto ingelegd (sinds de start)
+  (function () {
+    var svg = document.getElementById("reserveGrafiek");
+    var bron = document.getElementById("grafiekdata");
+    if (!svg || !bron) { return; }
+    var data = JSON.parse(bron.textContent || "{}");
+    var ingelegd = data.ingelegd || [], waarde = data.waarde || [];
+    if (!ingelegd.length && !waarde.length) {
+      document.getElementById("grafiekNoot").textContent = "Nog geen gegevens.";
+      return;
+    }
+    var nu = Date.now() / 1000;
+    var alle = ingelegd.concat(waarde);
+    var t0 = Math.min.apply(null, alle.map(function (p) { return p[0]; }));
+    var t1 = Math.max(nu, Math.max.apply(null, alle.map(function (p) { return p[0]; })));
+    if (ingelegd.length) { ingelegd = ingelegd.concat([[t1, ingelegd[ingelegd.length - 1][1]]]); }
+    var vMax = Math.max.apply(null, alle.map(function (p) { return p[1]; }).concat([1])) * 1.08;
+    var B = svg.clientWidth || 600, H = 190, L = 4, R = 54, T = 8, O = 22;
+    svg.setAttribute("viewBox", "0 0 " + B + " " + H);
+    function x(t) { return L + (t - t0) / Math.max(1, t1 - t0) * (B - L - R); }
+    function y(v) { return T + (1 - v / vMax) * (H - T - O); }
+    var ns = "http://www.w3.org/2000/svg", html = "";
+    for (var i = 0; i <= 3; i++) {
+      var v = vMax / 3 * i;
+      html += '<line class="raster" x1="' + L + '" x2="' + (B - R) + '" y1="' + y(v) + '" y2="' + y(v) + '"/>';
+      html += '<text class="as" x="' + (B - R + 6) + '" y="' + (y(v) + 3) + '">' + geldFmt.format(Math.round(v)).replace(",00", "") + '</text>';
+    }
+    var dag = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" });
+    [t0, (t0 + t1) / 2, t1].forEach(function (t, k) {
+      html += '<text class="as" x="' + x(t) + '" y="' + (H - 4) + '" text-anchor="' + ["start", "middle", "end"][k] + '">' + dag.format(new Date(t * 1000)) + '</text>';
+    });
+    function trap(reeks) {   // ingelegd verandert in stapjes
+      return reeks.map(function (p, j) {
+        var stuk = (j ? "H" + x(p[0]).toFixed(1) + "V" : "M" + x(p[0]).toFixed(1) + ",") + y(p[1]).toFixed(1);
+        return stuk;
+      }).join("");
+    }
+    function lijn(reeks) {
+      return reeks.map(function (p, j) { return (j ? "L" : "M") + x(p[0]).toFixed(1) + "," + y(p[1]).toFixed(1); }).join("");
+    }
+    if (ingelegd.length) { html += '<path class="lijn-ingelegd" d="' + trap(ingelegd) + '"/>'; }
+    if (waarde.length > 1) { html += '<path class="lijn-waarde" d="' + lijn(waarde) + '"/>'; }
+    if (waarde.length) {
+      var l = waarde[waarde.length - 1];
+      html += '<circle cx="' + x(l[0]) + '" cy="' + y(l[1]) + '" r="4" fill="var(--ph-accent)"/>';
+    }
+    svg.innerHTML = html;
+    document.getElementById("grafiekBereik").textContent = "sinds " + dag.format(new Date(t0 * 1000));
+    if (waarde.length < 2) {
+      document.getElementById("grafiekNoot").textContent = "De waardelijn wordt vanaf nu elk uur aangevuld.";
+    }
+  })();
+
+  var dagFmt = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" });
+  document.querySelectorAll("[data-datum]").forEach(function (e) {
+    var d = new Date(e.getAttribute("data-datum"));
+    if (!isNaN(d)) { e.textContent = dagFmt.format(d); }
+  });
+  var tf = document.getElementById("tellingForm");
+  if (tf) {
+    tf.addEventListener("submit", function (e) {
+      if (!confirm("De telling opnieuw beginnen? Wat er nu in elke munt zit, telt dan als startbedrag; gekocht, verkocht en resultaat beginnen weer bij nul. Er wordt niets gekocht of verkocht.")) { e.preventDefault(); }
+    });
+  }
+
+  var hb = document.getElementById("herbalansForm");
+  if (hb) {
+    hb.addEventListener("submit", function (e) {
+      if (!confirm("Herbalanceren uitvoeren? Er worden echte verkoop- en kooporders geplaatst op Bitvavo.")) { e.preventDefault(); }
+    });
+  }
+})();
+</script>
+<!-- meldingen -->
+<script>
+(function () {
+  "use strict";
+  var nav = document.querySelector(".navbalk");
+  if (!nav) { return; }
+
+  var css = document.createElement("style");
+  css.textContent =
+    ".navbalk a, .navbalk button.navknop { position: relative; }" +
+    ".navbalk button.navknop { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;" +
+    " padding: 7px 4px 6px; color: var(--dimmer); background: none; border: none; font: inherit; font-size: 0.66rem;" +
+    " font-weight: 600; border-radius: 10px; cursor: pointer; transition: color .15s, background .15s; }" +
+    ".navbalk button.navknop svg { width: 21px; height: 21px; }" +
+    ".navbalk button.navknop:hover { background: var(--surface2); color: var(--text); }" +
+    ".navbalk button.navknop.open { color: var(--gold); }" +
+    ".navstip { position: absolute; top: 5px; left: calc(50% + 6px); width: 9px; height: 9px; border-radius: 50%;" +
+    " background: var(--down); box-shadow: 0 0 0 2px var(--surface); }" +
+    ".navstip[hidden] { display: none; }" +
+    ".meldpaneel { position: fixed; z-index: 45; bottom: 74px; right: 14px; width: min(420px, calc(100vw - 28px));" +
+    " max-height: min(60vh, 520px); display: flex; flex-direction: column; background: var(--surface);" +
+    " border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }" +
+    ".meldpaneel[hidden] { display: none; }" +
+    ".meldkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px;" +
+    " border-bottom: 1px solid var(--line); font-weight: 700; font-size: 0.92rem; }" +
+    ".meldkop label { font-weight: 500; font-size: 0.76rem; color: var(--dim); display: flex; align-items: center; gap: 6px; cursor: pointer; }" +
+    ".meldlijst { overflow-y: auto; }" +
+    ".meld { padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 0.84rem; line-height: 1.45;" +
+    " border-left: 3px solid transparent; white-space: pre-line; word-break: break-word; }" +
+    ".meld:last-child { border-bottom: none; }" +
+    ".meld.belangrijk { border-left-color: var(--down); background: rgba(232,101,79,.07); }" +
+    ".meld small { display: block; color: var(--dimmer); font-size: 0.7rem; margin-bottom: 2px; }" +
+    ".meldleeg { padding: 28px 16px; text-align: center; color: var(--dim); font-size: 0.86rem; }";
+  document.head.appendChild(css);
+
+  var knop = document.createElement("button");
+  knop.type = "button";
+  knop.className = "navknop";
+  knop.id = "navMeldingen";
+  knop.setAttribute("aria-label", "Meldingen");
+  knop.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M6 9a6 6 0 0 1 12 0c0 6 2.5 7.5 2.5 7.5h-17S6 15 6 9Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>' +
+    'Meldingen<i class="navstip" hidden></i>';
+  nav.appendChild(knop);
+  var stip = knop.querySelector(".navstip");
+
+  var paneel = document.createElement("div");
+  paneel.className = "meldpaneel";
+  paneel.hidden = true;
+  paneel.setAttribute("role", "dialog");
+  paneel.setAttribute("aria-label", "Meldingen");
+  paneel.innerHTML =
+    '<div class="meldkop"><span>Meldingen</span>' +
+    '<label><input type="checkbox" id="meldAlleenBelangrijk"> Alleen belangrijk</label></div>' +
+    '<div class="meldlijst" id="meldLijst"></div>';
+  document.body.appendChild(paneel);
+  var lijst = paneel.querySelector("#meldLijst");
+  var alleenBelangrijk = paneel.querySelector("#meldAlleenBelangrijk");
+
+  var laatsteData = null;
+
+  function tijdTekst(t) {
+    var d = new Date(t * 1000), nu = new Date();
+    var tijd = d.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === nu.toDateString()) { return "Vandaag " + tijd; }
+    return d.toLocaleDateString("nl-NL", { day: "numeric", month: "short" }) + " " + tijd;
+  }
+
+  function teken() {
+    lijst.textContent = "";
+    var items = (laatsteData && laatsteData.meldingen) || [];
+    if (alleenBelangrijk.checked) { items = items.filter(function (m) { return m.niveau === "belangrijk"; }); }
+    if (!items.length) {
+      var leeg = document.createElement("div");
+      leeg.className = "meldleeg";
+      leeg.textContent = alleenBelangrijk.checked ? "Geen belangrijke meldingen. Rustig." : "Nog geen meldingen.";
+      lijst.appendChild(leeg);
+      return;
+    }
+    items.forEach(function (m) {
+      var rij = document.createElement("div");
+      rij.className = "meld" + (m.niveau === "belangrijk" ? " belangrijk" : "");
+      var klein = document.createElement("small");
+      klein.textContent = tijdTekst(m.t);
+      var tekst = document.createElement("span");
+      tekst.textContent = m.tekst;
+      rij.appendChild(klein); rij.appendChild(tekst);
+      lijst.appendChild(rij);
+    });
+  }
+
+  function haal(markeerGelezen) {
+    return fetch("/api/meldingen", { headers: { "Accept": "application/json" }, credentials: "same-origin" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (data) {
+        if (!data) { return; }
+        laatsteData = data;
+        stip.hidden = !(data.ongelezen_belangrijk > 0) || markeerGelezen === true;
+        if (!paneel.hidden) { teken(); }
+      })
+      .catch(function () {});
+  }
+
+  function markeerGelezen() {
+    fetch("/api/meldingen/gelezen", { method: "POST", credentials: "same-origin" }).catch(function () {});
+    stip.hidden = true;
+  }
+
+  function sluit() { paneel.hidden = true; knop.classList.remove("open"); }
+
+  knop.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (!paneel.hidden) { sluit(); return; }
+    paneel.hidden = false;
+    knop.classList.add("open");
+    teken();
+    haal(true).then(function () { teken(); markeerGelezen(); });
+  });
+  paneel.addEventListener("click", function (e) { e.stopPropagation(); });
+  alleenBelangrijk.addEventListener("change", teken);
+  document.addEventListener("click", sluit);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { sluit(); } });
+
+  haal();
+  setInterval(function () { if (!document.hidden && paneel.hidden) { haal(); } }, 30000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden && paneel.hidden) { haal(); } });
+})();
+</script>
+<script src="/static/ph.js?v=1"></script>
+</body>
+</html>

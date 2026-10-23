@@ -358,6 +358,8 @@ html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 <link rel="stylesheet" href="/static/ph.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/speels.css?v=1">
 <style>
 /* ---- nieuw ontwerp: alleen potten ---- */
 .strategiekaarten { gap: 14px; margin-bottom: 16px; }
@@ -406,12 +408,12 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 <div class="wrap">
 
   <div class="kop">
-    <div class="merk"><div><span class="ph-sub">Hoofdlijst, pot en dalpot</span><h1>Potten</h1></div></div>
+    <div class="merk"><div><span class="ph-sub">Pot en dalpot</span><h1>Potten</h1></div></div>
   </div>
 
   <div class="strategiekaarten">
     <div class="strategiekaart hoofdlijst">
-      <div class="sk-naam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>Hoofdlijst</div>
+      <div class="sk-naam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>Totaal potten</div>
       <div class="sk-waarde" id="hlWaarde">&euro; 0,00</div>
       <div class="sk-sub" id="hlWinst"></div>
       <div class="sk-munten" id="hlMunten"></div>
@@ -476,6 +478,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   <a href="/potten" class="actief">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>
     Potten
+  </a>
+  <a href="/afgeroomd">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.5" rx="6.5" ry="2.5"/><path d="M5.5 6.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 10.5v4c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-4"/><path d="M5.5 14.5v3c0 1.4 2.9 2.5 6.5 2.5s6.5-1.1 6.5-2.5v-3"/></svg>
+    Afgeroomd
   </a>
   <a href="/rendement">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="12"/><line x1="12" y1="20" x2="12" y2="7"/><line x1="19" y1="20" x2="19" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg>
@@ -652,14 +658,6 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     var pot = data.pot || { posities: [] };
     var dalpot = data.dalpot || { posities: [] };
 
-    var hlWaarde = 0, hlWinst = 0, hlBudget = 0;
-    posities.forEach(function (p) {
-      hlWaarde += p.waarde || 0;
-      hlWinst += p.winst || 0;
-      hlBudget += p.budget || 0;
-    });
-    samenvatting(el.hlWaarde, el.hlWinst, el.hlMunten, hlWaarde, hlWinst, hlBudget, posities.length);
-
     var potWaarde = pot.totaal || 0, potWinst = 0, potBudget = 0;
     (pot.posities || []).forEach(function (p) { potWinst += p.winst || 0; potBudget += p.budget || 0; });
     samenvatting(el.potWaarde, el.potWinst, el.potMunten, potWaarde, potWinst, potBudget, (pot.posities || []).length);
@@ -667,6 +665,10 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
     var dalpotWaarde = dalpot.totaal || 0, dalpotWinst = 0, dalpotBudget = 0;
     (dalpot.posities || []).forEach(function (p) { dalpotWinst += p.winst || 0; dalpotBudget += p.budget || 0; });
     samenvatting(el.dalpotWaarde, el.dalpotWinst, el.dalpotMunten, dalpotWaarde, dalpotWinst, dalpotBudget, (dalpot.posities || []).length);
+
+    // eerste kaart: pot en dalpot samen
+    samenvatting(el.hlWaarde, el.hlWinst, el.hlMunten, potWaarde + dalpotWaarde, potWinst + dalpotWinst,
+                 potBudget + dalpotBudget, (pot.posities || []).length + (dalpot.posities || []).length);
 
     // Pot-paneel
     var potHeeftData = (pot.posities || []).length > 0 || (pot.cash || 0) > 0 || (pot.gestort || 0) > 0;
