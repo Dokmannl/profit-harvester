@@ -191,11 +191,22 @@ def afgeroomd_pagina():
     d = _demo_afgeroomd
     totaal = sum(d["waarden"].values())
     som = sum(d["doelen"].values())
+    gekocht = {"BTC": 236.0, "ETH": 281.5, "BNB": 20.6, "SOL": 0.0, "XRP": 0.0}
     munten = [{"munt": m, "waarde": w, "aantal": w / d["koersen"][m], "koers": d["koersen"][m],
-               "pct": w / totaal * 100 if totaal else 0, "doel_pct": d["doelen"].get(m, 0.0), "icoon": ""}
+               "pct": w / totaal * 100 if totaal else 0, "doel_pct": d["doelen"].get(m, 0.0), "icoon": "",
+               "gekocht": gekocht[m], "verkocht": 0.0, "resultaat": w - gekocht[m],
+               "resultaat_pct": (w - gekocht[m]) / gekocht[m] * 100 if gekocht[m] else 0.0}
               for m, w in d["waarden"].items()]
     volgende = max(d["doelen"], key=lambda m: d["doelen"][m] / som * totaal - d["waarden"][m])
+    nu = int(__import__("time").time())
+    dag = 86400
+    grafiek = {
+        "ingelegd": [[nu - 35 * dag + i * 3 * dag, round(45.0 * (i + 1), 2)] for i in range(12)],
+        "waarde": [[nu - 35 * dag + i * dag, round(40 + i * 15.5 + (i % 5) * 6, 2)] for i in range(36)],
+    }
     a = {"totaal": totaal, "munten": munten, "volgende": volgende, "minimum": d["minimum"],
+         "melding_pp": 10.0, "max_munten": 10,
+         "resultaat": totaal - sum(gekocht.values()), "netto_ingelegd": sum(gekocht.values()), "grafiek": grafiek,
          "doelen_ingesteld": True, "reserve_pct": 50.0, "plan": _demo_plan(d),
          "recent": [{"tijd": "2026-10-23T13:58:00+00:00", "munt": "ETH", "kant": "koop", "bedrag": 5.51, "bron": "reserve-eth"},
                     {"tijd": "2026-10-22T23:58:00+00:00", "munt": "BTC", "kant": "koop", "bedrag": 5.52, "bron": "reserve-btc"}]}

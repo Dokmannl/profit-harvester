@@ -296,12 +296,23 @@ def icoon_voor(coin):
 
 STATE_FILE = DATA_PREFIX + "bot_state.json"
 STANDAARD_RESERVE_PCT = 50.0     # deel van elke afroming dat naar de reserve-munt gaat
-RESERVE_MUNTEN = ("BTC", "ETH", "BNB", "SOL", "XRP")  # munten van de Afgeroomd-pagina
+# Standaard reservemunten; op de Afgeroomd-pagina kun je munten toevoegen of
+# verwijderen (global_settings.reserve_munten).
+STANDAARD_RESERVE_LIJST = ("BTC", "ETH", "BNB", "SOL", "XRP")
 STANDAARD_RESERVE_MUNT = "BTC"
-RESERVE_BRONNEN = tuple(f"reserve-{m.lower()}" for m in RESERVE_MUNTEN)   # bron-labels in het orderlogboek
+MAX_RESERVE_MUNTEN = 10
 HERBALANS_BRON = "herbalanceren"
-# Verkopen die geen oogst zijn: reserve-aankopen en het herbalanceren van de reserve
-GEEN_OOGST_BRONNEN = RESERVE_BRONNEN + (HERBALANS_BRON,)
+STANDAARD_RESERVE_MELDING_PP = 10.0   # Telegram-seintje als een munt zoveel procentpunt van zijn doel afwijkt
+
+
+def is_reserve_bron(bron):
+    """Bron-label van een reserve-aankoop na een oogst, zoals "reserve-btc"."""
+    return str(bron or "").startswith("reserve-")
+
+
+def is_geen_oogst(bron):
+    """Verkopen die geen oogst zijn: reserve-aankopen en het herbalanceren van de reserve."""
+    return is_reserve_bron(bron) or bron == HERBALANS_BRON
 STANDAARD_RESERVE_MINIMUM_EUR = 25.0   # er blijft altijd minstens dit bedrag in elke reservemunt
 
 # Donatie-adressen van de maker, getoond onderaan de uitlegpagina. Leeg = het
@@ -491,6 +502,20 @@ def registreer_koop(coin, bedrag):
     bewaar_state(state)
 
 
+def reserve_lijst(config=None):
+    """De munten van de Afgeroomd-pagina: standaard BTC, ETH, BNB, SOL en XRP."""
+    config = config or laad_config()
+    lijst = config.get("global_settings", {}).get("reserve_munten")
+    if not lijst:
+        return list(STANDAARD_RESERVE_LIJST)
+    schoon = []
+    for m in lijst:
+        m = str(m).strip().upper()
+        if m and m not in schoon:
+            schoon.append(m)
+    return schoon or list(STANDAARD_RESERVE_LIJST)
+
+
 def reserve_doelen(config=None):
     """
     Gewenste verdeling van de reserve in procenten, bijvoorbeeld
@@ -500,6 +525,7 @@ def reserve_doelen(config=None):
     """
     config = config or laad_config()
     gs = config.get("global_settings", {})
+    lijst = reserve_lijst(config)
     doelen = {}
     for munt, pct in (gs.get("reserve_doelen") or {}).items():
         munt = str(munt).upper()
@@ -507,12 +533,12 @@ def reserve_doelen(config=None):
             pct = float(pct)
         except (TypeError, ValueError):
             continue
-        if munt in RESERVE_MUNTEN and pct > 0:
+        if munt in lijst and pct > 0:
             doelen[munt] = pct
     if doelen:
         return doelen
     munt = str(gs.get("reserve_munt", STANDAARD_RESERVE_MUNT)).upper()
-    return {munt if munt in RESERVE_MUNTEN else STANDAARD_RESERVE_MUNT: 100.0}
+    return {munt if munt in lijst else lijst[0]: 100.0}
 
 
 def reserve_minimum(config=None):
@@ -966,7 +992,7 @@ def reserve_verdeling(balans=None, tickers=None):
     in_lijsten = set(config.get("coins", {})) | set(config.get("pot_coins", {})) | set(config.get("dalpot_coins", {}))
     return {
         munt: balans["total"].get(munt, 0.0) * (koers_van(tickers, f"{munt}/EUR") or 0.0)
-        for munt in RESERVE_MUNTEN if munt not in in_lijsten
+        for munt in reserve_lijst(config) if munt not in in_lijsten
     }
 
 
@@ -985,7 +1011,7 @@ def reserve_label(balans=None, tickers=None):
     tickers = tickers if tickers is not None else cache.tickers()
     doelen = reserve_doelen()
     munten = [
-        m for m in RESERVE_MUNTEN
+        m for m in reserve_lijst()
         if m in doelen or balans["total"].get(m, 0.0) * (koers_van(tickers, f"{m}/EUR") or 0.0) >= 1.0
     ]
     return "Afgeroomd naar " + " + ".join(munten)
@@ -2402,7 +2428,7 @@ def kies_pot_munten(handmatig=False):
             if not market.endswith("/EUR"):
                 continue
             coin = market[:-4]
-            if coin in hoofdlijst or coin in potlijst or coin in uitgesloten or coin == "EUR" or coin in RESERVE_MUNTEN:
+            if coin in hoofdlijst or coin in potlijst or coin in uitgesloten or coin == "EUR" or coin in reserve_lijst():
                 continue
 
             # Munten die je al bezit buiten de bot om (handmatige trades,
@@ -2607,7 +2633,7 @@ def kies_dalpot_munten(handmatig=False):
             if not market.endswith("/EUR"):
                 continue
             coin = market[:-4]
-            if coin in hoofdlijst or coin in potlijst or coin in dalpotlijst or coin in uitgesloten or coin == "EUR" or coin in RESERVE_MUNTEN:
+            if coin in hoofdlijst or coin in potlijst or coin in dalpotlijst or coin in uitgesloten or coin == "EUR" or coin in reserve_lijst():
                 continue
 
             # Afkoelperiode: een net verkochte munt is vaak nog steeds de
@@ -3595,8 +3621,8 @@ def wijzig_reserve_munt(munt):
     meetellen in de totalen.
     """
     munt = str(munt).strip().upper()
-    if munt not in RESERVE_MUNTEN:
-        return False, "Kies BTC of ETH."
+    if munt not in reserve_lijst():
+        return False, "Kies een munt van de Afgeroomd-pagina."
 
     config = laad_config()
     gs = config.setdefault("global_settings", {})
@@ -3632,10 +3658,10 @@ def wijzig_reserve_munt(munt):
 # ---------------------------------------------------------------------------
 
 @met_lock
-def wijzig_reserve_doelen(doelen_ruw, minimum_ruw):
-    """Slaat de doelverdeling (procenten per munt) en het minimum per munt op."""
+def wijzig_reserve_doelen(doelen_ruw, minimum_ruw, melding_ruw=None):
+    """Slaat de doelverdeling (procenten per munt), het minimum per munt en de meldingsdrempel op."""
     doelen = {}
-    for munt in RESERVE_MUNTEN:
+    for munt in reserve_lijst():
         tekst = str(doelen_ruw.get(munt, "") or "0").strip().replace(",", ".")
         try:
             pct = float(tekst)
@@ -3664,9 +3690,20 @@ def wijzig_reserve_doelen(doelen_ruw, minimum_ruw):
         if not markt_bestaat(f"{munt}/EUR"):
             return False, f"De markt {munt}/EUR bestaat niet op Bitvavo."
 
+    melding = None
+    if melding_ruw is not None and str(melding_ruw).strip() != "":
+        try:
+            melding = float(str(melding_ruw).strip().replace(",", "."))
+        except ValueError:
+            return False, "Vul bij de melding een getal in (0 = uit)."
+        if melding < 0 or melding > 100:
+            return False, "De melding moet tussen 0 en 100 procentpunt liggen."
+
     gs = config.setdefault("global_settings", {})
     gs["reserve_doelen"] = doelen
     gs["reserve_minimum_eur"] = round(minimum, 2)
+    if melding is not None:
+        gs["reserve_melding_pp"] = round(melding, 1)
     bewaar_config(config)
     verdeling = ", ".join(f"{m} {p:g}%" for m, p in doelen.items())
     send_telegram_message(
@@ -3814,8 +3851,229 @@ def voer_herbalanceren_uit():
     return True, "Herbalanceren uitgevoerd: " + "; ".join(r.lstrip("• ").replace("`", "") for r in regels) + "."
 
 
+def reserve_melding_pp(config=None):
+    """Afwijking in procentpunt waarboven Telegram een seintje geeft (0 = uit)."""
+    config = config or laad_config()
+    try:
+        return max(0.0, float(config.get("global_settings", {}).get("reserve_melding_pp", STANDAARD_RESERVE_MELDING_PP)))
+    except (TypeError, ValueError):
+        return STANDAARD_RESERVE_MELDING_PP
+
+
+def _reserve_trades():
+    """Alle reserve-orders (aankopen na een oogst en herbalanceren), oudste eerst."""
+    if trades_tabel is None:
+        return []
+    return sorted((t for t in trades_tabel.all() if is_geen_oogst(t.get("bron"))), key=lambda t: t.get("tijd", ""))
+
+
+def reserve_resultaten(trades=None):
+    """
+    Per munt: hoeveel euro er in totaal in is gegaan (aankopen na een oogst en
+    bij herbalanceren, inclusief fee) en hoeveel er uit is gekomen (verkopen bij
+    herbalanceren). Resultaat = huidige waarde + verkocht - gekocht.
+    """
+    uit = {}
+    for t in (trades if trades is not None else _reserve_trades()):
+        munt = (t.get("munt") or "").split("/")[0]
+        r = uit.setdefault(munt, {"gekocht": 0.0, "verkocht": 0.0})
+        r["gekocht" if t.get("kant") == "koop" else "verkocht"] += float(t.get("bedrag") or 0.0)
+    return uit
+
+
+def reserve_ingelegd_reeks(trades=None):
+    """Netto ingelegd in de reserve door de tijd: [[unix-tijd, euro], ...]."""
+    reeks, stand = [], 0.0
+    for t in (trades if trades is not None else _reserve_trades()):
+        try:
+            ts = parse_tijd_utc(t.get("tijd")).timestamp()
+        except Exception:
+            continue
+        bedrag = float(t.get("bedrag") or 0.0)
+        stand += bedrag if t.get("kant") == "koop" else -bedrag
+        reeks.append([round(ts), round(stand, 2)])
+    return reeks
+
+
+def reserve_waarde_reeks():
+    """Waarde van de reserve door de tijd uit de geschiedenis (sinds die wordt bijgehouden)."""
+    return [[p[0], p[4]] for p in laad_historie().get("uur", []) if len(p) >= 5]
+
+
+def _koop_naar_doelen(bedrag, config, fee):
+    """
+    Verdeelt een bedrag over de reservemunten die het verst achterlopen en
+    koopt die. Stukjes onder het Bitvavo-minimum gaan naar de grootste.
+    Geeft (regels, besteed) terug.
+    """
+    cache.invalideer()
+    balans, tickers = cache.balans(), cache.tickers()
+    doelen = reserve_doelen(config)
+    verdeling = reserve_verdeling(balans, tickers)
+    totaal_na = sum(verdeling.get(m, 0.0) for m in doelen) + bedrag
+    som = sum(doelen.values()) or 1.0
+    tekort = {m: max(0.0, doelen[m] / som * totaal_na - verdeling.get(m, 0.0)) for m in doelen}
+    if sum(tekort.values()) <= 0:
+        tekort = {reserve_munt(config, balans, tickers): 1.0}
+    deel = {m: bedrag * v / sum(tekort.values()) for m, v in tekort.items() if v > 0}
+    for m in [m for m, v in deel.items() if v < MIN_ORDER_EUR]:
+        rest = deel.pop(m)
+        if deel:
+            groot = max(deel, key=deel.get)
+            deel[groot] += rest
+    regels, besteed_totaal = [], 0.0
+    for m, b in sorted(deel.items(), key=lambda kv: -kv[1]):
+        b = min(b, bedrag - besteed_totaal)
+        if b < MIN_ORDER_EUR:
+            continue
+        try:
+            besteed, _ = plaats_marktorder("buy", f"{m}/EUR", round(b, 2), "aankoop")
+            if besteed > 0:
+                log_trade(f"{m}/EUR", "koop", None, None, besteed, besteed * fee, HERBALANS_BRON)
+                besteed_totaal += besteed
+                regels.append(f"• {m}: {euro(besteed)} gekocht")
+            else:
+                regels.append(f"• {m}: aankoop niet gevuld")
+        except Exception as e:
+            log_error(f"reserve.koop.{m}", e)
+            regels.append(f"• {m}: aankoop mislukt")
+    cache.invalideer()
+    return regels, besteed_totaal
+
+
+@met_lock
+def voeg_reserve_munt_toe(munt):
+    """Zet een munt op de Afgeroomd-pagina, met doel 0% (zelf daarna een percentage geven)."""
+    munt = str(munt or "").strip().upper()
+    if not munt.isalnum() or len(munt) > 12:
+        return False, "Vul een geldige muntcode in, bijvoorbeeld ADA."
+    config = laad_config()
+    lijst = reserve_lijst(config)
+    if munt in lijst:
+        return False, f"{munt} staat al op de Afgeroomd-pagina."
+    if len(lijst) >= MAX_RESERVE_MUNTEN:
+        return False, f"Er kunnen maximaal {MAX_RESERVE_MUNTEN} reservemunten zijn."
+    if munt in ("EUR", "USDT", "USDC", "EURC", "DAI"):
+        return False, f"{munt} is een stabiele munt en hoort niet in de reserve."
+    if munt in config.get("coins", {}) or munt in config.get("pot_coins", {}) or munt in config.get("dalpot_coins", {}):
+        return False, f"{munt} staat al in de hoofdlijst, de pot of de dalpot en kan dan niet ook in de reserve."
+    if not markt_bestaat(f"{munt}/EUR"):
+        return False, f"De markt {munt}/EUR bestaat niet op Bitvavo."
+    gs = config.setdefault("global_settings", {})
+    gs["reserve_munten"] = lijst + [munt]
+    bewaar_config(config)
+    send_telegram_message(f"💎 *{munt}* staat nu op de Afgeroomd-pagina (doel 0%).", include_keyboard=True)
+    return True, f"{munt} toegevoegd. Geef hem een percentage bij Doelverdeling om er geld naartoe te laten gaan."
+
+
+@met_lock
+def verwijder_reserve_munt(munt):
+    """
+    Haalt een munt van de Afgeroomd-pagina. Zijn doel moet eerst op 0% staan.
+    Wat er nog van in bezit is, wordt verkocht en de opbrengst gaat naar de
+    andere reservemunten die het verst achterlopen. Mislukt de verkoop, dan
+    blijft de munt staan.
+    """
+    munt = str(munt or "").strip().upper()
+    config = laad_config()
+    lijst = reserve_lijst(config)
+    if munt not in lijst:
+        return False, f"{munt} staat niet op de Afgeroomd-pagina."
+    if len(lijst) <= 1:
+        return False, "Er moet minstens één reservemunt overblijven."
+    if (config.get("global_settings", {}).get("reserve_doelen") or {}).get(munt, 0):
+        return False, f"Zet eerst het doel van {munt} op 0% (en verdeel die procenten over de andere munten)."
+
+    fee = fee_fractie(config)
+    cache.invalideer()
+    balans, tickers = cache.balans(), cache.tickers()
+    market = f"{munt}/EUR"
+    saldo = balans["total"].get(munt, 0.0) or 0.0
+    koers = koers_van(tickers, market) or 0.0
+    regels, opbrengst = [], 0.0
+    if saldo * koers >= MIN_ORDER_EUR:
+        try:
+            aantal = float(exchange.amount_to_precision(market, saldo))
+            ontvangen, _ = plaats_marktorder("sell", market, aantal, "verkoop")
+        except Exception as e:
+            log_error(f"verwijder_reserve_munt.{munt}", e)
+            return False, f"Verkopen van {munt} is mislukt; de munt blijft staan. Zie bot_errors.log."
+        if ontvangen <= 0:
+            return False, f"De verkoop van {munt} is niet gevuld; de munt blijft staan."
+        log_trade(market, "verkoop", aantal, koers, ontvangen, ontvangen * fee, HERBALANS_BRON)
+        opbrengst = ontvangen
+        regels.append(f"• {munt}: {euro(ontvangen)} verkocht")
+
+    gs = config.setdefault("global_settings", {})
+    gs["reserve_munten"] = [m for m in lijst if m != munt]
+    if gs.get("reserve_doelen"):
+        gs["reserve_doelen"] = {m: p for m, p in gs["reserve_doelen"].items() if m != munt}
+    bewaar_config(config)
+
+    if opbrengst >= MIN_ORDER_EUR:
+        koop_regels, besteed = _koop_naar_doelen(opbrengst, config, fee)
+        regels += koop_regels
+        if opbrengst - besteed >= 0.01:
+            regels.append(f"Niet besteed (blijft vrije cash): {euro(opbrengst - besteed)}")
+    elif saldo * koers >= 0.01:
+        regels.append(f"• {munt}: restje van {euro(saldo * koers)} te klein om te verkopen, blijft op Bitvavo staan")
+    send_telegram_message(f"💎 *{munt}* van de Afgeroomd-pagina gehaald\n" + "\n".join(regels), include_keyboard=True)
+    return True, f"{munt} verwijderd. " + "; ".join(r.lstrip("• ").replace("`", "") for r in regels)
+
+
+_reserve_gemeld_op = 0.0   # wanneer het laatste afwijkingsseintje is verstuurd
+
+
+def controleer_reserve_afwijking():
+    """
+    Stuurt een Telegram-seintje als een reservemunt meer dan de ingestelde
+    procentpunten van zijn doel afwijkt. Doet zelf niets; hooguit één seintje
+    per dag zolang de verdeling scheef blijft.
+    """
+    global _reserve_gemeld_op
+    config = laad_config()
+    drempel = reserve_melding_pp(config)
+    doelen = reserve_doelen(config)
+    if drempel <= 0 or len(doelen) < 2:
+        return
+    verdeling = reserve_verdeling()
+    totaal = sum(verdeling.get(m, 0.0) for m in doelen)
+    if totaal < reserve_minimum(config) * len(doelen):
+        return
+    som = sum(doelen.values())
+    scheef = []
+    for m, p in doelen.items():
+        nu = verdeling.get(m, 0.0) / totaal * 100
+        doel = p / som * 100
+        if abs(nu - doel) >= drempel:
+            scheef.append(f"• {m}: {nu:.0f}% (doel {doel:g}%)")
+    if not scheef:
+        _reserve_gemeld_op = 0.0          # weer in balans: volgende keer meteen melden
+        return
+    if time.time() - _reserve_gemeld_op < 24 * 3600:
+        return
+    _reserve_gemeld_op = time.time()
+    send_telegram_message(
+        "⚖️ *Je reserve loopt scheef*\n" + "\n".join(scheef) +
+        "\n\nOp de Afgeroomd-pagina zie je wat Herbalanceren zou doen. De bot doet zelf niets.",
+        include_keyboard=True,
+    )
+
+
+def reserve_bewaak_loop():
+    """Kijkt elk half uur of de reserve scheef loopt."""
+    time.sleep(120)
+    while True:
+        try:
+            if BOT_ACTIVE:
+                controleer_reserve_afwijking()
+        except Exception as e:
+            log_error("reserve_bewaak_loop", e)
+        time.sleep(1800)
+
+
 def verzamel_afgeroomd():
-    """Alles voor de Afgeroomd-pagina: verdeling, doelen, volgende munt, plan en recente aankopen."""
+    """Alles voor de Afgeroomd-pagina: verdeling, doelen, resultaat, plan, grafiek en recente orders."""
     config = laad_config()
     balans = cache.balans()
     tickers = cache.tickers()
@@ -3823,26 +4081,34 @@ def verzamel_afgeroomd():
     ingesteld = (config.get("global_settings", {}).get("reserve_doelen") or {})
     doelen = reserve_doelen(config)
     totaal = sum(verdeling.values())
+    trades = _reserve_trades()
+    resultaten = reserve_resultaten(trades)
     munten = []
-    for m in RESERVE_MUNTEN:
+    for m in reserve_lijst(config):
         aantal = balans["total"].get(m, 0.0) or 0.0
+        waarde = verdeling.get(m, 0.0)
+        r = resultaten.get(m, {"gekocht": 0.0, "verkocht": 0.0})
+        resultaat = waarde + r["verkocht"] - r["gekocht"]
         munten.append({
-            "munt": m, "waarde": verdeling.get(m, 0.0), "aantal": aantal,
+            "munt": m, "waarde": waarde, "aantal": aantal,
             "koers": koers_van(tickers, f"{m}/EUR"),
-            "pct": verdeling.get(m, 0.0) / totaal * 100 if totaal else 0.0,
+            "pct": waarde / totaal * 100 if totaal else 0.0,
             "doel_pct": float(ingesteld.get(m, 0) or 0) if ingesteld else doelen.get(m, 0.0),
             "icoon": icoon_voor(m),
+            "gekocht": r["gekocht"], "verkocht": r["verkocht"], "resultaat": resultaat,
+            "resultaat_pct": resultaat / r["gekocht"] * 100 if r["gekocht"] else 0.0,
         })
-    recent = []
-    if trades_tabel is not None:
-        bronnen = GEEN_OOGST_BRONNEN
-        recent = sorted((t for t in trades_tabel.all() if t.get("bron") in bronnen),
-                        key=lambda t: t.get("tijd", ""), reverse=True)[:12]
+    gekocht = sum(m["gekocht"] for m in munten)
+    verkocht = sum(m["verkocht"] for m in munten)
+    recent = list(reversed(trades))[:12]
     return {
         "totaal": totaal, "munten": munten, "volgende": reserve_munt(config, balans, tickers),
         "minimum": reserve_minimum(config), "doelen_ingesteld": bool(ingesteld),
+        "melding_pp": reserve_melding_pp(config), "max_munten": MAX_RESERVE_MUNTEN,
         "reserve_pct": float(config.get("global_settings", {}).get("reserve_pct", STANDAARD_RESERVE_PCT)),
+        "resultaat": totaal + verkocht - gekocht, "netto_ingelegd": gekocht - verkocht,
         "plan": herbalanceer_plan(config, balans, tickers),
+        "grafiek": {"ingelegd": reserve_ingelegd_reeks(trades), "waarde": reserve_waarde_reeks()},
         "recent": [{"tijd": tijd_met_utc_marker(t.get("tijd")), "munt": (t.get("munt") or "").split("/")[0],
                     "kant": t.get("kant"), "bedrag": t.get("bedrag"), "bron": t.get("bron")} for t in recent],
     }
@@ -4583,7 +4849,7 @@ def beheren():
         dalpot_munten=dalpot_munten,
         dalpot_instellingen=dalpot_instellingen,
         reserve_munt=reserve_munt(config),
-        reserve_munten=RESERVE_MUNTEN,
+        reserve_munten=reserve_lijst(config),
         verwerkt=request.args.get("verwerkt"),
         fout=session.pop("beheren_fout", None),
     )
@@ -4611,7 +4877,7 @@ def help_pagina():
         "wacht_op_bodem": gs.get("wacht_op_bodem", True),
         "reserve_pct": float(gs.get("reserve_pct", STANDAARD_RESERVE_PCT)),
         "reserve_actief": reserve_munt(config),
-        "reserve_keuzes": list(RESERVE_MUNTEN),
+        "reserve_keuzes": reserve_lijst(config),
         "pot_max": int(gs.get("pot_max_munten", STANDAARD_POT_MAX_MUNTEN)),
         "pot_budget": float(gs.get("pot_budget_per_munt", pot_min_order)),
         "pot_min_order": pot_min_order,
@@ -4899,11 +5165,33 @@ def afgeroomd_pagina():
 @app.route("/afgeroomd/doelen", methods=["POST"])
 def afgeroomd_doelen():
     try:
-        doelen = {m: request.form.get(f"doel_{m}", "0") for m in RESERVE_MUNTEN}
-        ok, bericht = wijzig_reserve_doelen(doelen, request.form.get("minimum", ""))
+        doelen = {m: request.form.get(f"doel_{m}", "0") for m in reserve_lijst()}
+        ok, bericht = wijzig_reserve_doelen(doelen, request.form.get("minimum", ""), request.form.get("melding", ""))
     except Exception as e:
         log_error("afgeroomd_doelen", e)
         ok, bericht = False, "Opslaan is mislukt. Zie bot_errors.log."
+    session["afgeroomd_melding"] = {"ok": ok, "tekst": bericht}
+    return redirect(url_for("afgeroomd_pagina"))
+
+
+@app.route("/afgeroomd/munt-toevoegen", methods=["POST"])
+def afgeroomd_munt_toevoegen():
+    try:
+        ok, bericht = voeg_reserve_munt_toe(request.form.get("munt", ""))
+    except Exception as e:
+        log_error("afgeroomd_munt_toevoegen", e)
+        ok, bericht = False, "Toevoegen is mislukt. Zie bot_errors.log."
+    session["afgeroomd_melding"] = {"ok": ok, "tekst": bericht}
+    return redirect(url_for("afgeroomd_pagina"))
+
+
+@app.route("/afgeroomd/munt-verwijderen", methods=["POST"])
+def afgeroomd_munt_verwijderen():
+    try:
+        ok, bericht = verwijder_reserve_munt(request.form.get("munt", ""))
+    except Exception as e:
+        log_error("afgeroomd_munt_verwijderen", e)
+        ok, bericht = False, "Verwijderen is mislukt. Zie bot_errors.log."
     session["afgeroomd_melding"] = {"ok": ok, "tekst": bericht}
     return redirect(url_for("afgeroomd_pagina"))
 
@@ -5009,11 +5297,12 @@ def noteer_historie():
             return
 
         posities, vrij_cash, belegd = verzamel_posities()
+        reserve = reserve_waarde()
         totaal = (
-            vrij_cash + belegd + reserve_waarde()
+            vrij_cash + belegd + reserve
             + verzamel_pot()["belegd"] + verzamel_dalpot()["belegd"]
         )
-        punt = [round(nu), round(totaal, 2), round(vrij_cash, 2), round(belegd, 2)]
+        punt = [round(nu), round(totaal, 2), round(vrij_cash, 2), round(belegd, 2), round(reserve, 2)]
 
         fijn.append(punt)
         data["fijn"] = [p for p in fijn if nu - p[0] <= FIJN_BEWAREN]
@@ -5114,7 +5403,7 @@ def _oogst_trades():
     een omzetting, geen nieuwe winst."""
     if trades_tabel is None:
         return []
-    return [t for t in trades_tabel.all() if t.get("kant") == "verkoop" and t.get("bron") not in GEEN_OOGST_BRONNEN]
+    return [t for t in trades_tabel.all() if t.get("kant") == "verkoop" and not is_geen_oogst(t.get("bron"))]
 
 
 def _periode_start(bereik, nu):
@@ -5153,8 +5442,8 @@ def bereken_rendement(bereik):
 
     alle_trades = trades_tabel.all() if trades_tabel is not None else []
     alle_trades_periode = [t for t in alle_trades if in_periode(t)]
-    oogsten = [t for t in alle_trades_periode if t.get("kant") == "verkoop" and t.get("bron") not in GEEN_OOGST_BRONNEN]
-    btc_aankopen = [t for t in alle_trades_periode if t.get("bron") in RESERVE_BRONNEN]
+    oogsten = [t for t in alle_trades_periode if t.get("kant") == "verkoop" and not is_geen_oogst(t.get("bron"))]
+    btc_aankopen = [t for t in alle_trades_periode if is_reserve_bron(t.get("bron"))]
 
     totaal_winst = round(sum(t.get("bedrag", 0.0) for t in oogsten), 2)
     aantal = len(oogsten)
@@ -5338,6 +5627,7 @@ def main():
     threading.Thread(target=pot_kies_loop, daemon=True).start()
     threading.Thread(target=dalpot_kies_loop, daemon=True).start()
     threading.Thread(target=markten_ververs_loop, daemon=True).start()
+    threading.Thread(target=reserve_bewaak_loop, daemon=True).start()
 
     demo_regel = ""
     if DEMO_MODUS:

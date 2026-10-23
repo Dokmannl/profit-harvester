@@ -416,7 +416,12 @@ table.orders td.munt b { font-weight: 600; }
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  function bronTekst(b) { return BRON_LABEL[b] || b || ""; }
+  function bronTekst(b) {
+    if (BRON_LABEL[b]) { return BRON_LABEL[b]; }
+    // zelf toegevoegde reservemunten, bijvoorbeeld "reserve-ada"
+    if (/^reserve-/.test(b || "")) { return "omgezet naar " + b.slice(8).toUpperCase(); }
+    return b || "";
+  }
 
   function sorteerWaarde(t, veld) {
     if (veld === "tijd") { return Date.parse(t.tijd) || 0; }
