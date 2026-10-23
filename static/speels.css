@@ -177,8 +177,3 @@ table.orders tbody tr:hover td { background: var(--ph-inner); }
   .soort { padding: 2px 8px !important; font-size: 11px !important; }
 }
 @media (max-width: 899px) { table.orders th, table.orders td { padding-left: 6px !important; padding-right: 6px !important; } }
-
-/* onderbalk op de computer: ruimte voor de extra stijlknop */
-@media (min-width: 900px) {
-  .onderbalk { grid-template-columns: none !important; grid-auto-flow: column; grid-auto-columns: 1fr; }
-}
