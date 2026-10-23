@@ -84,7 +84,7 @@ body::before { /* zachte zonnegloed linksboven */
 }
 #kaartTotaal > .etiket::before { content: "🧺"; background: var(--ph-accent-soft); }
 #kaartVrij > .etiket::before   { content: "🪙"; background: rgba(255,217,61,.16); }
-#kaartBelegd > .etiket::before { content: "🌱"; background: var(--ph-green-soft); }
+#kaartBelegd > .etiket::before { content: "🪴"; background: var(--ph-green-soft); }
 .ph-reservekop { display: flex; align-items: center; }
 .ph-reservekop::before { content: "🍯"; background: var(--ph-accent-soft); }
 .kaart .groot { font-size: 2.2rem; color: var(--ph-text-hi); }

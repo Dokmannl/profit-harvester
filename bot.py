@@ -3860,20 +3860,48 @@ def reserve_melding_pp(config=None):
         return STANDAARD_RESERVE_MELDING_PP
 
 
-def _reserve_trades():
-    """Alle reserve-orders (aankopen na een oogst en herbalanceren), oudste eerst."""
+def reserve_startpunt(config=None):
+    """
+    Startpunt van de telling op de Afgeroomd-pagina: {"tijd": ..., "waarden": {munt: euro}}.
+    Gezet met de knop "Telling opnieuw beginnen": wat er op dat moment in elke
+    munt zat, telt als startbedrag; alleen orders daarna tellen nog mee.
+    """
+    config = config or laad_config()
+    sp = config.get("global_settings", {}).get("reserve_startpunt")
+    if isinstance(sp, dict) and sp.get("tijd"):
+        return sp
+    return None
+
+
+def _reserve_trades(alle=False, config=None):
+    """Reserve-orders (aankopen na een oogst en herbalanceren), oudste eerst; standaard sinds het startpunt."""
     if trades_tabel is None:
         return []
-    return sorted((t for t in trades_tabel.all() if is_geen_oogst(t.get("bron"))), key=lambda t: t.get("tijd", ""))
+    trades = sorted((t for t in trades_tabel.all() if is_geen_oogst(t.get("bron"))), key=lambda t: t.get("tijd", ""))
+    sp = None if alle else reserve_startpunt(config)
+    if not sp:
+        return trades
+    start = parse_tijd_utc(sp["tijd"])
+    uit = []
+    for t in trades:
+        try:
+            if parse_tijd_utc(t.get("tijd")) > start:
+                uit.append(t)
+        except Exception:
+            continue
+    return uit
 
 
-def reserve_resultaten(trades=None):
+def reserve_resultaten(trades=None, startpunt=None):
     """
     Per munt: hoeveel euro er in totaal in is gegaan (aankopen na een oogst en
     bij herbalanceren, inclusief fee) en hoeveel er uit is gekomen (verkopen bij
-    herbalanceren). Resultaat = huidige waarde + verkocht - gekocht.
+    herbalanceren). Resultaat = huidige waarde + verkocht - gekocht. Met een
+    startpunt telt de waarde op dat moment als eerste aankoop.
     """
     uit = {}
+    for munt, waarde in ((startpunt or {}).get("waarden") or {}).items():
+        uit[munt] = {"gekocht": float(waarde or 0.0), "verkocht": 0.0}
     for t in (trades if trades is not None else _reserve_trades()):
         munt = (t.get("munt") or "").split("/")[0]
         r = uit.setdefault(munt, {"gekocht": 0.0, "verkocht": 0.0})
@@ -3881,9 +3909,12 @@ def reserve_resultaten(trades=None):
     return uit
 
 
-def reserve_ingelegd_reeks(trades=None):
+def reserve_ingelegd_reeks(trades=None, startpunt=None):
     """Netto ingelegd in de reserve door de tijd: [[unix-tijd, euro], ...]."""
     reeks, stand = [], 0.0
+    if startpunt:
+        stand = sum(float(v or 0.0) for v in (startpunt.get("waarden") or {}).values())
+        reeks.append([round(parse_tijd_utc(startpunt["tijd"]).timestamp()), round(stand, 2)])
     for t in (trades if trades is not None else _reserve_trades()):
         try:
             ts = parse_tijd_utc(t.get("tijd")).timestamp()
@@ -3895,9 +3926,25 @@ def reserve_ingelegd_reeks(trades=None):
     return reeks
 
 
-def reserve_waarde_reeks():
+def reserve_waarde_reeks(vanaf=0):
     """Waarde van de reserve door de tijd uit de geschiedenis (sinds die wordt bijgehouden)."""
-    return [[p[0], p[4]] for p in laad_historie().get("uur", []) if len(p) >= 5]
+    return [[p[0], p[4]] for p in laad_historie().get("uur", []) if len(p) >= 5 and p[0] >= vanaf]
+
+
+@met_lock
+def begin_reserve_telling_opnieuw():
+    """Zet het startpunt van de telling op nu: huidige waarde per munt = nieuw startbedrag."""
+    cache.invalideer()
+    config = laad_config()
+    verdeling = reserve_verdeling()
+    gs = config.setdefault("global_settings", {})
+    gs["reserve_startpunt"] = {
+        "tijd": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "waarden": {m: round(v, 2) for m, v in verdeling.items() if v >= 0.01},
+    }
+    bewaar_config(config)
+    totaal = sum(verdeling.values())
+    return True, f"De telling begint opnieuw vanaf nu, met {euro(totaal, False)} als startbedrag."
 
 
 def _koop_naar_doelen(bedrag, config, fee):
@@ -4081,8 +4128,9 @@ def verzamel_afgeroomd():
     ingesteld = (config.get("global_settings", {}).get("reserve_doelen") or {})
     doelen = reserve_doelen(config)
     totaal = sum(verdeling.values())
-    trades = _reserve_trades()
-    resultaten = reserve_resultaten(trades)
+    startpunt = reserve_startpunt(config)
+    trades = _reserve_trades(config=config)
+    resultaten = reserve_resultaten(trades, startpunt)
     munten = []
     for m in reserve_lijst(config):
         aantal = balans["total"].get(m, 0.0) or 0.0
@@ -4100,7 +4148,8 @@ def verzamel_afgeroomd():
         })
     gekocht = sum(m["gekocht"] for m in munten)
     verkocht = sum(m["verkocht"] for m in munten)
-    recent = list(reversed(trades))[:12]
+    recent = list(reversed(_reserve_trades(alle=True)))[:12]
+    start_ts = parse_tijd_utc(startpunt["tijd"]).timestamp() if startpunt else 0
     return {
         "totaal": totaal, "munten": munten, "volgende": reserve_munt(config, balans, tickers),
         "minimum": reserve_minimum(config), "doelen_ingesteld": bool(ingesteld),
@@ -4108,7 +4157,8 @@ def verzamel_afgeroomd():
         "reserve_pct": float(config.get("global_settings", {}).get("reserve_pct", STANDAARD_RESERVE_PCT)),
         "resultaat": totaal + verkocht - gekocht, "netto_ingelegd": gekocht - verkocht,
         "plan": herbalanceer_plan(config, balans, tickers),
-        "grafiek": {"ingelegd": reserve_ingelegd_reeks(trades), "waarde": reserve_waarde_reeks()},
+        "grafiek": {"ingelegd": reserve_ingelegd_reeks(trades, startpunt), "waarde": reserve_waarde_reeks(start_ts)},
+        "telling_sinds": tijd_met_utc_marker(startpunt["tijd"]) if startpunt else None,
         "recent": [{"tijd": tijd_met_utc_marker(t.get("tijd")), "munt": (t.get("munt") or "").split("/")[0],
                     "kant": t.get("kant"), "bedrag": t.get("bedrag"), "bron": t.get("bron")} for t in recent],
     }
@@ -5192,6 +5242,17 @@ def afgeroomd_munt_verwijderen():
     except Exception as e:
         log_error("afgeroomd_munt_verwijderen", e)
         ok, bericht = False, "Verwijderen is mislukt. Zie bot_errors.log."
+    session["afgeroomd_melding"] = {"ok": ok, "tekst": bericht}
+    return redirect(url_for("afgeroomd_pagina"))
+
+
+@app.route("/afgeroomd/telling-opnieuw", methods=["POST"])
+def afgeroomd_telling_opnieuw():
+    try:
+        ok, bericht = begin_reserve_telling_opnieuw()
+    except Exception as e:
+        log_error("afgeroomd_telling_opnieuw", e)
+        ok, bericht = False, "Opnieuw beginnen is mislukt. Zie bot_errors.log."
     session["afgeroomd_melding"] = {"ok": ok, "tekst": bericht}
     return redirect(url_for("afgeroomd_pagina"))
 

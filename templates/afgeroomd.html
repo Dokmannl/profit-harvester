@@ -376,6 +376,8 @@ table.ar-plan .r { text-align: right; }
 .ar-grafieklegenda i { display: inline-block; width: 16px; height: 0; border-top: 3px solid var(--ph-accent); margin-right: 6px; vertical-align: 3px; }
 .ar-grafieklegenda i.ingelegd { border-top: 2px dashed var(--ph-muted); }
 .ar-melding-veld { max-width: 200px; }
+.ar-legenda { align-items: center; }
+.ar-telling { padding: 6px 12px; min-height: 0; font-size: 0.78rem; border-radius: 10px; border: 1px solid var(--ph-border-2) !important; }
 @media (max-width: 899px) {
   .ar-rij, .ar-form, .ar-uitleg, .ar-knop, .ar-legenda, .ar-muntbeheer li, .ar-toevoegen, .ar-grafieklegenda { padding-left: 14px; padding-right: 14px; }
   table.ar-plan th, table.ar-plan td { padding-left: 10px; padding-right: 10px; }
@@ -417,7 +419,7 @@ table.ar-plan .r { text-align: right; }
     <div class="kaart">
       <div class="etiket">Resultaat reserve</div>
       <div class="groot {{ 'op' if a.resultaat >= 0 else 'af' }}">{{ '+' if a.resultaat >= 0 else '−' }}{{ eur(a.resultaat|abs) }}</div>
-      <div class="bij">netto ingelegd {{ eur(a.netto_ingelegd) }}</div>
+      <div class="bij">{% if a.telling_sinds %}sinds <span data-datum="{{ a.telling_sinds }}"></span> &middot; {% endif %}ingelegd {{ eur(a.netto_ingelegd) }}</div>
     </div>
   </div>
 
@@ -440,7 +442,10 @@ table.ar-plan .r { text-align: right; }
       {% else %}
       <div class="ar-leeg">Er is nog niets afgeroomd.</div>
       {% endfor %}
-      <div class="ar-legenda"><span><i></i>nu</span><span><b></b>doel</span></div>
+      <div class="ar-legenda"><span><i></i>nu</span><span><b></b>doel</span>
+        <form method="post" action="/afgeroomd/telling-opnieuw" id="tellingForm" style="margin-left: auto;">
+          <button type="submit" class="plat ar-telling">Telling opnieuw beginnen</button>
+        </form></div>
     </div>
 
     <div class="paneel">
@@ -671,6 +676,18 @@ table.ar-plan .r { text-align: right; }
       document.getElementById("grafiekNoot").textContent = "De waardelijn wordt vanaf nu elk uur aangevuld.";
     }
   })();
+
+  var dagFmt = new Intl.DateTimeFormat("nl-NL", { day: "numeric", month: "short" });
+  document.querySelectorAll("[data-datum]").forEach(function (e) {
+    var d = new Date(e.getAttribute("data-datum"));
+    if (!isNaN(d)) { e.textContent = dagFmt.format(d); }
+  });
+  var tf = document.getElementById("tellingForm");
+  if (tf) {
+    tf.addEventListener("submit", function (e) {
+      if (!confirm("De telling opnieuw beginnen? Wat er nu in elke munt zit, telt dan als startbedrag; gekocht, verkocht en resultaat beginnen weer bij nul. Er wordt niets gekocht of verkocht.")) { e.preventDefault(); }
+    });
+  }
 
   var hb = document.getElementById("herbalansForm");
   if (hb) {

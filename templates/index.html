@@ -714,7 +714,12 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 .ph-muntrond.bnb { background: #F3BA2F; color: #1E1E1E; }
 .ph-muntrond.sol { background: #9945FF; }
 .ph-muntrond.xrp { background: #23292F; }
-a.reservekaart { display: block; color: inherit; text-decoration: none; }
+a.reservekaart, a#kaartBelegd { display: block; color: inherit; text-decoration: none; }
+a#kaartBelegd:hover { border-color: rgba(247,147,26,.55); }
+.ph-reservetotaal { margin-top: 2px; }
+.ph-volgende { display: flex; align-items: center; gap: 6px; }
+.ph-volgende .ph-muntrond { width: 18px; height: 18px; font-size: 0.66rem; }
+.ph-volgende b { color: var(--ph-text); }
 a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
 .ph-naarpagina { margin-left: auto; font-size: 0.78rem; font-weight: 600; color: var(--ph-accent); text-transform: none; letter-spacing: 0; }
 .actiefchip {
@@ -818,12 +823,12 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
       <div class="bij" id="cashBij" hidden></div>
       <div class="bij" id="cashBijDalpot" hidden></div>
     </div>
-    <div class="kaart" id="kaartBelegd">
-      <div class="etiket"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.66 3.13 3 7 3s7-1.34 7-3V6"/><path d="M5 12v6c0 1.66 3.13 3 7 3s7-1.34 7-3v-6"/></svg>Belegd</div>
+    <a class="kaart" id="kaartBelegd" href="/potten" title="Naar de Potten-pagina">
+      <div class="etiket"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12,3 21,8 12,13 3,8"/><polyline points="3,13 12,18 21,13"/></svg>Potten</div>
       <div class="klein" id="belegd">&euro; 0,00</div>
       <div class="bij" id="belegdBij" hidden></div>
       <div class="bij" id="belegdBijDalpot" hidden></div>
-    </div>
+    </a>
     <a class="kaart reservekaart" id="kaartReserve" href="/afgeroomd" title="Bekijk de verdeling van je afgeroomde winst">
       <div class="etiket ph-reservekop">Afgeroomd <span class="ph-naarpagina">bekijk &rsaquo;</span></div>
       <div id="reserveRijen"></div>
@@ -1055,37 +1060,27 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
 
   function isKlaar(p) { return p.voortgang >= 100 || p.status === "PUMPING"; }
 
-  // Afgeroomd-kaart: alleen de munt waar de volgende oogst heen gaat; alles op /afgeroomd
+  // Afgeroomd-kaart: het totaal van de reserve, met daaronder de munt waar de volgende oogst heen gaat
   var MUNTTEKEN = { BTC: "₿", ETH: "Ξ", BNB: "B", SOL: "◎", XRP: "X" };
   function tekenReserve(verdeling, volgende) {
-    var munten = [volgende];
+    var totaal = 0;
+    Object.keys(verdeling).forEach(function (m) { totaal += verdeling[m] || 0; });
     el.reserveRijen.textContent = "";
-    munten.forEach(function (m) {
-      var rij = document.createElement("div");
-      rij.className = "reserverij" + (m === volgende ? " actief" : "");
-      var etiket = document.createElement("div");
-      etiket.className = "etiket";
-      var munt = document.createElement("span");
-      munt.className = "munt";
-      var rond = document.createElement("span");
-      rond.className = "ph-muntrond " + m.toLowerCase();
-      rond.textContent = MUNTTEKEN[m] || m.charAt(0);
-      munt.appendChild(rond);
-      munt.appendChild(document.createTextNode(m));
-      etiket.appendChild(munt);
-      if (m === volgende) {
-        var chip = document.createElement("span");
-        chip.className = "actiefchip";
-        chip.textContent = "volgende";
-        etiket.appendChild(chip);
-      }
-      var bedrag = document.createElement("div");
-      bedrag.className = "klein";
-      bedrag.textContent = geld.format(verdeling[m] || 0);
-      rij.appendChild(etiket);
-      rij.appendChild(bedrag);
-      el.reserveRijen.appendChild(rij);
-    });
+    var bedrag = document.createElement("div");
+    bedrag.className = "klein ph-reservetotaal";
+    bedrag.textContent = geld.format(totaal);
+    var regel = document.createElement("div");
+    regel.className = "bij ph-volgende";
+    regel.appendChild(document.createTextNode("Volgende: "));
+    var rond = document.createElement("span");
+    rond.className = "ph-muntrond " + String(volgende).toLowerCase();
+    rond.textContent = MUNTTEKEN[volgende] || String(volgende).charAt(0);
+    regel.appendChild(rond);
+    var naam = document.createElement("b");
+    naam.textContent = volgende;
+    regel.appendChild(naam);
+    el.reserveRijen.appendChild(bedrag);
+    el.reserveRijen.appendChild(regel);
   }
 
   function teken(data) {
@@ -1099,36 +1094,18 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
     el.totaalBij.hidden = false;
     el.totaalBij.textContent = "Geoogst " + geld.format(pf.gerealiseerd || 0);
     el.cash.textContent = geld.format(pf.cash || 0);
-    el.belegd.textContent = geld.format(pf.belegd || 0);
     tekenReserve(pf.reserve_verdeling || { BTC: pf.reserve || 0 }, pf.reserve_actief || "BTC");
 
-    if (pot.cash > 0) {
-      el.cashBij.hidden = false;
-      el.cashBij.textContent = "+ " + geld.format(pot.cash) + " in pot";
-    } else {
-      el.cashBij.hidden = true;
-    }
-
-    if (dalpot.cash > 0) {
-      el.cashBijDalpot.hidden = false;
-      el.cashBijDalpot.textContent = "+ " + geld.format(dalpot.cash) + " in dalpot";
-    } else {
-      el.cashBijDalpot.hidden = true;
-    }
-
-    if (pot.belegd > 0) {
-      el.belegdBij.hidden = false;
-      el.belegdBij.textContent = "+ " + geld.format(pot.belegd) + " in pot";
-    } else {
-      el.belegdBij.hidden = true;
-    }
-
-    if (dalpot.belegd > 0) {
-      el.belegdBijDalpot.hidden = false;
-      el.belegdBijDalpot.textContent = "+ " + geld.format(dalpot.belegd) + " in dalpot";
-    } else {
-      el.belegdBijDalpot.hidden = true;
-    }
+    // Potten-kaart: pot + dalpot samen, inclusief de cash die in die potten zit
+    var potTotaal = (pot.cash || 0) + (pot.belegd || 0);
+    var dalpotTotaal = (dalpot.cash || 0) + (dalpot.belegd || 0);
+    el.belegd.textContent = geld.format(potTotaal + dalpotTotaal);
+    el.belegdBij.hidden = false;
+    el.belegdBij.textContent = "Pot " + geld.format(potTotaal);
+    el.belegdBijDalpot.hidden = false;
+    el.belegdBijDalpot.textContent = "Dalpot " + geld.format(dalpotTotaal);
+    el.cashBij.hidden = true;
+    el.cashBijDalpot.hidden = true;
 
     var posities = data.posities || [];
     el.lijst.textContent = "";
