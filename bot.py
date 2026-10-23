@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Profit Harvester V5.7
-Gepatchte versie van V5.5 Pro.
+Profit Harvester V6.0
 
-Belangrijkste wijzigingen ten opzichte van V5.5:
+Nieuw in V6.0 (ten opzichte van V5.7):
+  - Afgeroomd-pagina: de reserve verdeeld over meerdere munten (standaard BTC, ETH,
+    BNB, SOL en XRP), met doelpercentages, Herbalanceren, resultaat per munt, een
+    grafiek en een Telegram-seintje als de verdeling scheef loopt.
+  - Nieuw dashboardontwerp (moestuin-stijl), status- en pauzeknop, kaarten voor
+    potten en afgeroomd.
+  - Munt toevoegen koopt meteen, munt verwijderen verkoopt alles.
+  - Vangnet bij het oogsten van de hoofdlijst.
+
+V5.7 was een gepatchte versie van V5.5 Pro. Belangrijkste wijzigingen ten opzichte van V5.5:
   1. Eén globale lock rond alle orders, config-schrijfacties en database-schrijfacties.
   2. Verkooporders worden afgerond op de precisie van de markt en gecontroleerd
      tegen de minimum order-eisen van Bitvavo.
@@ -1362,7 +1370,7 @@ def stuur_email_rapport():
         msg["To"] = EMAIL_RECEIVER
 
         body_tekst = (
-            f"PROFIT HARVESTER V5.7 - PORTFOLIO OVERZICHT\n"
+            f"PROFIT HARVESTER V6.0 - PORTFOLIO OVERZICHT\n"
             f"Datum: {nu_nl().strftime('%d-%m-%Y %H:%M:%S')}\n\n"
             f"KAPITAAL\n"
             f"Vrije cash:              € {echt_vrij:>10,.2f}\n"
@@ -4257,7 +4265,7 @@ def cmd_live_dashboard():
 
         btc_waarde = reserve_waarde()
         bericht = (
-            f"🤖 *PROFIT HARVESTER V5.7*\n\n"
+            f"🤖 *PROFIT HARVESTER V6.0*\n\n"
             f"💼 *Totale waarde:* {euro(vrij_cash + totaal_belegd + btc_waarde + pot['belegd'] + dalpot['belegd'])}\n"
             f"💰 *Vrije cash:* {euro(handelscash(vrij_cash, state))}\n"
             f"🪙 *Belegd:* {euro(totaal_belegd)}\n"
@@ -4278,7 +4286,7 @@ def cmd_beheren():
         return
 
     fee = fee_fractie(config)
-    lines = ["🪙 *MUNTEN BEHEER V5.7*", ""]
+    lines = ["🪙 *MUNTEN BEHEER V6.0*", ""]
     for coin, info in coins.items():
         status = "✅" if info.get("active", True) else "⏸️"
         budget = info.get("budget_eur", 250.0)
@@ -5694,9 +5702,9 @@ def main():
     if DEMO_MODUS:
         demo_regel = "🧪 *Demo-modus*: nep-saldo, echte koersen, geen echte orders.\n\n"
         print(f"DEMO-MODUS actief. Nep-saldo in {DemoExchange.SALDO_FILE}, data in demo_*.json")
-    print(f"Profit Harvester V5.7 gestart. Dashboard op http://{DASHBOARD_HOST}:{DASHBOARD_PORT}")
+    print(f"Profit Harvester V6.0 gestart. Dashboard op http://{DASHBOARD_HOST}:{DASHBOARD_PORT}")
     send_telegram_message(
-        f"🤖 *Profit Harvester V5.7 Live!* 🚀\n\n"
+        f"🤖 *Profit Harvester V6.0 Live!* 🚀\n\n"
         f"{demo_regel}"
         f"🌐 Dashboard: `{DASHBOARD_HOST}:{DASHBOARD_PORT}`\n"
         f"⏱️ Check interval: `{poll_interval:.0f}s`\n"
