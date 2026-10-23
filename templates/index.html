@@ -1055,15 +1055,10 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
 
   function isKlaar(p) { return p.voortgang >= 100 || p.status === "PUMPING"; }
 
-  // Afgeroomd-kaart: maximaal drie munten (de grootste, plus de volgende); alles op /afgeroomd
+  // Afgeroomd-kaart: alleen de munt waar de volgende oogst heen gaat; alles op /afgeroomd
   var MUNTTEKEN = { BTC: "₿", ETH: "Ξ", BNB: "B", SOL: "◎", XRP: "X" };
   function tekenReserve(verdeling, volgende) {
-    var munten = Object.keys(verdeling).filter(function (m) { return (verdeling[m] || 0) >= 1 || m === volgende; });
-    munten.sort(function (a, b) { return (verdeling[b] || 0) - (verdeling[a] || 0); });
-    if (munten.length > 3) {
-      munten = munten.slice(0, 3);
-      if (munten.indexOf(volgende) < 0) { munten[2] = volgende; }
-    }
+    var munten = [volgende];
     el.reserveRijen.textContent = "";
     munten.forEach(function (m) {
       var rij = document.createElement("div");
