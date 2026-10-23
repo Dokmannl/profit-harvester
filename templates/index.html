@@ -680,6 +680,8 @@ html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 <link rel="stylesheet" href="/static/ph.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/speels.css?v=1">
 <style>
 /* ---- nieuw ontwerp: alleen het dashboard ---- */
 .kop { align-items: flex-end; }
@@ -1631,5 +1633,20 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
 })();
 </script>
 <script src="/static/ph.js?v=1"></script>
+<script>
+(function () {
+  /* speels: groet op basis van het uur */
+  var h1 = document.querySelector(".kop h1");
+  if (!h1) { return; }
+  var uur = new Date().getHours();
+  var groet = uur < 6 ? "Goedenacht" : uur < 12 ? "Goedemorgen" : uur < 18 ? "Goedemiddag" : "Goedenavond";
+  var zon = (uur < 6 || uur >= 21) ? "🌙" : "🌻";
+  h1.textContent = groet + "! " + zon;
+  var sub = document.createElement("span");
+  sub.className = "sp-groet";
+  sub.textContent = "Hoe staat je moestuin erbij?";
+  h1.insertAdjacentElement("afterend", sub);
+})();
+</script>
 </body>
 </html>

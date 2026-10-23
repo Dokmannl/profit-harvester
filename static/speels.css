@@ -1,0 +1,162 @@
+/* Profit Harvester: speelse "moestuin"-stijl voor het dashboard.
+   Wordt NA ph.css geladen. Alleen uiterlijk: ID's en scripts blijven gelijk. */
+
+:root {
+  --ph-bg: #16130F;
+  --ph-sidebar: #1B1813;
+  --ph-card: #221E18;
+  --ph-inner: #2C271F;
+  --ph-border: #352E25;
+  --ph-border-2: #4A4033;
+  --ph-text: #F5EFE4;
+  --ph-text-hi: #FFF9EE;
+  --ph-muted: #B9AE9C;
+  --ph-dim: #8F8574;
+  --ph-accent: #FF9F1C;
+  --ph-green: #7BD389;
+  --ph-red: #FF8A80;
+  --ph-red-strong: #FF6B6B;
+  --ph-blue: #7CC6FE;
+  --ph-accent-soft: rgba(255,159,28,.16);
+  --ph-green-soft: rgba(123,211,137,.16);
+  --ph-red-soft: rgba(255,107,107,.15);
+  --ph-blue-soft: rgba(124,198,254,.15);
+  --sp-geel: #FFD93D;
+  --sp-schaduw: 0 5px 0 rgba(0,0,0,.28);
+  --ph-font: 'Nunito', system-ui, sans-serif;
+  --ph-mono: 'Nunito', system-ui, sans-serif;
+  --sp-kop: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --r: 22px;
+}
+html[data-thema="licht"] {
+  --ph-bg: #FFF7E8;
+  --ph-sidebar: #FFFDF7;
+  --ph-card: #FFFFFF;
+  --ph-inner: #FFF1D6;
+  --ph-border: #F0E2C6;
+  --ph-border-2: #E2CFA8;
+  --ph-text: #3A2E1F;
+  --ph-text-hi: #2A2016;
+  --ph-muted: #7A6A55;
+  --ph-dim: #9A8970;
+  --ph-accent: #F08A00;
+  --ph-green: #2E9E4F;
+  --ph-red: #E0453A;
+  --ph-accent-soft: rgba(240,138,0,.13);
+  --ph-green-soft: rgba(46,158,79,.12);
+  --ph-red-soft: rgba(224,69,58,.10);
+  --sp-geel: #F5B400;
+  --sp-schaduw: 0 5px 0 rgba(150,110,40,.14);
+}
+
+body { font-weight: 600; letter-spacing: 0; }
+body::before { /* zachte zonnegloed linksboven */
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+  background: radial-gradient(700px 420px at 12% -5%, rgba(255,217,61,.10), transparent 70%),
+              radial-gradient(600px 500px at 100% 100%, rgba(123,211,137,.07), transparent 70%);
+}
+
+/* getallen: rond lettertype, wel vaste cijferbreedte */
+.ph-num, .kaart .groot, .kaart .klein, .grafiekwaarde strong, .rij .bedrag, .rij .winst,
+.spoorregel span:last-child, .voet b, .ballon b, .ph-budget, .ph-stat-rij b, .ph-stat-kop span {
+  font-family: var(--ph-font); font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums;
+}
+.ph-budget { font-weight: 600; }
+
+/* ---------------- kop ---------------- */
+.kop { border-bottom: 0; padding-bottom: 6px; align-items: center; }
+.kop h1, .merk h1 { font-family: var(--sp-kop); font-weight: 600; font-size: 2.1rem; letter-spacing: -0.01em; }
+.sp-groet { display: block; font-family: var(--sp-kop); font-weight: 500; font-size: 1rem; color: var(--ph-muted); margin-top: 2px; }
+.leeft { border-radius: 999px; border-width: 2px; font-weight: 700; padding: 8px 16px; }
+
+/* ---------------- kaarten: stickers ---------------- */
+.kaart, .paneel, .grafiekkaart, .strategiekaart, .ph-statusbalk, .ph-zijstatus {
+  border: 2px solid var(--ph-border); border-radius: 22px; box-shadow: var(--sp-schaduw);
+}
+.kaarten { gap: 14px; }
+.kaart { position: relative; padding-top: 18px; transition: transform .18s ease; }
+.kaart:hover { transform: translateY(-3px) rotate(-.4deg); }
+.kaart .etiket { font-family: var(--sp-kop); text-transform: none; letter-spacing: 0; font-size: 0.95rem; font-weight: 500; color: var(--ph-muted); }
+.kaart .etiket .ic { display: none; }
+#kaartTotaal > .etiket::before, #kaartVrij > .etiket::before, #kaartBelegd > .etiket::before, .ph-reservekop::before {
+  display: inline-grid; place-items: center; width: 34px; height: 34px; margin-right: 10px;
+  border-radius: 12px; font-size: 19px; line-height: 1;
+}
+#kaartTotaal > .etiket::before { content: "🧺"; background: var(--ph-accent-soft); }
+#kaartVrij > .etiket::before   { content: "🪙"; background: rgba(255,217,61,.16); }
+#kaartBelegd > .etiket::before { content: "🌱"; background: var(--ph-green-soft); }
+.ph-reservekop { display: flex; align-items: center; }
+.ph-reservekop::before { content: "🍯"; background: var(--ph-accent-soft); }
+.kaart .groot { font-size: 2.2rem; color: var(--ph-text-hi); }
+#kaartTotaal { background: linear-gradient(150deg, rgba(255,159,28,.20), var(--ph-card) 60%); border-color: rgba(255,159,28,.45); }
+.reservekaart { border-color: rgba(255,217,61,.35); }
+.reservekaart .klein { color: var(--sp-geel); }
+.ph-muntrond { border-radius: 50%; }
+
+/* ---------------- grafiek ---------------- */
+.grafiekkaart { overflow: hidden; }
+.grafiekkop .etiket { font-family: var(--sp-kop); text-transform: none; letter-spacing: 0; font-size: 0.95rem; font-weight: 500; }
+.lijn { stroke-width: 3; }
+.mikpunt { r: 6; }
+.sorteer, .tabs, .segment { border-radius: 999px; border-width: 2px; padding: 4px; }
+.sorteer button, .tabs button, .segment button { border-radius: 999px; font-weight: 700; }
+.sorteer button[aria-pressed="true"] { background: var(--ph-accent); border-color: var(--ph-accent); color: #1E1405; }
+html[data-thema="licht"] .sorteer button[aria-pressed="true"] { background: var(--ph-accent); color: #fff; }
+
+/* ---------------- posities ---------------- */
+.paneelkop h2 { font-family: var(--sp-kop); font-weight: 600; font-size: 1.3rem; }
+.paneelkop h2::before { content: "🌻 "; }
+.zoekdoos input { border-radius: 999px; border-width: 2px; }
+.klaarchip { border-radius: 999px !important; font-family: var(--sp-kop); }
+.klaarchip::before { content: "🌾" !important; width: auto !important; height: auto !important; background: none !important; }
+
+.rij { border-radius: 16px; margin: 4px 8px; transition: background .15s ease; }
+.rij.klaar, html[data-thema="licht"] .rij.klaar {
+  background: linear-gradient(90deg, rgba(255,217,61,.16), transparent 70%); box-shadow: inset 4px 0 0 var(--sp-geel);
+}
+.naam { font-family: var(--sp-kop); font-weight: 600; font-size: 1.08rem; }
+.logo, .valtterug { border-radius: 50%; box-shadow: 0 0 0 3px var(--ph-inner); }
+
+/* voortgang als groeiend plantje */
+.spoor { height: 12px; border-radius: 999px; background: var(--ph-inner); overflow: visible; position: relative; }
+.spoor.onder { background: var(--ph-inner); }
+.spoor i { border-radius: 999px; background: linear-gradient(90deg, #5DBB6B, var(--ph-green)); position: relative; min-width: 12px; }
+.spoor i::after { content: "🌱"; position: absolute; right: -9px; top: 50%; transform: translateY(-55%); font-size: 17px; line-height: 1; }
+.spoor i.vol { background: linear-gradient(90deg, var(--ph-accent), var(--sp-geel)); }
+.spoor i.vol::after { content: "🌾"; }
+.spoor.onder i::after { content: ""; }
+
+/* statusbadges als snoepjes */
+.ph-badge { border-radius: 999px; padding: 3px 11px; font-family: var(--sp-kop); font-weight: 600; text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+.ph-badge--top::before    { content: "🌾 "; }
+.ph-badge--onder::before  { content: "🌱 "; }
+.ph-badge--budget::before { content: "🌧️ "; }
+.ph-badge--wacht::before  { content: "🫘 "; }
+.ph-badge--top { background: var(--sp-geel); color: #2A1D00; }
+
+/* ---------------- navigatie ---------------- */
+.navbalk a.actief, .navbalk a.actief:hover { color: var(--ph-accent); }
+@media (min-width: 900px) {
+  .navbalk { border-right: 2px solid var(--ph-border); }
+  .navbalk a, .navbalk button.navknop { border-radius: 14px !important; font-weight: 700 !important; }
+  .navbalk a.actief { background: var(--ph-accent-soft) !important; color: var(--ph-accent) !important; }
+  .navbalk a.actief::before { display: none; }
+  .ph-zijmerk b { font-family: var(--sp-kop); font-weight: 600; font-size: 1.1rem; }
+  .ph-merkje { border-radius: 14px; transform: rotate(-6deg); }
+  .onderbalk .plat { border-width: 2px !important; border-radius: 14px !important; }
+}
+@media (max-width: 899px) {
+  .navbalk { border-radius: 24px 24px 0 0; border-top: 2px solid var(--ph-border); }
+  .navbalk a.actief::before { left: 35%; right: 35%; height: 4px; top: -7px; }
+  .kop h1, .merk h1 { font-size: 1.45rem; white-space: nowrap; }
+  .sp-groet { font-size: 0.82rem; }
+  .kop { flex-wrap: wrap; row-gap: 10px; }
+  .kop .koprechts { margin-left: auto; }
+  .kaart .groot { font-size: 1.9rem; }
+  .rij { margin: 4px 6px; }
+}
+
+button { border-radius: 14px; font-weight: 700; }
+.ph-pauze { border-radius: 999px; }
+.ph-stip { box-shadow: 0 0 0 4px var(--ph-green-soft); animation: sp-hartslag 2.4s ease-in-out infinite; }
+@keyframes sp-hartslag { 50% { box-shadow: 0 0 0 7px transparent; } }
