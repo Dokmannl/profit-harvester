@@ -4941,6 +4941,8 @@ def beheren():
         dalpot_munten=dalpot_munten,
         dalpot_instellingen=dalpot_instellingen,
         reserve_munt=reserve_munt(config),
+        pot_uitgesloten=sorted(gs.get("pot_uitgesloten", [])),
+        dalpot_uitgesloten=sorted(gs.get("dalpot_uitgesloten", STANDAARD_DALPOT_UITGESLOTEN)),
         reserve_munten=reserve_lijst(config),
         verwerkt=request.args.get("verwerkt"),
         fout=session.pop("beheren_fout", None),

@@ -125,6 +125,8 @@ def beheren():
         dalpot_instellingen=dalpot_instellingen,
         reserve_munt="ETH",
         reserve_munten=("BTC", "ETH", "BNB", "SOL", "XRP"),
+        pot_uitgesloten=["PEPE", "WIF"],
+        dalpot_uitgesloten=["BTC", "DAI", "ETH", "EURC", "USDC", "USDT"],
         verwerkt=request.args.get("verwerkt"),
         fout=None,
     )

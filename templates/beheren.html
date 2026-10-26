@@ -437,6 +437,14 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
   .ph-tabbalk { top: 6px; }
   .ph-tab { padding: 9px 4px; font-size: 0.86rem; gap: 5px; }
 }
+
+/* ---------------- uitgesloten munten als labels ---------------- */
+.ph-uitgesloten { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; font-size: 0.8rem; color: var(--ph-muted); }
+.ph-uitgesloten form.ph-chipform { margin: 0 !important; padding: 0 !important; display: inline-flex !important; gap: 0 !important; width: auto !important; }
+.ph-chip { min-height: 30px !important; padding: 3px 10px !important; border-radius: 999px !important; font-size: 0.8rem !important;
+  font-weight: 700; background: var(--ph-inner) !important; border: 1px solid var(--ph-border-2) !important; color: var(--ph-text) !important; cursor: pointer; }
+.ph-chip span[aria-hidden] { color: var(--ph-muted); margin-left: 2px; }
+.ph-chip:hover span[aria-hidden] { color: var(--ph-red); }
 </style>
 </head>
 <body data-demo="{{ 1 if demo_modus else 0 }}">
@@ -728,6 +736,14 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       <div>
         <div class="actie-titel">Munt Uitsluiten <span class="tag boeking">boeking</span></div>
         <div class="actie-uitleg">De pot mag deze munt nooit meer zelf kiezen (nogmaals typen heft het weer op).</div>
+        <div class="ph-uitgesloten">
+          {% if pot_uitgesloten %}<span>Uitgesloten:</span>
+          {% for m in pot_uitgesloten %}<form class="actie-form ph-chipform" method="post" action="/beheren/munt-uitsluiten"
+                data-bevestig-fields="munt" data-bevestig-template="{} weer toestaan voor de pot?">
+            <input type="hidden" name="munt" value="{{ m }}"><button type="submit" class="ph-chip" title="{{ m }} weer toestaan">{{ m }} <span aria-hidden="true">&times;</span><span class="ph-verborgen">weer toestaan</span></button>
+          </form>{% endfor %}
+          {% else %}<span>Nog geen munten uitgesloten.</span>{% endif %}
+        </div>
       </div>
       <form class="actie-form" method="post" action="/beheren/munt-uitsluiten"
             data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de pot (of weer toestaan als al uitgesloten)?">
@@ -779,6 +795,14 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       <div>
         <div class="actie-titel">Dalpot Munt Uitsluiten <span class="tag boeking">boeking</span></div>
         <div class="actie-uitleg">De dalpot mag deze munt nooit meer zelf kiezen (nogmaals typen heft het weer op).</div>
+        <div class="ph-uitgesloten">
+          {% if dalpot_uitgesloten %}<span>Uitgesloten:</span>
+          {% for m in dalpot_uitgesloten %}<form class="actie-form ph-chipform" method="post" action="/beheren/dalpot-munt-uitsluiten"
+                data-bevestig-fields="munt" data-bevestig-template="{} weer toestaan voor de dalpot?">
+            <input type="hidden" name="munt" value="{{ m }}"><button type="submit" class="ph-chip" title="{{ m }} weer toestaan">{{ m }} <span aria-hidden="true">&times;</span><span class="ph-verborgen">weer toestaan</span></button>
+          </form>{% endfor %}
+          {% else %}<span>Nog geen munten uitgesloten.</span>{% endif %}
+        </div>
       </div>
       <form class="actie-form" method="post" action="/beheren/dalpot-munt-uitsluiten"
             data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de dalpot (of weer toestaan als al uitgesloten)?">
