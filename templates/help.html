@@ -383,6 +383,11 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   .inhoud a { display: block; padding: 7px 0 7px 14px; margin-left: -1px; border-left: 2px solid transparent; }
   .inhoud a.actief { border-left-color: var(--ph-accent); }
   .uitleggrid { column-count: 1 !important; }
+  /* zoekveld boven de uitleg (rechts), inhoudsopgave blijft links staan */
+  .ph-uitleglayout { row-gap: 14px; }
+  .ph-uitleglayout > .inhoud { grid-column: 1; grid-row: 1 / span 2; }
+  .ph-uitleglayout > .ph-helpzoek { grid-column: 2; grid-row: 1; margin: 0; }
+  .ph-uitleglayout > .ph-uitleginhoud { grid-column: 2; grid-row: 2; }
 }
 @media (max-width: 899px) {
   .ph-drie { grid-template-columns: 1fr; }
