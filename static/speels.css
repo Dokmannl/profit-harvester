@@ -207,3 +207,12 @@ table.orders tbody tr:hover td { background: var(--ph-inner); }
 .ph-zoekcijfers b { font-size: 0.92rem; color: var(--ph-text); white-space: nowrap; }
 .ph-zoeknoot { margin: 8px 0 0 !important; font-size: 0.82rem !important; color: var(--ph-muted); }
 .ph-zoekkaart .ph-badge--onder::before, .ph-zoekkaart .ph-badge--budget::before { content: none; }
+.ph-toevoegwrap { margin-top: 12px; padding-top: 12px; border-top: 2px dashed var(--ph-border); }
+.ph-toevoeg { display: flex; align-items: center; gap: 8px; }
+.ph-toevoeg .ph-euro { font-weight: 800; color: var(--ph-muted); }
+.ph-toevoeg input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 12px; border: 2px solid var(--ph-border-2);
+  background: var(--ph-bg); color: var(--ph-text); font: inherit; font-weight: 700; }
+.ph-toevoeg button { padding: 0 14px; min-height: 44px; white-space: nowrap; }
+.ph-toevoeguit { margin: 8px 0 0 !important; font-size: 0.84rem !important; font-weight: 700; }
+.ph-toevoeguit.goed { color: var(--ph-green); }
+.ph-toevoeguit.fout { color: var(--ph-red); }

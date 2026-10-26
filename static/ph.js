@@ -217,6 +217,56 @@
     return geldFmt.format(v);
   }
 
+  // "Toevoegen en kopen": zelfde als Beheren > Munt Toevoegen, na een bevestiging
+  function toevoegBlok(m, d) {
+    var blok = maak("form", "ph-toevoeg");
+    var min = d.min_order || 5;
+    blok.innerHTML = '<label class="ph-verborgen" for="phBudget' + m.code + '">Budget in euro</label>' +
+      '<span class="ph-euro">€</span><input id="phBudget' + m.code + '" type="number" inputmode="decimal" min="' + min + '" step="1" placeholder="Budget" required>' +
+      '<button type="submit" class="hoofd">Toevoegen en kopen</button>';
+    var info = maak("p", "ph-zoeknoot");
+    info.textContent = (d.vrije_cash !== null && d.vrije_cash !== undefined ? "Vrije cash: " + geldFmt.format(d.vrije_cash) + ". " : "") +
+      "De bot zet " + m.code + " in je hoofdlijst en koopt meteen voor dit budget.";
+    var uit = maak("p", "ph-toevoeguit");
+    uit.hidden = true;
+    var wrap = maak("div", "ph-toevoegwrap");
+    wrap.appendChild(blok); wrap.appendChild(info); wrap.appendChild(uit);
+    blok.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var veld = blok.querySelector("input"), bedrag = parseFloat(String(veld.value).replace(",", "."));
+      if (!(bedrag >= min)) { uit.hidden = false; uit.className = "ph-toevoeguit fout"; uit.textContent = "Het budget moet minstens " + geldFmt.format(min) + " zijn."; return; }
+      if (d.vrije_cash !== null && d.vrije_cash !== undefined && bedrag > d.vrije_cash) {
+        uit.hidden = false; uit.className = "ph-toevoeguit fout"; uit.textContent = "Je hebt maar " + geldFmt.format(d.vrije_cash) + " vrije cash."; return;
+      }
+      vraagBevestiging(
+        m.code + " toevoegen en kopen?",
+        "De bot zet " + m.code + " (" + m.naam + ") in je hoofdlijst met een budget van " + geldFmt.format(bedrag) +
+          " en koopt meteen voor dat bedrag uit je vrije cash, tegen de koers van dat moment (nu " + koersTekst(m.koers) +
+          "). Dit is een echte order op Bitvavo.",
+        "Toevoegen en kopen",
+        function () {
+          var knop = blok.querySelector("button");
+          knop.disabled = true; knop.textContent = "Bezig…";
+          var body = new URLSearchParams(); body.set("munt", m.code); body.set("budget", String(bedrag));
+          fetch("/api/munt-toevoegen", { method: "POST", credentials: "same-origin", headers: { "Accept": "application/json" }, body: body })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              uit.hidden = false;
+              uit.className = "ph-toevoeguit " + (res.ok ? "goed" : "fout");
+              uit.textContent = (res.berichten && res.berichten.length ? res.berichten.join(" · ") : (res.ok ? m.code + " is toegevoegd." : "Toevoegen is niet gelukt."));
+              if (res.ok) { blok.remove(); info.remove(); } else { knop.disabled = false; knop.textContent = "Toevoegen en kopen"; }
+            })
+            .catch(function () {
+              uit.hidden = false; uit.className = "ph-toevoeguit fout";
+              uit.textContent = "Geen antwoord van de bot. Kijk bij Activiteit of het gelukt is voor je het opnieuw probeert.";
+              knop.disabled = false; knop.textContent = "Toevoegen en kopen";
+            });
+        }
+      );
+    });
+    return wrap;
+  }
+
   function openZoeken() {
     var laag = maak("div", "ph-overlay");
     laag.innerHTML = '<div class="ph-modaal ph-zoekmodaal" role="dialog" aria-modal="true" aria-labelledby="phZoekTitel">' +
@@ -229,7 +279,8 @@
       '<div class="ph-knoppen"><button type="button" class="plat ph-nee">Sluiten</button></div></div>';
     var veld = laag.querySelector("#phZoekVeld"), uitslag = laag.querySelector(".ph-zoekuitslag");
     function weg() { laag.remove(); document.removeEventListener("keydown", toets); }
-    function toets(e) { if (e.key === "Escape") { weg(); } }
+    // Escape sluit alleen het bovenste venster (eerst de bevestiging, dan dit venster)
+    function toets(e) { if (e.key === "Escape" && document.querySelectorAll(".ph-overlay").length === 1) { weg(); } }
     laag.addEventListener("click", function (e) { if (e.target === laag) { weg(); } });
     laag.querySelector(".ph-nee").addEventListener("click", weg);
     document.addEventListener("keydown", toets);
@@ -276,6 +327,7 @@
             if (m.markt && !m.handelbaar && m.status) { extra.push("Status bij Bitvavo: " + m.status + "."); }
             if (!m.markt) { extra.push("Deze munt staat wel op Bitvavo, maar je kunt hem niet tegen euro’s kopen of verkopen."); }
             if (extra.length) { kaart.appendChild(maak("p", "ph-zoeknoot")).textContent = extra.join(" "); }
+            if (m.handelbaar && !(m.in && m.in.length)) { kaart.appendChild(toevoegBlok(m, res.d)); }
             uitslag.appendChild(kaart);
           });
         })

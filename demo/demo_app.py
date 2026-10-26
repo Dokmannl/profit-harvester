@@ -130,6 +130,14 @@ def beheren():
 _demo_status = {"actief": True, "gestart": __import__("time").time() - 3 * 86400 - 14 * 3600}
 
 
+@app.route("/api/munt-toevoegen", methods=["POST"])
+def api_munt_toevoegen():
+    """Demo: er wordt niets gekocht."""
+    munt = (request.form.get("munt") or "").upper()
+    print("ACTIE munt-toevoegen:", dict(request.form))
+    return jsonify({"ok": True, "berichten": [f"Demo: {munt} zou nu aan de hoofdlijst zijn toegevoegd en gekocht. Er is niets gekocht."]})
+
+
 _publiek = {"client": None}
 
 
@@ -166,7 +174,7 @@ def api_munt_check():
                         "verandering_24u": t.get("percentage"), "volume_24u_eur": t.get("quoteVolume"),
                         "min_order_eur": ((m.get("limits") or {}).get("cost") or {}).get("min"),
                         "in": [n for n, l in demo_lijsten.items() if code in l]})
-        return jsonify({"vraag": q, "munten": uit})
+        return jsonify({"vraag": q, "munten": uit, "vrije_cash": portfolio["cash"], "min_order": 5.0})
     except Exception:
         return jsonify({"fout": "Bitvavo is nu niet bereikbaar. Probeer het zo nog eens."}), 502
 

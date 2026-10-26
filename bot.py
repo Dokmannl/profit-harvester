@@ -5053,10 +5053,49 @@ def api_munt_check():
     if not q or len(q) > 30 or not all(ch.isalnum() or ch in " -." for ch in q):
         return jsonify({"fout": "Vul een muntcode of naam in, bijvoorbeeld BTC of Bitcoin."}), 400
     try:
-        return jsonify({"vraag": q, "munten": zoek_munt(q)})
+        munten = zoek_munt(q)
     except Exception as e:
         log_error("api_munt_check", e)
         return jsonify({"fout": "Bitvavo is nu niet bereikbaar. Probeer het zo nog eens."}), 502
+    try:
+        vrij = handelscash(cache.balans()["free"].get("EUR", 0.0), laad_state())
+    except Exception:
+        vrij = None
+    return jsonify({"vraag": q, "munten": munten, "vrije_cash": vrij, "min_order": MIN_ORDER_EUR})
+
+
+@app.route("/api/munt-toevoegen", methods=["POST"])
+def api_munt_toevoegen():
+    """
+    'Toevoegen en kopen' vanuit het zoekvenster: precies hetzelfde als Beheren >
+    Munt Toevoegen (zelfde controles, koopt meteen uit vrije cash). Geeft de
+    meldingen terug die de bot daarbij verstuurde, zodat het venster ze kan tonen.
+    """
+    munt = (request.form.get("munt") or "").strip().upper()
+    budget = (request.form.get("budget") or "").strip().replace(",", ".")
+    if not munt.isalnum() or len(munt) > 12:
+        return jsonify({"ok": False, "berichten": ["Ongeldige munt."]}), 400
+    try:
+        float(budget)
+    except ValueError:
+        return jsonify({"ok": False, "berichten": ["Vul een budget in euro's in."]}), 400
+    eerder = _laad_meldingen().get("items", [])
+    laatste = eerder[-1] if eerder else None
+    try:
+        verwerk_munt_toevoegen(f"{munt} {budget}")
+    except Exception as e:
+        log_error("api_munt_toevoegen", e)
+    # alleen de meldingen die na de laatste bekende melding zijn bijgekomen
+    items = _laad_meldingen().get("items", [])
+    start = 0
+    if laatste is not None:
+        for i in range(len(items) - 1, -1, -1):
+            if items[i] == laatste:
+                start = i + 1
+                break
+    berichten = [m["tekst"] for m in items[start:]]
+    ok = munt in laad_config().get("coins", {})
+    return jsonify({"ok": ok, "berichten": berichten[-3:]})
 
 
 @app.route("/beheren/pauzeer", methods=["POST"])
