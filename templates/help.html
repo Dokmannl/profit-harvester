@@ -384,10 +384,6 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   .inhoud a.actief { border-left-color: var(--ph-accent); }
   .uitleggrid { column-count: 1 !important; }
   /* zoekveld boven de uitleg (rechts), inhoudsopgave blijft links staan */
-  .ph-uitleglayout { row-gap: 14px; }
-  .ph-uitleglayout > .inhoud { grid-column: 1; grid-row: 1 / span 2; }
-  .ph-uitleglayout > .ph-helpzoek { grid-column: 2; grid-row: 1; margin: 0; }
-  .ph-uitleglayout > .ph-uitleginhoud { grid-column: 2; grid-row: 2; }
 }
 @media (max-width: 899px) {
   .ph-drie { grid-template-columns: 1fr; }
@@ -405,7 +401,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
 .paneel.dicht > .paneelkop { border-bottom: none; }
 .ph-allesknop { margin-top: 10px; padding: 8px 14px; min-height: 0 !important; font-size: 0.82rem; border-radius: 12px; }
 .ph-helpzoek { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 14px;
-  background: var(--ph-card); border: 2px solid var(--ph-border); border-radius: 16px; position: sticky; top: 8px; z-index: 15; }
+  background: var(--ph-card); border: 2px solid var(--ph-border); border-radius: 16px; margin: 10px 0 0; }
 .ph-helpzoek .ic { width: 18px; height: 18px; flex: none; color: var(--ph-muted); display: block; }
 .ph-helpzoek input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ph-text); font: inherit; font-weight: 700; outline: none; }
 .ph-helpzoek-aantal { flex: none; font-size: 0.8rem; color: var(--ph-muted); }
@@ -445,13 +441,6 @@ mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-r
   </div>
 
   <div class="ph-uitleglayout">
-  <div class="ph-helpzoek" role="search">
-    <label class="ph-verborgen" for="helpZoek">Zoeken in de uitleg</label>
-    <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>
-    <input type="search" id="helpZoek" placeholder="Zoek in de uitleg, bijv. herbalanceren" autocomplete="off" spellcheck="false">
-    <span class="ph-helpzoek-aantal" id="helpZoekAantal" aria-live="polite"></span>
-  </div>
-
   <nav class="inhoud" id="inhoud" aria-label="Op deze pagina">
     <h2>Op deze pagina</h2>
     <ul>
@@ -474,6 +463,12 @@ mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-r
       <li><a href="#vragen">{{ ic_vraag }}Veelgestelde vragen</a></li>
       {% if h.donatie %}<li><a href="#steun"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>Steun dit project</a></li>{% endif %}
     </ul>
+    <div class="ph-helpzoek" role="search">
+      <label class="ph-verborgen" for="helpZoek">Zoeken in de uitleg</label>
+      <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>
+      <input type="search" id="helpZoek" placeholder="Zoek in de uitleg" autocomplete="off" spellcheck="false">
+      <span class="ph-helpzoek-aantal" id="helpZoekAantal" aria-live="polite"></span>
+    </div>
   </nav>
 
   <div class="ph-uitleginhoud">
@@ -1526,7 +1521,7 @@ mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-r
       panelen.forEach(function (p) { zet(p, openen); });
       knop.textContent = openen ? "Alles dichtklappen" : "Alles openklappen";
     });
-    inhoud.appendChild(knop);
+    inhoud.insertBefore(knop, inhoud.querySelector(".ph-helpzoek"));
   }
 })();
 </script>
