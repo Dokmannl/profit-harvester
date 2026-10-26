@@ -9,6 +9,14 @@ Nieuw in V6.0 (ten opzichte van V5.7):
   - Nieuw dashboardontwerp (moestuin-stijl), status- en pauzeknop, kaarten voor
     potten en afgeroomd.
   - Munt toevoegen koopt meteen, munt verwijderen verkoopt alles.
+  - Munt opzoeken (op code of naam): laat zien of een munt op Bitvavo te verhandelen
+    is, met een knop om hem meteen toe te voegen en te kopen.
+  - Pot: bijkopen bij een dip kan aan of uit. Uit: een munt wordt één keer gekocht en
+    blijft staan tot hij met winst verkocht wordt.
+  - Beheren met tabbladen (Hoofdlijst, Pot, Dalpot, Instellingen) en een lijst van
+    uitgesloten munten.
+  - Rendement telt het verwijderen van een munt niet meer als oogst.
+  - Uitlegpagina met inklapbare onderdelen en een zoekfunctie.
   - Vangnet bij het oogsten van de hoofdlijst.
 
 V5.7 was een gepatchte versie van V5.5 Pro. Belangrijkste wijzigingen ten opzichte van V5.5:

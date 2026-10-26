@@ -48,7 +48,7 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - **Licht of donker** thema, per apparaat onthouden.
 - **Telegram**: meldingen bij elke oogst en aankoop, en bediening met knoppen en commando's.
 - **Dagelijks e-mailrapport** met je hele portefeuille.
-- Een uitgebreide **uitlegpagina** in het dashboard, met inklapbare onderdelen, die de instellingen toont zoals ze bij jou staan.
+- Een uitgebreide **uitlegpagina** in het dashboard, met inklapbare onderdelen en een zoekfunctie, die de instellingen toont zoals ze bij jou staan.
 
 ---
 
