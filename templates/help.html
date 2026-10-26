@@ -399,6 +399,12 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
 .paneel.dicht > .paneelkop .ph-pijl { transform: rotate(-90deg); }
 .paneel.dicht > .paneelkop { border-bottom: none; }
 .ph-allesknop { margin-top: 10px; padding: 8px 14px; min-height: 0 !important; font-size: 0.82rem; border-radius: 12px; }
+.ph-helpzoek { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 14px;
+  background: var(--ph-card); border: 2px solid var(--ph-border); border-radius: 16px; position: sticky; top: 8px; z-index: 15; }
+.ph-helpzoek .ic { width: 18px; height: 18px; flex: none; color: var(--ph-muted); display: block; }
+.ph-helpzoek input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ph-text); font: inherit; font-weight: 700; outline: none; }
+.ph-helpzoek-aantal { flex: none; font-size: 0.8rem; color: var(--ph-muted); }
+mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-radius: 3px; padding: 0 1px; }
 </style>
 </head>
 <body data-demo="{{ 1 if demo_modus else 0 }}">
@@ -434,6 +440,13 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   </div>
 
   <div class="ph-uitleglayout">
+  <div class="ph-helpzoek" role="search">
+    <label class="ph-verborgen" for="helpZoek">Zoeken in de uitleg</label>
+    <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>
+    <input type="search" id="helpZoek" placeholder="Zoek in de uitleg, bijv. herbalanceren" autocomplete="off" spellcheck="false">
+    <span class="ph-helpzoek-aantal" id="helpZoekAantal" aria-live="polite"></span>
+  </div>
+
   <nav class="inhoud" id="inhoud" aria-label="Op deze pagina">
     <h2>Op deze pagina</h2>
     <ul>
@@ -442,6 +455,7 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
       <li><a href="#pot">{{ ic_pot }}De Pot</a></li>
       <li><a href="#dalpot">{{ ic_dal }}De Dalpot</a></li>
       <li><a href="#reserve">{{ ic_reserve }}De Reserve en Afgeroomd</a></li>
+      <li><a href="#zoeken"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>Munt opzoeken</a></li>
       <li><a href="#dashboard">{{ ic_dash }}Het Dashboard</a></li>
       <li><a href="#potten">{{ ic_potten }}De Potten-pagina</a></li>
       <li><a href="#grafiek">{{ ic_grafiek }}De grafiek</a></li>
@@ -622,7 +636,11 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
             <li>per munt maximaal één bijkoop per {{ h.pot_cooldown|int }} uur,</li>
             <li>samen maximaal {{ eur(h.pot_per_dag) }} per dag.</li>
           </ul>
-          Dit is de enige plek waar de bot uit zichzelf bijkoopt.</div>
+          Dit is de enige plek waar de bot uit zichzelf bijkoopt.
+          <br><br><b>Bijkopen kun je uitzetten</b> (Beheren &rsaquo; Instellingen &rsaquo; <i>Bijkopen bij een dip</i>).
+          Staat het uit, dan wordt een munt alleen de eerste keer gekocht. Daarna blijft hij staan tot hij met winst
+          verkocht wordt, en dan kiest de pot een nieuwe munt. Nu staat bijkopen <b>{{ "aan" if h.pot_bijkopen else "uit" }}</b>.
+          Op de Potten-pagina zie je per munt waarom hij wel of niet bijgekocht wordt.</div>
       </div>
 
       <div class="term">
@@ -719,7 +737,44 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
       <div class="term">
         <div class="naam">Wat telt mee?</div>
         <div class="wat">Je <b>hele saldo</b> in de reservemunten telt als reserve, ook munten met 0% doel. Alleen een
-          munt die in de hoofdlijst, pot of dalpot staat, telt niet als reserve: dat saldo hoort bij die positie.</div>
+          munt die in de hoofdlijst, pot of dalpot staat, telt niet als reserve: dat saldo hoort bij die positie.
+          Koop je deze munten ook zelf, doe dat dan op een ander account of in een eigen wallet; anders verkoopt
+          Herbalanceren daar ook van.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Resultaat per munt</div>
+        <div class="wat">Per munt zie je wat erin is gegaan (<i>gekocht</i>), wat er bij herbalanceren uit is gekomen
+          (<i>verkocht</i>) en het <b>resultaat</b>: de waarde nu, plus wat verkocht is, min wat gekocht is. De kaart
+          <i>Resultaat reserve</i> bovenaan telt alle munten samen.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Telling opnieuw beginnen</div>
+        <div class="wat">Met de knop <i>Telling opnieuw beginnen</i> telt wat er nu in elke munt zit als nieuw
+          startbedrag; gekocht, verkocht en resultaat beginnen weer bij nul. Er wordt niets gekocht of verkocht.
+          De lijst met laatste aankopen houdt de hele geschiedenis.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Grafiek</div>
+        <div class="wat">De stippellijn toont hoeveel je er netto in hebt gestoken, de oranje lijn de waarde. De waarde
+          wordt elk uur bijgehouden.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Munten toevoegen of weghalen</div>
+        <div class="wat">In het blok <i>Munten</i> voeg je een munt toe (maximaal 10). Hij begint met 0%; geef hem
+          daarna een percentage. Weghalen kan pas als zijn doel op 0% staat. Wat er nog van in bezit is, wordt dan
+          verkocht en de opbrengst gaat naar de munten die het verst achterlopen. Stabiele munten (zoals USDC) en
+          munten die al in de hoofdlijst, pot of dalpot staan, worden geweigerd.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Melding als het scheef loopt</div>
+        <div class="wat">Wijkt een munt meer dan {{ h.reserve_melding_pp|int }} procentpunt van zijn doel af, dan krijg je
+          een Telegram-bericht, hooguit één per dag. De bot herbalanceert nooit vanzelf. Instellen (0 = uit) doe je bij
+          <i>Doelverdeling</i>, net als het minimum per munt (nu {{ eur(h.reserve_minimum) }}).</div>
       </div>
 
       <div class="let-op">
@@ -727,6 +782,32 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
         saldo per munt. Stond zo'n munt ook in een lijst, dan zou de bot hem dubbel tellen en je reserve als
         "winst" kunnen verkopen. De bot weigert dat daarom, en de automatische keuze van pot en dalpot slaat
         alle reservemunten over.
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MUNT OPZOEKEN ===================== -->
+  <div class="paneel" id="zoeken">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>Munt opzoeken</div>
+    <div class="paneelinhoud">
+      <p>Snel kijken of een munt op Bitvavo staat, zonder de Bitvavo-app te openen. Op de computer staat de knop
+        <i>Munt opzoeken</i> in het menu, op de telefoon is het het <b>vergrootglas</b> rechtsboven op elke pagina.</p>
+
+      <div class="term">
+        <div class="naam">Zoeken</div>
+        <div class="wat">Typ een afkorting of naam: <b>BTC</b>, <b>bitcoin</b> of bijvoorbeeld <b>starknet</b>. Je ziet
+          per gevonden munt of hij <b>te verhandelen</b> is tegen euro's, de koers, de verandering in 24 uur, het volume
+          en of hij al in je hoofdlijst, pot, dalpot of reserve staat. Staat een munt niet op Bitvavo, dan zegt het
+          venster dat. Zoeken is alleen kijken; er gebeurt niets met je geld.</div>
+      </div>
+
+      <div class="term">
+        <div class="naam">Toevoegen en kopen</div>
+        <div class="wat">Staat een munt nog nergens in je bot en is hij te verhandelen, dan kun je hem meteen aan je
+          <b>hoofdlijst</b> toevoegen: vul een budget in en druk op <i>Toevoegen en kopen</i>. Na een bevestiging met
+          het bedrag en de koers koopt de bot meteen voor dat budget, uit je vrije cash. Dit werkt precies als
+          <a href="#beheren">Munt Toevoegen</a> op de Beheren-pagina, met dezelfde controles. De uitkomst zie je
+          direct in het venster en in Telegram.</div>
       </div>
     </div>
   </div>
@@ -853,10 +934,10 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   <div class="paneel" id="beheren">
     <div class="paneelkop">{{ ic_beheren }}De Beheren-pagina</div>
     <div class="paneelinhoud">
-      <p>Bovenaan staat een <b>sprongbalk</b> (Hoofdlijst, Pot, Dalpot): op een telefoon blijft die staan als je
-        scrolt, op een computer staat hij rechtsboven en staan de blokken in twee kolommen. Elk blok is
-        <b>in- en uit te klappen</b>; de pagina onthoudt je keuze. De instellingen van pot en dalpot staan standaard
-        dicht, omdat je die zelden nodig hebt. Elke knop heeft een label:</p>
+      <p>Bovenaan staan <b>tabbladen</b>: <i>Hoofdlijst</i>, <i>Pot</i>, <i>Dalpot</i> en <i>Instellingen</i>. Je ziet
+        steeds één onderdeel; de pagina onthoudt welk tabblad je het laatst open had. Onder <i>Instellingen</i> staan
+        alle instellingen bij elkaar: munten uitsluiten, bijkopen bij een dip, de instellingen voor nieuwe munten van
+        pot en dalpot, en de link naar Afgeroomd. Elke knop heeft een label:</p>
       <table class="regels">
         <tr><td><b>boeking</b></td><td>alleen boekhouding, er verandert niets op Bitvavo</td></tr>
         <tr><td><b>koopt</b></td><td>plaatst een kooporder</td></tr>
@@ -900,11 +981,11 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
           is opgeslagen als percentage van het budget, dus bij een dubbel budget wordt ook het doel in euro's dubbel.</div>
       </div>
 
-      <p class="knopgroep">{{ ic_reserve }}Reserve</p>
+      <p class="knopgroep">{{ ic_reserve }}Afgeroomde winst</p>
       <div class="knopuitleg">
-        <div class="knopnaam hoofd">Reserve-munt</div>
-        <div class="knoptekst">Kies {{ h.reserve_keuzes | join(" of ") }} voor nieuwe afgeroomde winst. Bestaande reserve
-          blijft staan. Zie <a href="#reserve">De Reserve</a>.</div>
+        <div class="knopnaam hoofd">Naar Afgeroomd</div>
+        <div class="knoptekst">De verdeling van je reserve en het herbalanceren regel je op de Afgeroomd-pagina. Zie
+          <a href="#reserve">De Reserve en Afgeroomd</a>.</div>
       </div>
 
       <p class="knopgroep">{{ ic_pot }}Pot</p>
@@ -932,7 +1013,13 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
       <div class="knopuitleg">
         <div class="knopnaam">Munt Uitsluiten</div>
         <div class="knoptekst">De pot kiest deze munt nooit zelf. Nog een keer dezelfde munt invullen = weer toestaan.
-          Zit de munt op dat moment in de pot, dan wordt hij verwijderd.</div>
+          Zit de munt op dat moment in de pot, dan wordt hij verwijderd. Onder de knop staan de munten die nu
+          uitgesloten zijn; tik op een munt om hem weer toe te staan (met bevestiging).</div>
+      </div>
+      <div class="knopuitleg">
+        <div class="knopnaam">Bijkopen bij een dip</div>
+        <div class="knoptekst">Aan of uit. Uit: een pot-munt wordt één keer gekocht en daarna niet meer bijgekocht.
+          Zie <a href="#pot">De Pot</a>. Nu: <b>{{ "aan" if h.pot_bijkopen else "uit" }}</b>.</div>
       </div>
       <div class="knopuitleg">
         <div class="knopnaam hoofd">Pot Nu Laten Kiezen</div>
@@ -960,7 +1047,8 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
       </div>
       <div class="knopuitleg">
         <div class="knopnaam">Dalpot Munt Uitsluiten</div>
-        <div class="knoptekst">De dalpot kiest deze munt nooit zelf. Nog een keer invullen = weer toestaan.</div>
+        <div class="knoptekst">De dalpot kiest deze munt nooit zelf. Nog een keer invullen = weer toestaan. De
+          uitgesloten munten staan onder de knop; tik op een munt om hem weer toe te staan.</div>
       </div>
       <div class="knopuitleg">
         <div class="knopnaam hoofd">Dalpot Nu Laten Kiezen</div>
@@ -1360,6 +1448,66 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   });
   openVoor(location.hash);
   if (location.hash) { var d = document.getElementById(location.hash.slice(1)); if (d) { d.scrollIntoView(); } }
+
+  // ---- zoeken in de uitleg: alleen de onderdelen met het woord, het woord gemarkeerd ----
+  var veld = document.getElementById("helpZoek"), teller = document.getElementById("helpZoekAantal");
+  var tocItems = Array.prototype.slice.call(document.querySelectorAll("#inhoud li"));
+  var kortBlok = document.querySelector(".paneel.intro, .intro") || null;
+  function wisMarkering() {
+    Array.prototype.slice.call(document.querySelectorAll("mark.ph-treffer")).forEach(function (m) {
+      m.replaceWith(document.createTextNode(m.textContent));
+    });
+    panelen.forEach(function (p) { p.normalize(); });
+  }
+  function markeer(p, woord) {
+    var lager = woord.toLowerCase(), n = 0;
+    var loper = document.createTreeWalker(p.querySelector(":scope > .paneelinhoud"), NodeFilter.SHOW_TEXT, null);
+    var knopen = [];
+    while (loper.nextNode()) { knopen.push(loper.currentNode); }
+    knopen.forEach(function (t) {
+      var tekst = t.nodeValue, i = tekst.toLowerCase().indexOf(lager);
+      if (i < 0 || !t.parentNode || t.parentNode.closest("script, style")) { return; }
+      var frag = document.createDocumentFragment(), vanaf = 0;
+      while (i >= 0) {
+        frag.appendChild(document.createTextNode(tekst.slice(vanaf, i)));
+        var m = document.createElement("mark"); m.className = "ph-treffer"; m.textContent = tekst.slice(i, i + woord.length);
+        frag.appendChild(m); n++;
+        vanaf = i + woord.length; i = tekst.toLowerCase().indexOf(lager, vanaf);
+      }
+      frag.appendChild(document.createTextNode(tekst.slice(vanaf)));
+      t.parentNode.replaceChild(frag, t);
+    });
+    return n;
+  }
+  var zoekTimer = null;
+  function zoek() {
+    var woord = (veld.value || "").trim();
+    wisMarkering();
+    if (woord.length < 2) {
+      panelen.forEach(function (p) { p.hidden = false; zet(p, p.id === "start"); });
+      tocItems.forEach(function (li) { li.hidden = false; });
+      teller.textContent = "";
+      return;
+    }
+    var gevonden = 0, eerste = null;
+    panelen.forEach(function (p) {
+      var raak = (p.textContent || "").toLowerCase().indexOf(woord.toLowerCase()) >= 0;
+      p.hidden = !raak;
+      if (raak) { zet(p, true); markeer(p, woord); gevonden++; if (!eerste) { eerste = p; } }
+    });
+    tocItems.forEach(function (li) {
+      var a = li.querySelector("a"), doel = a && document.getElementById(a.getAttribute("href").slice(1));
+      li.hidden = !!(doel && doel.hidden);
+    });
+    teller.textContent = gevonden ? gevonden + (gevonden === 1 ? " onderdeel" : " onderdelen") : "Niets gevonden";
+  }
+  if (veld) {
+    veld.addEventListener("input", function () { clearTimeout(zoekTimer); zoekTimer = setTimeout(zoek, 200); });
+    veld.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { var m = document.querySelector("mark.ph-treffer"); if (m) { m.scrollIntoView({ block: "center" }); } }
+      if (e.key === "Escape") { veld.value = ""; zoek(); }
+    });
+  }
 
   // knop om alles in één keer open of dicht te klappen (handig om te zoeken)
   var inhoud = document.getElementById("inhoud");

@@ -285,6 +285,7 @@ HELP_INSTELLINGEN = {
     "demo": True, "fee_pct": 0.25, "min_winst": 5.5, "min_order": 5.0, "min_oogst": 10.5, "hoofd_doel": 11.0,
     "max_inleg": 1.5, "lagen": [4.0, 10.0, 18.0], "trailing_buy": 1.0, "wacht_op_bodem": True,
     "reserve_pct": 50.0, "reserve_actief": "ETH", "reserve_keuzes": ["BTC", "ETH", "BNB", "SOL", "XRP"],
+    "pot_bijkopen": False, "reserve_minimum": 25.0, "reserve_melding_pp": 10.0,
     "pot_max": 2, "pot_budget": 25.0, "pot_min_order": 25.0, "pot_doel": 5.5, "pot_trail": 1.0,
     "pot_cooldown": 6.0, "pot_per_dag": 25.0, "pot_noodstop": 25.0, "pot_min_volume": 1_000_000.0,
     "pot_atr_min": 3.0, "pot_atr_max": 25.0, "pot_uitgesloten": [],
