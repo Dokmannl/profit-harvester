@@ -758,6 +758,22 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
         <button type="submit">Uitsluiten</button>
       </form>
     </div>
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Bijkopen bij een dip <span class="tag boeking">instelling</span></div>
+        <div class="actie-uitleg">Aan: de pot koopt bij als een munt een stuk onder zijn budget zakt. Uit: een munt wordt
+          één keer gekocht en daarna niet meer bijgekocht; hij blijft staan tot hij met winst verkocht wordt.
+          Nu: <b>{{ "aan" if pot_instellingen.bijkopen else "uit" }}</b>.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/pot-bijkopen"
+            data-bevestig-fields="bijkopen" data-bevestig-template="Bijkopen in de pot {} zetten?">
+        <select name="bijkopen">
+          <option value="aan"{% if pot_instellingen.bijkopen %} selected{% endif %}>aan</option>
+          <option value="uit"{% if not pot_instellingen.bijkopen %} selected{% endif %}>uit</option>
+        </select>
+        <button type="submit" class="hoofd">Opslaan</button>
+      </form>
+    </div>
   </div>
 
   <div class="paneel tema-pot" id="sec-pot-instellingen" data-sectie="pot" data-standaard-ingeklapt>
@@ -787,22 +803,6 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </label>
       <button type="submit" class="hoofd">Opslaan</button>
     </form>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Bijkopen bij een dip <span class="tag boeking">instelling</span></div>
-        <div class="actie-uitleg">Aan: de pot koopt bij als een munt een stuk onder zijn budget zakt. Uit: een munt wordt
-          één keer gekocht en daarna niet meer bijgekocht; hij blijft staan tot hij met winst verkocht wordt.
-          Nu: <b>{{ "aan" if pot_instellingen.bijkopen else "uit" }}</b>.</div>
-      </div>
-      <form class="actie-form" method="post" action="/beheren/pot-bijkopen"
-            data-bevestig-fields="bijkopen" data-bevestig-template="Bijkopen in de pot {} zetten?">
-        <select name="bijkopen">
-          <option value="aan"{% if pot_instellingen.bijkopen %} selected{% endif %}>aan</option>
-          <option value="uit"{% if not pot_instellingen.bijkopen %} selected{% endif %}>uit</option>
-        </select>
-        <button type="submit" class="hoofd">Opslaan</button>
-      </form>
-    </div>
   </div>
   </div>
   </div>
