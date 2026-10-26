@@ -400,11 +400,18 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
 .paneel.dicht > .paneelkop .ph-pijl { transform: rotate(-90deg); }
 .paneel.dicht > .paneelkop { border-bottom: none; }
 .ph-allesknop { margin-top: 10px; padding: 8px 14px; min-height: 0 !important; font-size: 0.82rem; border-radius: 12px; }
-.ph-helpzoek { display: flex; align-items: center; gap: 10px; padding: 10px 14px; margin-bottom: 14px;
-  background: var(--ph-card); border: 2px solid var(--ph-border); border-radius: 16px; margin: 10px 0 0; }
-.ph-helpzoek .ic { width: 18px; height: 18px; flex: none; color: var(--ph-muted); display: block; }
-.ph-helpzoek input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ph-text); font: inherit; font-weight: 700; outline: none; }
-.ph-helpzoek-aantal { flex: none; font-size: 0.8rem; color: var(--ph-muted); }
+.ph-helpzoek { display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; margin: 12px 0 0; height: 44px;
+  background: var(--ph-card); border: 2px solid var(--ph-border); border-radius: 14px; transition: border-color .15s, box-shadow .15s; }
+.ph-helpzoek:focus-within { border-color: var(--ph-accent); box-shadow: 0 0 0 3px var(--ph-accent-soft); }
+.ph-helpzoek .ic { width: 17px; height: 17px; flex: none; color: var(--ph-muted); display: block; }
+.ph-helpzoek input, .ph-helpzoek input:focus { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0 !important; border-radius: 0 !important;
+  box-shadow: none !important; background: none !important; color: var(--ph-text); font: inherit; font-size: 0.9rem; font-weight: 600; outline: none; -webkit-appearance: none; appearance: none; }
+.ph-helpzoek input::-webkit-search-cancel-button { display: none; }
+.ph-helpwis { flex: none; width: 28px; height: 28px; min-height: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 50% !important;
+  background: var(--ph-border) !important; color: var(--ph-text); display: grid; place-items: center; cursor: pointer; box-shadow: none !important; }
+.ph-helpwis[hidden] { display: none; }
+.ph-helpwis svg { width: 13px; height: 13px; }
+.ph-helpzoek-aantal { display: block; min-height: 1.2em; margin: 6px 2px 0; font-size: 0.78rem; color: var(--ph-muted); }
 mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-radius: 3px; padding: 0 1px; }
 </style>
 </head>
@@ -467,8 +474,9 @@ mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-r
       <label class="ph-verborgen" for="helpZoek">Zoeken in de uitleg</label>
       <svg class="ic" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>
       <input type="search" id="helpZoek" placeholder="Zoek in de uitleg" autocomplete="off" spellcheck="false">
-      <span class="ph-helpzoek-aantal" id="helpZoekAantal" aria-live="polite"></span>
+      <button type="button" class="ph-helpwis" id="helpZoekWis" aria-label="Zoekveld leegmaken" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
     </div>
+    <span class="ph-helpzoek-aantal" id="helpZoekAantal" aria-live="polite"></span>
   </nav>
 
   <div class="ph-uitleginhoud">
@@ -1479,9 +1487,10 @@ mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-r
     });
     return n;
   }
-  var zoekTimer = null;
+  var zoekTimer = null, wisKnop = document.getElementById("helpZoekWis");
   function zoek() {
     var woord = (veld.value || "").trim();
+    if (wisKnop) { wisKnop.hidden = !veld.value; }
     wisMarkering();
     if (woord.length < 2) {
       panelen.forEach(function (p) { p.hidden = false; zet(p, p.id === "start"); });
@@ -1507,6 +1516,7 @@ mark.ph-treffer { background: rgba(255, 217, 61, 0.35); color: inherit; border-r
       if (e.key === "Enter") { var m = document.querySelector("mark.ph-treffer"); if (m) { m.scrollIntoView({ block: "center" }); } }
       if (e.key === "Escape") { veld.value = ""; zoek(); }
     });
+    if (wisKnop) { wisKnop.addEventListener("click", function () { veld.value = ""; zoek(); veld.focus(); }); }
   }
 
   // knop om alles in één keer open of dicht te klappen (handig om te zoeken)
