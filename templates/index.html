@@ -1071,7 +1071,7 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
     bedrag.textContent = geld.format(totaal);
     var regel = document.createElement("div");
     regel.className = "bij ph-volgende";
-    regel.appendChild(document.createTextNode("Volgende: "));
+    regel.appendChild(document.createTextNode("volgende "));
     var rond = document.createElement("span");
     rond.className = "ph-muntrond " + String(volgende).toLowerCase();
     rond.textContent = MUNTTEKEN[volgende] || String(volgende).charAt(0);

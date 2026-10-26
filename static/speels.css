@@ -216,3 +216,51 @@ table.orders tbody tr:hover td { background: var(--ph-inner); }
 .ph-toevoeguit { margin: 8px 0 0 !important; font-size: 0.84rem !important; font-weight: 700; }
 .ph-toevoeguit.goed { color: var(--ph-green); }
 .ph-toevoeguit.fout { color: var(--ph-red); }
+
+/* ---------------- telefoon: compact dashboard ---------------- */
+@media (max-width: 899px) {
+  /* kop op één regel: logo, groet, vergrootglas */
+  .kop { flex-wrap: nowrap !important; align-items: center !important; margin-bottom: 12px !important; }
+  .kop .ph-kopblok { min-width: 0; flex: 1 1 auto; }
+  .kop .sp-groet { display: none; }
+  .kop .koprechts { display: none; }
+  .kop .ph-merkje { width: 40px; height: 40px; border-radius: 12px; }
+  .kop .ph-merkje svg { width: 22px; height: 22px; }
+  .ph-sub { font-size: 0.74rem !important; margin-bottom: 0 !important; }
+  .ph-zoekknop { margin-left: 8px; }
+
+  /* Totale waarde groot, daaronder drie gelijke tegels */
+  #kaarten { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; grid-template-areas: "totaal totaal totaal" "vrij belegd reserve" !important; gap: 8px !important; margin-bottom: 12px; }
+  #kaarten .kaart { padding: 12px 12px 11px !important; border-radius: 18px; }
+  #kaartTotaal { padding: 14px 16px !important; }
+  #kaartTotaal > .etiket { font-size: 0.86rem; }
+  #kaartTotaal .groot { font-size: 1.95rem !important; margin-top: 2px; }
+  #kaartTotaal .bij { margin-top: 2px; }
+  #kaartVrij > .etiket, #kaartBelegd > .etiket, #kaartReserve > .etiket {
+    font-size: 0.74rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px;
+  }
+  #kaartTotaal > .etiket::before, #kaartVrij > .etiket::before, #kaartBelegd > .etiket::before, #kaartReserve .ph-reservekop::before {
+    width: 24px !important; height: 24px !important; font-size: 14px !important; border-radius: 8px !important; margin-right: 6px !important;
+  }
+  #kaartVrij .klein, #kaartBelegd .klein, #kaartReserve .klein { font-size: 0.98rem !important; white-space: nowrap; }
+  #kaartVrij .bij, #kaartBelegd .bij { display: none !important; }
+  #kaartReserve { display: block !important; }
+  #kaartReserve .ph-naarpagina { display: none; }
+  #kaartReserve .ph-reservekop { margin-bottom: 6px !important; justify-content: flex-start !important; gap: 0 !important; }
+  #kaartReserve .ph-volgende { font-size: 0.72rem; margin-top: 3px; gap: 4px; }
+  #kaartReserve .ph-volgende .ph-muntrond { width: 15px; height: 15px; font-size: 0.55rem; }
+
+  /* grafiek: geen dubbel bedrag, kleinere knoppen */
+  #grafiekNu { display: none; }
+  .grafiekwaarde { margin-top: 2px; }
+  .grafiekwaarde .verschil { font-size: 0.95rem; }
+  .grafiekkaart { padding: 14px 12px 10px !important; }
+  .bereik { padding: 3px !important; }
+  .bereik button { min-height: 32px !important; padding: 4px 6px !important; font-size: 0.82rem !important; }
+
+  /* posities: compacte zoekbalk en sorteerknoppen */
+  #positiesPaneel .paneelkop { gap: 8px; padding: 14px 12px 10px; }
+  #positiesPaneel .zoekdoos input { min-height: 40px; padding: 8px 14px; font-size: 15px !important; }
+  #sorteer { padding: 3px !important; }
+  #sorteer button { min-height: 32px !important; padding: 4px 6px !important; font-size: 0.82rem !important; }
+}
