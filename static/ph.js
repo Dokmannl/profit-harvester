@@ -285,12 +285,13 @@
     veld.focus();
   }
 
-  // knop in het menu (computer, onder Meldingen) en in de kop (telefoon)
+  // knop in het menu (computer, boven Meldingen) en in de kop (telefoon)
   if (nav) {
     var zk = maak("button", "navknop ph-zoeknav", ZOEK + "Munt opzoeken");
     zk.type = "button";
     zk.addEventListener("click", openZoeken);
-    nav.appendChild(zk);
+    var meld = nav.querySelector("button.navknop");
+    nav.insertBefore(zk, meld || null);
   }
   var kopRechts = document.querySelector(".kop");
   if (kopRechts) {
