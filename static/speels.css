@@ -180,3 +180,30 @@ table.orders tbody tr:hover td { background: var(--ph-inner); }
 
 /* Telefoon: Afgeroomd in de menubalk, Meldingen eruit (anders te vol) */
 @media (max-width: 899px) { .navbalk button.navknop { display: none !important; } }
+
+/* ---------------- munt opzoeken ---------------- */
+.ph-zoekknop { display: none; }
+@media (max-width: 899px) {
+  .ph-zoekknop { display: grid; place-items: center; width: 44px; height: 44px; flex: none; padding: 0;
+    border-radius: 14px; border: 2px solid var(--ph-border); background: var(--ph-card); color: var(--ph-text); }
+  .ph-zoekknop svg { width: 20px; height: 20px; }
+}
+.ph-verborgen { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ph-zoekmodaal { max-width: 460px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.ph-zoekmodaal p b { color: var(--ph-text); }
+.ph-zoekform { display: flex; gap: 8px; margin: 4px 0 14px; }
+.ph-zoekform input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 14px; border: 2px solid var(--ph-border-2);
+  background: var(--ph-bg); color: var(--ph-text); font: inherit; font-weight: 700; }
+.ph-zoekform button { padding: 0 18px; min-height: 46px; }
+.ph-zoekuitslag { display: grid; gap: 10px; margin-bottom: 14px; }
+.ph-zoekleeg { margin: 0 !important; color: var(--ph-muted); }
+.ph-zoekkaart { border: 2px solid var(--ph-border); border-radius: 16px; padding: 12px 14px; background: var(--ph-inner); }
+.ph-zoekkaart.ja { border-color: rgba(123, 211, 137, 0.45); }
+.ph-zoekkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ph-zoeknaam b { font-family: var(--sp-kop); font-size: 1.1rem; margin-right: 8px; color: var(--ph-text-hi); }
+.ph-zoeknaam span { color: var(--ph-muted); font-size: 0.88rem; }
+.ph-zoekcijfers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.ph-zoekcijfers small { display: block; font-size: 0.72rem; color: var(--ph-dim); }
+.ph-zoekcijfers b { font-size: 0.92rem; color: var(--ph-text); white-space: nowrap; }
+.ph-zoeknoot { margin: 8px 0 0 !important; font-size: 0.82rem !important; color: var(--ph-muted); }
+.ph-zoekkaart .ph-badge--onder::before, .ph-zoekkaart .ph-badge--budget::before { content: none; }

@@ -201,4 +201,104 @@
     haalStatus();
     setInterval(function () { if (!document.hidden) { haalStatus(); } }, 15000);
   }
+
+  // ---------- munt opzoeken: staat hij op Bitvavo en is hij te verhandelen? ----------
+  var ZOEK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg>';
+  var geldFmt = new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 2 });
+  function koersTekst(k) {
+    if (k === null || k === undefined) { return "–"; }
+    if (k >= 1) { return geldFmt.format(k); }
+    return "€ " + Number(k).toLocaleString("nl-NL", { maximumSignificantDigits: 4 });
+  }
+  function volumeTekst(v) {
+    if (!v) { return "–"; }
+    if (v >= 1e6) { return "€ " + (v / 1e6).toLocaleString("nl-NL", { maximumFractionDigits: 1 }) + " mln"; }
+    if (v >= 1e3) { return "€ " + Math.round(v / 1e3).toLocaleString("nl-NL") + "k"; }
+    return geldFmt.format(v);
+  }
+
+  function openZoeken() {
+    var laag = maak("div", "ph-overlay");
+    laag.innerHTML = '<div class="ph-modaal ph-zoekmodaal" role="dialog" aria-modal="true" aria-labelledby="phZoekTitel">' +
+      '<h3 id="phZoekTitel">Munt opzoeken</h3>' +
+      '<p>Typ een afkorting of naam, bijvoorbeeld <b>BTC</b> of <b>Bitcoin</b>. Je ziet of hij op Bitvavo in euro’s te verhandelen is.</p>' +
+      '<form class="ph-zoekform"><label class="ph-verborgen" for="phZoekVeld">Munt</label>' +
+      '<input id="phZoekVeld" type="search" maxlength="30" autocomplete="off" spellcheck="false" placeholder="BTC of Bitcoin">' +
+      '<button type="submit" class="hoofd">Zoek</button></form>' +
+      '<div class="ph-zoekuitslag" aria-live="polite"></div>' +
+      '<div class="ph-knoppen"><button type="button" class="plat ph-nee">Sluiten</button></div></div>';
+    var veld = laag.querySelector("#phZoekVeld"), uitslag = laag.querySelector(".ph-zoekuitslag");
+    function weg() { laag.remove(); document.removeEventListener("keydown", toets); }
+    function toets(e) { if (e.key === "Escape") { weg(); } }
+    laag.addEventListener("click", function (e) { if (e.target === laag) { weg(); } });
+    laag.querySelector(".ph-nee").addEventListener("click", weg);
+    document.addEventListener("keydown", toets);
+
+    function melding(tekst) { uitslag.textContent = ""; uitslag.appendChild(maak("p", "ph-zoekleeg")).textContent = tekst; }
+    laag.querySelector("form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var q = veld.value.trim();
+      if (!q) { veld.focus(); return; }
+      melding("Even kijken bij Bitvavo…");
+      fetch("/api/munt-check?q=" + encodeURIComponent(q), { credentials: "same-origin", headers: { "Accept": "application/json" } })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+          if (!res.ok) { melding(res.d.fout || "Dat lukte niet."); return; }
+          var lijst = res.d.munten || [];
+          if (!lijst.length) { melding("“" + q + "” staat niet op Bitvavo."); return; }
+          uitslag.textContent = "";
+          lijst.forEach(function (m) {
+            var kaart = maak("div", "ph-zoekkaart" + (m.handelbaar ? " ja" : " nee"));
+            var kop = maak("div", "ph-zoekkop");
+            var naam = maak("div", "ph-zoeknaam");
+            naam.appendChild(maak("b")).textContent = m.code;
+            naam.appendChild(maak("span")).textContent = m.naam;
+            kop.appendChild(naam);
+            var label = maak("span", "ph-badge " + (m.handelbaar ? "ph-badge--onder" : "ph-badge--budget"));
+            label.textContent = m.handelbaar ? "Te verhandelen" : (m.markt ? "Nu niet te verhandelen" : "Geen euromarkt");
+            kop.appendChild(label);
+            kaart.appendChild(kop);
+            if (m.markt) {
+              var cijfers = maak("div", "ph-zoekcijfers");
+              var pct = m.verandering_24u;
+              [["Koers", koersTekst(m.koers)],
+               ["24 uur", pct === null || pct === undefined ? "–" : (pct >= 0 ? "+" : "−") + Math.abs(pct).toLocaleString("nl-NL", { maximumFractionDigits: 1 }) + "%"],
+               ["Volume 24 uur", volumeTekst(m.volume_24u_eur)]].forEach(function (c) {
+                var vak = maak("div");
+                vak.appendChild(maak("small")).textContent = c[0];
+                vak.appendChild(maak("b")).textContent = c[1];
+                cijfers.appendChild(vak);
+              });
+              kaart.appendChild(cijfers);
+            }
+            var extra = [];
+            if (m.in && m.in.length) { extra.push("Staat al in je " + m.in.join(" en ") + "."); }
+            if (m.markt && !m.handelbaar && m.status) { extra.push("Status bij Bitvavo: " + m.status + "."); }
+            if (!m.markt) { extra.push("Deze munt staat wel op Bitvavo, maar je kunt hem niet tegen euro’s kopen of verkopen."); }
+            if (extra.length) { kaart.appendChild(maak("p", "ph-zoeknoot")).textContent = extra.join(" "); }
+            uitslag.appendChild(kaart);
+          });
+        })
+        .catch(function () { melding("Bitvavo is nu niet bereikbaar. Probeer het zo nog eens."); });
+    });
+    document.body.appendChild(laag);
+    veld.focus();
+  }
+
+  // knop in het menu (computer, onder Meldingen) en in de kop (telefoon)
+  if (nav) {
+    var zk = maak("button", "navknop ph-zoeknav", ZOEK + "Munt opzoeken");
+    zk.type = "button";
+    zk.addEventListener("click", openZoeken);
+    nav.appendChild(zk);
+  }
+  var kopRechts = document.querySelector(".kop");
+  if (kopRechts) {
+    var zt = maak("button", "ph-zoekknop", ZOEK);
+    zt.type = "button";
+    zt.setAttribute("aria-label", "Munt opzoeken op Bitvavo");
+    zt.title = "Munt opzoeken op Bitvavo";
+    zt.addEventListener("click", openZoeken);
+    kopRechts.appendChild(zt);
+  }
 })();

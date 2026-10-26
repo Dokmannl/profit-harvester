@@ -130,6 +130,18 @@ def beheren():
 _demo_status = {"actief": True, "gestart": __import__("time").time() - 3 * 86400 - 14 * 3600}
 
 
+@app.route("/api/munt-check")
+def api_munt_check():
+    """Demo: vaste voorbeelden in plaats van een echte vraag aan Bitvavo."""
+    q = (request.args.get("q") or "").strip().lower()
+    voorbeelden = [
+        {"code": "BTC", "naam": "Bitcoin", "handelbaar": True, "markt": True, "status": "trading", "koers": 62500.0,
+         "verandering_24u": 1.8, "volume_24u_eur": 48200000.0, "min_order_eur": 5.0, "in": ["reserve"]},
+    ]
+    gevonden = [m for m in voorbeelden if q and (m["code"].lower().startswith(q) or q in m["naam"].lower())]
+    return jsonify({"vraag": q, "munten": gevonden})
+
+
 @app.route("/api/status")
 def api_status():
     import time

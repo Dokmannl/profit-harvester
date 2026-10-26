@@ -4985,6 +4985,80 @@ def api_status():
     })
 
 
+_munt_namen = {"tijd": 0.0, "client": None}
+
+
+def _publieke_markten():
+    """Openbare Bitvavo-gegevens (markten en muntnamen), hooguit elke 6 uur opnieuw geladen."""
+    if _munt_namen["client"] is None or time.time() - _munt_namen["tijd"] > 6 * 3600:
+        client = ccxt.bitvavo({"enableRateLimit": True})
+        client.load_markets()
+        _munt_namen["client"], _munt_namen["tijd"] = client, time.time()
+    return _munt_namen["client"]
+
+
+def zoek_munt(vraag):
+    """
+    Zoekt een munt op code of naam ("BTC", "bitcoin") en zegt per gevonden munt
+    of hij op Bitvavo in euro's te verhandelen is, met koers, 24-uurs verandering
+    en volume. Alleen lezen.
+    """
+    q = vraag.strip()
+    client = _publieke_markten()
+    munten = client.currencies or {}
+    qo, ql = q.upper(), q.lower()
+    def score(code, info):
+        naam = str(info.get("name") or "").lower()
+        if code == qo:
+            return 0
+        if naam == ql:
+            return 1
+        if code.startswith(qo) or naam.startswith(ql):
+            return 2
+        if ql in naam:
+            return 3
+        return None
+    treffers = sorted((s, code) for code, info in munten.items() for s in [score(code, info)] if s is not None)[:6]
+    config = laad_config()
+    lijsten = (("hoofdlijst", config.get("coins", {})), ("pot", config.get("pot_coins", {})),
+               ("dalpot", config.get("dalpot_coins", {})), ("reserve", reserve_lijst(config)))
+    try:
+        tickers = cache.tickers()
+    except Exception:
+        tickers = {}
+    uit = []
+    for _, code in treffers:
+        markt = client.markets.get(f"{code}/EUR") or {}
+        status = (markt.get("info") or {}).get("status")
+        t = tickers.get(f"{code}/EUR") or {}
+        uit.append({
+            "code": code,
+            "naam": munten[code].get("name") or code,
+            "handelbaar": bool(markt) and bool(markt.get("active")) and status in (None, "trading"),
+            "markt": bool(markt),
+            "status": status,
+            "koers": t.get("last"),
+            "verandering_24u": t.get("percentage"),
+            "volume_24u_eur": t.get("quoteVolume"),
+            "min_order_eur": ((markt.get("limits") or {}).get("cost") or {}).get("min"),
+            "in": [naam for naam, lijst in lijsten if code in lijst],
+        })
+    return uit
+
+
+@app.route("/api/munt-check")
+def api_munt_check():
+    """Zoekvenster 'Munt opzoeken': staat deze munt op Bitvavo en is hij te verhandelen?"""
+    q = (request.args.get("q") or "").strip()
+    if not q or len(q) > 30 or not all(ch.isalnum() or ch in " -." for ch in q):
+        return jsonify({"fout": "Vul een muntcode of naam in, bijvoorbeeld BTC of Bitcoin."}), 400
+    try:
+        return jsonify({"vraag": q, "munten": zoek_munt(q)})
+    except Exception as e:
+        log_error("api_munt_check", e)
+        return jsonify({"fout": "Bitvavo is nu niet bereikbaar. Probeer het zo nog eens."}), 502
+
+
 @app.route("/beheren/pauzeer", methods=["POST"])
 def beheren_pauzeer():
     """
