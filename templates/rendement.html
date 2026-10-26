@@ -536,7 +536,8 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
         el.gemiddelde.textContent = geld.format(data.gemiddelde || 0);
         el.totaalFees.textContent = geld.format(data.totaal_fees || 0);
         var bijTot = document.getElementById("totaalBij"), bijAantal = document.getElementById("aantalBij"), bijFees = document.getElementById("feesBij");
-        bijTot.textContent = "waarvan " + geld.format(data.naar_btc || 0) + " naar reserve";
+        bijTot.textContent = "waarvan " + geld.format(data.naar_btc || 0) + " naar reserve" +
+          (data.aantal_verwijderd ? " · bij verwijderen " + (data.resultaat_verwijderd < 0 ? "−" : "+") + geld.format(Math.abs(data.resultaat_verwijderd)) : "");
         var metOogst = (data.top_munten || []).filter(function (m) { return m.aantal > 0; }).length;
         bijAantal.textContent = "over " + metOogst + " munt" + (metOogst === 1 ? "" : "en");
         bijFees.textContent = data.totaal_winst > 0

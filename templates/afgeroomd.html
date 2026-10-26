@@ -310,6 +310,13 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
   .agrid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 }
 @media (max-width: 999px) { .kaarten { grid-template-columns: 1fr 1fr; gap: 10px; } .kaart .groot { font-size: 1.3rem; } }
+@media (max-width: 899px) {
+  .kaarten { gap: 8px !important; margin-bottom: 12px; }
+  .kaart { padding: 11px 13px !important; }
+  .kaart .etiket { font-size: 0.74rem; }
+  .kaart .groot { font-size: 1.12rem !important; margin-top: 3px !important; }
+  .kaart .bij { font-size: 0.7rem !important; margin-top: 3px !important; }
+}
 
 .ar-rij { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--ph-border); }
 .ar-logo { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; overflow: hidden; background: var(--ph-inner); font-size: 0.66rem; font-weight: 700; }

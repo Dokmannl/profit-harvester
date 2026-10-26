@@ -392,6 +392,13 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
   .paneelinhoud { padding: 4px 16px 18px; }
   .intro { padding: 18px 16px; }
 }
+/* ---- inklapbare onderdelen ---- */
+.paneel.dicht > .paneelinhoud { display: none; }
+.paneel[id] > .paneelkop[role="button"] { cursor: pointer; user-select: none; display: flex; align-items: center; gap: 8px; }
+.paneel[id] > .paneelkop .ph-pijl { width: 18px; height: 18px; margin-left: auto; flex-shrink: 0; color: var(--ph-muted); transition: transform .15s; }
+.paneel.dicht > .paneelkop .ph-pijl { transform: rotate(-90deg); }
+.paneel.dicht > .paneelkop { border-bottom: none; }
+.ph-allesknop { margin-top: 10px; padding: 8px 14px; min-height: 0 !important; font-size: 0.82rem; border-radius: 12px; }
 </style>
 </head>
 <body data-demo="{{ 1 if demo_modus else 0 }}">
@@ -1317,6 +1324,57 @@ code { background: var(--ph-inner); border-color: var(--ph-border-2); color: var
     links.forEach(function (a) { a.classList.toggle("actief", a === perId[eerste]); });
   }, { rootMargin: "-10% 0px -70% 0px" });
   Object.keys(perId).forEach(function (id) { var e = document.getElementById(id); if (e) { io.observe(e); } });
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  /* Onderdelen inklapbaar: je ziet de kopjes en tikt open wat je wilt lezen.
+     "Snel aan de slag" staat open; een link naar een onderdeel klapt dat open. */
+  var panelen = Array.prototype.slice.call(document.querySelectorAll(".paneel[id]"))
+    .filter(function (p) { return p.querySelector(":scope > .paneelinhoud") && p.querySelector(":scope > .paneelkop"); });
+  function zet(p, open) {
+    p.classList.toggle("dicht", !open);
+    p.querySelector(":scope > .paneelkop").setAttribute("aria-expanded", String(open));
+  }
+  panelen.forEach(function (p) {
+    var kop = p.querySelector(":scope > .paneelkop");
+    kop.setAttribute("role", "button");
+    kop.setAttribute("tabindex", "0");
+    kop.insertAdjacentHTML("beforeend", '<svg class="ph-pijl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg>');
+    zet(p, p.id === "start");
+    kop.addEventListener("click", function () { zet(p, p.classList.contains("dicht")); });
+    kop.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); zet(p, p.classList.contains("dicht")); }
+    });
+  });
+  function openVoor(hash) {
+    if (!hash || hash.length < 2) { return; }
+    var doel = document.getElementById(hash.slice(1));
+    var p = doel && (doel.matches(".paneel[id]") ? doel : doel.closest(".paneel[id]"));
+    if (p && p.classList.contains("dicht")) { zet(p, true); }
+  }
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="#"]');
+    if (a) { openVoor(a.getAttribute("href")); }
+  });
+  openVoor(location.hash);
+  if (location.hash) { var d = document.getElementById(location.hash.slice(1)); if (d) { d.scrollIntoView(); } }
+
+  // knop om alles in één keer open of dicht te klappen (handig om te zoeken)
+  var inhoud = document.getElementById("inhoud");
+  if (inhoud && panelen.length) {
+    var knop = document.createElement("button");
+    knop.type = "button";
+    knop.className = "ph-allesknop";
+    knop.textContent = "Alles openklappen";
+    knop.addEventListener("click", function () {
+      var openen = panelen.some(function (p) { return p.classList.contains("dicht"); });
+      panelen.forEach(function (p) { zet(p, openen); });
+      knop.textContent = openen ? "Alles dichtklappen" : "Alles openklappen";
+    });
+    inhoud.appendChild(knop);
+  }
 })();
 </script>
 <script src="/static/ph.js?v=1"></script>

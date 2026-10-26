@@ -5630,7 +5630,8 @@ def _oogst_trades():
     een omzetting, geen nieuwe winst."""
     if trades_tabel is None:
         return []
-    return [t for t in trades_tabel.all() if t.get("kant") == "verkoop" and not is_geen_oogst(t.get("bron"))]
+    return [t for t in trades_tabel.all()
+            if t.get("kant") == "verkoop" and not is_geen_oogst(t.get("bron")) and t.get("bron") != "verwijderd"]
 
 
 def _periode_start(bereik, nu):
@@ -5669,7 +5670,11 @@ def bereken_rendement(bereik):
 
     alle_trades = trades_tabel.all() if trades_tabel is not None else []
     alle_trades_periode = [t for t in alle_trades if in_periode(t)]
-    oogsten = [t for t in alle_trades_periode if t.get("kant") == "verkoop" and not is_geen_oogst(t.get("bron"))]
+    # Munt verwijderen is geen oogst: daar staat opbrengst min budget (vaak een
+    # min-bedrag). Dat tellen we apart, anders klopt "Totaal geoogst" niet.
+    oogsten = [t for t in alle_trades_periode
+               if t.get("kant") == "verkoop" and not is_geen_oogst(t.get("bron")) and t.get("bron") != "verwijderd"]
+    verwijderd = [t for t in alle_trades_periode if t.get("kant") == "verkoop" and t.get("bron") == "verwijderd"]
     btc_aankopen = [t for t in alle_trades_periode if is_reserve_bron(t.get("bron"))]
 
     totaal_winst = round(sum(t.get("bedrag", 0.0) for t in oogsten), 2)
@@ -5726,6 +5731,8 @@ def bereken_rendement(bereik):
     return {
         "bereik": bereik,
         "totaal_winst": totaal_winst,
+        "resultaat_verwijderd": round(sum(t.get("bedrag", 0.0) for t in verwijderd), 2),
+        "aantal_verwijderd": len(verwijderd),
         "aantal_oogsten": aantal,
         "gemiddelde": gemiddelde,
         "totaal_fees": totaal_fees,

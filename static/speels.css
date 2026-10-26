@@ -264,3 +264,25 @@ table.orders tbody tr:hover td { background: var(--ph-inner); }
   #sorteer { padding: 3px !important; }
   #sorteer button { min-height: 32px !important; padding: 4px 6px !important; font-size: 0.82rem !important; }
 }
+
+/* ---------------- telefoon: Potten compact, Rendement met titel ---------------- */
+@media (max-width: 899px) {
+  /* kop met knoppenbalk (Rendement): titel en vergrootglas boven, knoppen eronder */
+  .kop:has(.tabs) { flex-wrap: wrap !important; row-gap: 10px; }
+  .kop .ph-zoekknop { order: 2; }
+  .kop .tabs { order: 3; flex: 1 1 100% !important; margin: 0 !important; }
+  /* kop met cijfers (Activiteit): de cijfers op een eigen regel onder de titel */
+  .kop:has(.ph-kopcijfers) { flex-wrap: wrap !important; row-gap: 10px; }
+  .kop .ph-kopcijfers { order: 3; flex: 1 1 100% !important; }
+
+  /* Potten: drie kleine tegels naast elkaar */
+  .strategiekaarten { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 12px !important; }
+  .strategiekaart { padding: 11px 11px 10px !important; border-radius: 18px; }
+  .strategiekaart .sk-naam { font-size: 0.66rem !important; letter-spacing: .04em !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .strategiekaart .sk-waarde { font-size: 1rem !important; margin: 4px 0 2px !important; white-space: nowrap; }
+  .strategiekaart .sk-sub { font-size: 0.68rem !important; }
+  .strategiekaart .sk-munten { display: none !important; }
+  /* het totaal van pot en dalpot staat al in de tegels: alleen de cash blijft over */
+  .potcijfers > div:first-child { display: none; }
+  .potcijfers { padding: 8px 14px 10px !important; }
+}
