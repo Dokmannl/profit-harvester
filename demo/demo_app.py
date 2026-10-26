@@ -130,16 +130,45 @@ def beheren():
 _demo_status = {"actief": True, "gestart": __import__("time").time() - 3 * 86400 - 14 * 3600}
 
 
+_publiek = {"client": None}
+
+
 @app.route("/api/munt-check")
 def api_munt_check():
-    """Demo: vaste voorbeelden in plaats van een echte vraag aan Bitvavo."""
-    q = (request.args.get("q") or "").strip().lower()
-    voorbeelden = [
-        {"code": "BTC", "naam": "Bitcoin", "handelbaar": True, "markt": True, "status": "trading", "koers": 62500.0,
-         "verandering_24u": 1.8, "volume_24u_eur": 48200000.0, "min_order_eur": 5.0, "in": ["reserve"]},
-    ]
-    gevonden = [m for m in voorbeelden if q and (m["code"].lower().startswith(q) or q in m["naam"].lower())]
-    return jsonify({"vraag": q, "munten": gevonden})
+    """Demo: zoekt echt bij Bitvavo, maar alleen in openbare gegevens (geen sleutels, geen orders)."""
+    q = (request.args.get("q") or "").strip()
+    if not q or len(q) > 30:
+        return jsonify({"fout": "Vul een muntcode of naam in, bijvoorbeeld BTC of Bitcoin."}), 400
+    try:
+        import ccxt
+        if _publiek["client"] is None:
+            c = ccxt.bitvavo({"enableRateLimit": True}); c.load_markets(); _publiek["client"] = c
+        c = _publiek["client"]
+        qo, ql = q.upper(), q.lower()
+        def score(code, info):
+            naam = str(info.get("name") or "").lower()
+            if code == qo: return 0
+            if naam == ql: return 1
+            if code.startswith(qo) or naam.startswith(ql): return 2
+            if ql in naam: return 3
+            return None
+        treffers = sorted((s2, code) for code, info in (c.currencies or {}).items() for s2 in [score(code, info)] if s2 is not None)[:6]
+        tick = c.fetch_tickers([f"{code}/EUR" for _, code in treffers if f"{code}/EUR" in c.markets]) if treffers else {}
+        demo_lijsten = {"hoofdlijst": [p["coin"] for p in posities], "reserve": list(portfolio["reserve_verdeling"])}
+        uit = []
+        for _, code in treffers:
+            m = c.markets.get(f"{code}/EUR") or {}
+            status = (m.get("info") or {}).get("status")
+            t = tick.get(f"{code}/EUR") or {}
+            uit.append({"code": code, "naam": c.currencies[code].get("name") or code,
+                        "handelbaar": bool(m) and bool(m.get("active")) and status in (None, "trading"),
+                        "markt": bool(m), "status": status, "koers": t.get("last"),
+                        "verandering_24u": t.get("percentage"), "volume_24u_eur": t.get("quoteVolume"),
+                        "min_order_eur": ((m.get("limits") or {}).get("cost") or {}).get("min"),
+                        "in": [n for n, l in demo_lijsten.items() if code in l]})
+        return jsonify({"vraag": q, "munten": uit})
+    except Exception:
+        return jsonify({"fout": "Bitvavo is nu niet bereikbaar. Probeer het zo nog eens."}), 502
 
 
 @app.route("/api/status")
