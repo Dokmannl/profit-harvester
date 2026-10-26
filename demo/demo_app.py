@@ -71,6 +71,9 @@ pot = {
     "totaal": 245.18,
     "gestort": 250.0,
     "noodstop": False,
+    "bijkopen": False,
+    "min_order": 25.0,
+    "dagruimte": 100.0,
     "posities": [
         {"coin": "AVAX", "icoon": "", "koers": 9.26, "waarde": 96.52, "budget": 100.0,
          "ingelegd": 100.0, "geoogst": 7.42, "winst": -3.48, "rendement": -3.48,
@@ -107,7 +110,7 @@ def dashboard():
     return render_template("index.html", portfolio=portfolio, posities=posities, pot=pot, dalpot=dalpot)
 
 
-pot_instellingen = {"max_munten": 2, "budget_per_munt": 100.0, "winstdoel_eur": 5.50, "trailing_pct": 1.0}
+pot_instellingen = {"max_munten": 2, "budget_per_munt": 100.0, "winstdoel_eur": 5.50, "trailing_pct": 1.0, "bijkopen": False}
 dalpot_instellingen = {"max_munten": 3, "budget_per_munt": 100.0, "winstdoel_eur": 10.0, "trailing_pct": 1.0}
 
 

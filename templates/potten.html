@@ -603,10 +603,21 @@ html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,
       '</div>';
   }
 
+  // Eerlijke statusregel: houdt ook rekening met de pot-cash, het dagmaximum,
+  // de noodstop en of bijkopen aan staat.
   function potKoopStatusTekst(p) {
+    var pot = (laatste && laatste.pot) || {};
+    var heeft = (p.waarde || 0) >= 5;
+    var min = pot.min_order || 25;
+    if (pot.noodstop) { return "Noodstop: de pot koopt niets, alleen verkopen"; }
+    if (heeft && pot.bijkopen === false) { return "Wordt niet bijgekocht: wacht tot hij met winst verkocht wordt"; }
     if (p.op_slot) { return "Inlegplafond bereikt, geen aankopen meer"; }
-    if (p.kan_kopen_om) { return "Kan weer bijkopen om " + p.kan_kopen_om; }
-    return "Kan nu bijkopen als er een dip is";
+    if ((pot.cash || 0) < min - 1) {
+      return "Te weinig geld in de pot om te kopen (" + geld.format(pot.cash || 0) + ", minimaal " + geld.format(min) + ")";
+    }
+    if (pot.dagruimte !== undefined && pot.dagruimte < min) { return "Dagmaximum bereikt, morgen weer"; }
+    if (p.kan_kopen_om) { return "Kan weer kopen om " + p.kan_kopen_om; }
+    return heeft ? "Kan nu bijkopen als er een dip is" : "Wordt gekocht zodra de koers het toelaat";
   }
 
   function potRijHtml(p) {

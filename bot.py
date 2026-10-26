@@ -2105,6 +2105,14 @@ def check_pot_kopen():
             return
 
         kandidaten, _ = _bepaal_aanvul_kandidaten(pot_coins, config, state, balans, tickers)
+        if not gs.get("pot_bijkopen", STANDAARD_POT_BIJKOPEN):
+            # Bijkopen staat uit: alleen de eerste aankoop van een munt die de
+            # pot nog niet heeft. Een munt die er al in zit, blijft staan tot
+            # hij met winst verkocht wordt; daarna kiest de pot een nieuwe.
+            kandidaten = [
+                k for k in kandidaten
+                if balans["total"].get(k["munt"], 0.0) * (koers_van(tickers, k["market"]) or 0.0) < MIN_ORDER_EUR
+            ]
         if not kandidaten:
             return
 
@@ -2255,12 +2263,19 @@ def verzamel_pot():
 
     posities.sort(key=lambda x: -x["waarde"])
     pot_cash = state.get("pot_cash_eur", 0.0)
+    gs = config.get("global_settings", {})
+    min_order = float(gs.get("pot_min_order_eur", STANDAARD_POT_MIN_ORDER_EUR))
+    max_per_dag = float(gs.get("pot_max_per_dag", STANDAARD_POT_MAX_PER_DAG))
+    besteed = state.get("pot_besteed_vandaag", 0.0) if state.get("pot_besteed_datum") == nu_nl().strftime("%Y-%m-%d") else 0.0
     return {
         "cash": pot_cash,
         "belegd": pot_waarde,
         "totaal": pot_cash + pot_waarde,
         "gestort": state.get("pot_gestort", 0.0),
         "noodstop": bool(state.get("pot_noodstop_actief", False)),
+        "bijkopen": bool(gs.get("pot_bijkopen", STANDAARD_POT_BIJKOPEN)),
+        "min_order": min_order,
+        "dagruimte": max(0.0, max_per_dag - besteed),
         "posities": posities,
     }
 
@@ -2336,6 +2351,7 @@ STANDAARD_POT_MIN_VOLUME_EUR = 1_000_000.0   # 24u omzet, tegen dunne/illiquide 
 STANDAARD_POT_ATR_MIN = 3.0                  # dagrange, tegen munten die amper bewegen
 STANDAARD_POT_ATR_MAX = 25.0                 # dagrange, tegen extreem wilde munten
 STANDAARD_POT_WINSTDOEL_EUR = 5.50           # winstdoel per pot-munt in euro's, niet in %
+STANDAARD_POT_BIJKOPEN = True                # False: een pot-munt alleen de eerste keer kopen, daarna niet meer bijkopen
 STANDAARD_POT_TRAILING_PCT = 1.0             # trailing stop voor pot-munten, vast (niet volatiliteit-geschaald)
 
 # Dalpot: omgekeerde pot. Kiest de munt met de grootste 24u-daling, koopt
@@ -3347,6 +3363,23 @@ def wijzig_pot_instellingen(max_munten, budget_per_munt, winstdoel_eur, trailing
         custom_keyboard=POT_KEYBOARD,
     )
     return True, "Pot-instellingen opgeslagen."
+
+
+@met_lock
+def wijzig_pot_bijkopen(aan):
+    """Zet het automatisch bijkopen van pot-munten aan of uit."""
+    config = laad_config()
+    config.setdefault("global_settings", {})["pot_bijkopen"] = bool(aan)
+    bewaar_config(config)
+    send_telegram_message(
+        "🧪 *Pot: bijkopen " + ("aan" if aan else "uit") + "*\n" +
+        ("De pot koopt weer bij als een munt een stuk onder zijn budget zakt."
+         if aan else
+         "Munten die al in de pot zitten, worden niet meer bijgekocht. Ze blijven staan tot ze met winst "
+         "verkocht worden; daarna kiest de pot een nieuwe munt en koopt die één keer."),
+        custom_keyboard=POT_KEYBOARD,
+    )
+    return True, "Bijkopen " + ("aan" if aan else "uit") + "."
 
 
 @met_lock
@@ -4892,6 +4925,7 @@ def beheren():
         "budget_per_munt": gs.get("pot_budget_per_munt", gs.get("pot_min_order_eur", STANDAARD_POT_MIN_ORDER_EUR)),
         "winstdoel_eur": gs.get("pot_winstdoel_eur", STANDAARD_POT_WINSTDOEL_EUR),
         "trailing_pct": gs.get("pot_trailing_pct", STANDAARD_POT_TRAILING_PCT),
+        "bijkopen": bool(gs.get("pot_bijkopen", STANDAARD_POT_BIJKOPEN)),
     }
     dalpot_instellingen = {
         "max_munten": gs.get("dalpot_max_munten", STANDAARD_DALPOT_MAX_MUNTEN),
@@ -5237,6 +5271,15 @@ def beheren_pot_instellingen():
         )
     except Exception as e:
         log_error("beheren_pot_instellingen", e)
+    return redirect(url_for("beheren", verwerkt="1"))
+
+
+@app.route("/beheren/pot-bijkopen", methods=["POST"])
+def beheren_pot_bijkopen():
+    try:
+        wijzig_pot_bijkopen(request.form.get("bijkopen", "aan") == "aan")
+    except Exception as e:
+        log_error("beheren_pot_bijkopen", e)
     return redirect(url_for("beheren", verwerkt="1"))
 
 
