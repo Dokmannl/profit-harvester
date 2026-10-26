@@ -20,7 +20,8 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Zakt de koers **1%** vanaf de top, dan verkoopt hij **alleen de winst**. Je budget blijft belegd.
 - **Vangnet:** zakt de winst tijdens het volgen van de top terug tot €10,50, dan verkoopt hij meteen. Zo is de helft altijd groot genoeg voor je reserve.
 - **Kopen gebeurt nooit vanzelf.** Bij "Munt toevoegen" koopt de bot meteen voor het budget dat jij invult. Met "Alles Aanvullen" koopt hij in lagen bij munten die onder hun budget staan. Hij wacht op een bodem als de koers nog daalt, en legt per munt nooit meer in dan 1,5× het budget.
-- **Munt verwijderen** verkoopt je hele saldo van die munt; de opbrengst wordt vrije cash.
+- **Munt verwijderen** verkoopt je hele saldo van die munt; de opbrengst wordt vrije cash. In het rendement telt dat apart, niet als oogst.
+- **Munt opzoeken:** typ een afkorting of naam (bijvoorbeeld *BTC* of *Bitcoin*) en zie meteen of de munt op Bitvavo te verhandelen is, met koers, 24-uursverandering en volume. Staat hij nog nergens in je bot, dan kun je hem daar direct **toevoegen en kopen**, met een bevestiging vooraf.
 
 ### 💎 Afgeroomd: je reserve, verdeeld over grote munten
 - **50%** van elke oogst gaat direct naar je reserve. Standaard kun je kiezen uit **BTC, ETH, BNB, SOL en XRP**, en je kunt zelf munten toevoegen of weghalen (maximaal 10).
@@ -30,23 +31,24 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Loopt de verdeling scheef (standaard meer dan 10 procentpunt), dan krijg je een **seintje via Telegram**. De bot herbalanceert nooit vanzelf.
 
 ### 🧪 Pot: de bot handelt zelf
-- Een apart potje waarin de bot zelf beweeglijke, goed verhandelde munten kiest, koopt, bijkoopt bij een dip en verkoopt.
-- Met remmen: een maximum per dag, een afkoeltijd per munt, een inlegplafond en een noodstop.
+- Een apart potje waarin de bot zelf beweeglijke, goed verhandelde munten kiest, koopt en met winst weer verkoopt.
+- **Bijkopen bij een dip** kun je aan- of uitzetten. Staat het uit, dan koopt de pot een munt één keer en houdt hij hem vast tot hij met winst verkocht wordt; daarna kiest hij een nieuwe.
+- Met remmen: een maximum per dag, een afkoeltijd per munt, een inlegplafond en een noodstop. Munten die de pot nooit mag kiezen, sluit je uit; de lijst zie je in één oogopslag.
 
 ### 📉 Dalpot: de grootste daler van de dag
 - Nog een apart potje: de bot koopt de munt die de laatste 24 uur het hardst gedaald is, en verkoopt zodra die herstelt.
 - Het risicovolste onderdeel, met een eigen noodstop.
 
 ### 📊 Dashboard en meldingen
-- Webdashboard in een vrolijke **moestuin-stijl**: kaarten voor totale waarde, vrije cash, potten en je afgeroomde winst (met de munt waar de volgende oogst heen gaat), een grafiek met stippen voor elke aankoop en verkoop, posities met een plantje dat meegroeit naar het doel, en rendement per periode. Op een laptop met een zijbalk, op je telefoon als app.
+- Webdashboard in een vrolijke **moestuin-stijl**: kaarten voor totale waarde, vrije cash, potten en je afgeroomde winst (met de munt waar de volgende oogst heen gaat), een grafiek met stippen voor elke aankoop en verkoop, posities met een plantje dat meegroeit naar het doel, en rendement per periode. Op een laptop met een zijbalk, op je telefoon als app met een **compacte indeling**: alles belangrijks in het eerste scherm.
 - **Status en pauzeknop**: zie of de bot draait, wanneer hij voor het laatst keek en hoe warm je Pi is. Met één knop zet je hem op pauze.
 - **Activiteit** als sorteerbare tabel met filters op koop/verkoop, bron en munt, en export naar CSV.
-- Alles te bedienen vanaf de **Beheren**-pagina, met een sprongbalk, inklapbare blokken en een bevestiging met de bedragen erbij bij elke actie.
+- Alles te bedienen vanaf de **Beheren**-pagina, met **tabbladen** (Hoofdlijst, Pot, Dalpot, Instellingen) en een bevestiging met de bedragen erbij bij elke actie.
 - **Meldingen op de site**: een belletje in het menu met alle berichten van de bot, en een rode stip bij belangrijke.
 - **Licht of donker** thema, per apparaat onthouden.
 - **Telegram**: meldingen bij elke oogst en aankoop, en bediening met knoppen en commando's.
 - **Dagelijks e-mailrapport** met je hele portefeuille.
-- Een uitgebreide **uitlegpagina** in het dashboard, die de instellingen toont zoals ze bij jou staan.
+- Een uitgebreide **uitlegpagina** in het dashboard, met inklapbare onderdelen, die de instellingen toont zoals ze bij jou staan.
 
 ---
 
