@@ -417,6 +417,26 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
   .actie-uitleg { max-width: none; }
   .legenda { padding: 11px 14px; }
 }
+
+/* ---------------- tabbladen ---------------- */
+.ph-tabbalk { display: flex; gap: 4px; padding: 4px; margin: 0 0 14px; border-radius: 999px;
+  background: var(--ph-card); border: 2px solid var(--ph-border); position: sticky; top: 8px; z-index: 20; }
+.ph-tab { flex: 1 1 0; min-width: 0; padding: 10px 8px; border: 0; border-radius: 999px; background: none;
+  color: var(--ph-muted); font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; display: inline-flex;
+  align-items: center; justify-content: center; gap: 7px; }
+.ph-tab::before { content: ""; width: 8px; height: 8px; border-radius: 3px; background: var(--kleur, var(--ph-muted)); }
+.ph-tab.hoofdlijst { --kleur: var(--ph-accent); } .ph-tab.pot { --kleur: var(--ph-blue); }
+.ph-tab.dalpot { --kleur: var(--ph-red); } .ph-tab.instellingen { --kleur: var(--ph-dim); }
+.ph-tab[aria-selected="true"] { background: var(--ph-accent); color: #1E1405; }
+.ph-tab[aria-selected="true"]::before { background: #1E1405; }
+.ph-tab:focus-visible { outline: 3px solid var(--ph-accent); outline-offset: 2px; }
+.ph-tabpanelen { max-width: 860px; }
+.ph-tabblad > .paneel, .ph-instellingen > .paneel { margin-bottom: 14px; }
+.ph-tabblad .paneelkop { cursor: default; }
+@media (max-width: 899px) {
+  .ph-tabbalk { top: 6px; }
+  .ph-tab { padding: 9px 4px; font-size: 0.86rem; gap: 5px; }
+}
 </style>
 </head>
 <body data-demo="{{ 1 if demo_modus else 0 }}">
@@ -426,11 +446,12 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
     <div class="merk"><div><span class="ph-sub">Elke actie vraagt eerst om bevestiging</span><h1>Beheren</h1></div></div>
   </div>
 
-  <nav class="sprongbalk" aria-label="Spring naar een onderdeel">
-    <a class="sprong hoofdlijst" href="#sec-hoofdlijst" data-doel="sec-hoofdlijst">Hoofdlijst</a>
-    <a class="sprong pot" href="#sec-pot" data-doel="sec-pot">Pot</a>
-    <a class="sprong dalpot" href="#sec-dalpot" data-doel="sec-dalpot">Dalpot</a>
-  </nav>
+  <div class="ph-tabbalk" role="tablist" aria-label="Onderdeel kiezen">
+    <button type="button" role="tab" class="ph-tab hoofdlijst" id="knop-hoofdlijst" aria-controls="tab-hoofdlijst" aria-selected="true">Hoofdlijst</button>
+    <button type="button" role="tab" class="ph-tab pot" id="knop-pot" aria-controls="tab-pot" aria-selected="false" tabindex="-1">Pot</button>
+    <button type="button" role="tab" class="ph-tab dalpot" id="knop-dalpot" aria-controls="tab-dalpot" aria-selected="false" tabindex="-1">Dalpot</button>
+    <button type="button" role="tab" class="ph-tab instellingen" id="knop-instellingen" aria-controls="tab-instellingen" aria-selected="false" tabindex="-1">Instellingen</button>
+  </div>
 
   <div class="banner" id="banner" {% if not verwerkt %}hidden{% endif %}>
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.5 2.5 5-5.6"/></svg>Verwerkt — bekijk Telegram voor het resultaat.
@@ -448,9 +469,9 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
     <span><span class="tag verkoopt">verkoopt</span>verkoopt echt</span>
   </div>
 
-  <div class="paneelgrid">
-  <div class="kolom">
-  <div class="paneel tema-hoofdlijst" id="sec-hoofdlijst" data-sectie="hoofdlijst">
+  <div class="ph-tabpanelen">
+  <section class="ph-tabblad" id="tab-hoofdlijst" role="tabpanel" aria-labelledby="knop-hoofdlijst">
+<div class="paneel tema-hoofdlijst" id="sec-hoofdlijst" data-sectie="hoofdlijst">
     <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>Hoofdlijst</div>
 
     <div class="groepkop">Handelen</div>
@@ -532,132 +553,10 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       {% endif %}
     </div>
 
-    <div class="groepkop">Instellingen</div>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Afgeroomde winst</div>
-        <div class="actie-uitleg">De helft van elke afgeroomde winst gaat naar de reserve: BTC, ETH, BNB, SOL en XRP.
-          De verdeling en het herbalanceren regel je op de Afgeroomd-pagina. De volgende oogst gaat naar <b>{{ reserve_munt }}</b>.</div>
-      </div>
-      <div class="actie-form"><a class="plat ph-btn" href="/afgeroomd" style="text-decoration:none;">Naar Afgeroomd &rsaquo;</a></div>
-    </div>
-  </div>
-
-  <div class="paneel tema-dalpot" id="sec-dalpot" data-sectie="dalpot">
-    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot</div>
-
-    <div class="groepkop">Geld</div>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Dalpot Storten <span class="tag boeking">boeking</span></div>
-        <div class="actie-uitleg">Boekt vrije cash toe aan de dalpot, zonder dat er iets op Bitvavo verandert.</div>
-      </div>
-      <form class="actie-form" method="post" action="/beheren/dalpot-storten"
-            data-bevestig-fields="bedrag" data-bevestig-template="€{} storten in de dalpot?">
-        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
-        <button type="submit" class="hoofd">Storten</button>
-      </form>
-    </div>
-
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Dalpot Opnemen <span class="tag boeking">boeking</span></div>
-        <div class="actie-uitleg">Haalt niet-belegde dalpot-cash terug naar je vrije cash.</div>
-      </div>
-      <form class="actie-form" method="post" action="/beheren/dalpot-opnemen"
-            data-bevestig-fields="bedrag" data-bevestig-template="€{} uit de dalpot opnemen?">
-        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
-        <button type="submit">Opnemen</button>
-      </form>
-    </div>
-
-    <div class="groepkop">Munten</div>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Dalpot Munt Toevoegen <span class="tag koopt">koopt</span></div>
-        <div class="actie-uitleg">Voeg zelf een munt toe aan de dalpot, in plaats van de bot te laten kiezen.</div>
-      </div>
-      <form class="actie-form" method="post" action="/beheren/dalpot-munt-toevoegen"
-            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de dalpot met budget €{}?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld XRP" autocomplete="off" required>
-        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
-        <button type="submit">Toevoegen</button>
-      </form>
-    </div>
-
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Dalpot Munt Verwijderen <span class="tag verkoopt">verkoopt</span></div>
-        <div class="actie-uitleg">Verkoopt deze dalpot-munt volledig en zet de opbrengst terug in dalpot-cash.</div>
-      </div>
-      {% if dalpot_munten %}
-      <form class="actie-form" method="post" action="/beheren/dalpot-munt-verwijderen" data-bevestig-template="{} verwijderen uit de dalpot? Wordt volledig verkocht, de opbrengst blijft in de dalpot-cash.">
-        <select name="munt">
-          {% for m in dalpot_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
-        </select>
-        <button type="submit" class="gevaar">Verwijderen</button>
-      </form>
-      {% else %}
-      <div class="geenmunten">Geen dalpot-munten.</div>
-      {% endif %}
-    </div>
-
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Dalpot Nu Laten Kiezen <span class="tag koopt">koopt</span></div>
-        <div class="actie-uitleg">Meteen proberen de grootste 24u-daler te kiezen, niet wachten op het uur.</div>
-      </div>
-      <form class="actie-form" method="post" action="/beheren/dalpot-kies-nu"
-            data-bevestig="De dalpot meteen laten proberen een nieuwe munt te kiezen (als er ruimte en cash is)?">
-        <button type="submit" class="hoofd">Kies nu</button>
-      </form>
-    </div>
-
-    <div class="groepkop">Instellingen</div>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Dalpot Munt Uitsluiten <span class="tag boeking">boeking</span></div>
-        <div class="actie-uitleg">De dalpot mag deze munt nooit meer zelf kiezen (nogmaals typen heft het weer op).</div>
-      </div>
-      <form class="actie-form" method="post" action="/beheren/dalpot-munt-uitsluiten"
-            data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de dalpot (of weer toestaan als al uitgesloten)?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld BTC" autocomplete="off" required>
-        <button type="submit">Uitsluiten</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="paneel tema-dalpot" id="sec-dalpot-instellingen" data-sectie="dalpot" data-standaard-ingeklapt>
-    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot-instellingen</div>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Algemene instellingen</div>
-        <div class="actie-uitleg">Geldt voor nieuw gekozen munten. Bestaande dalpot-munten pas je apart aan.</div>
-      </div>
-    </div>
-    <form class="actie-form" method="post" action="/beheren/dalpot-instellingen"
-          data-bevestig-fields="max_munten,budget_per_munt,winstdoel_eur,trailing_pct"
-          data-bevestig-template="Dalpot-instellingen opslaan: max {} munten, €{} budget per nieuwe munt, €{} winstdoel, {}% trailing?"
-          style="padding:0 18px 18px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
-      <label style="font-size:0.78rem; color:var(--dimmer);">Max. munten<br>
-        <input type="number" name="max_munten" value="{{ dalpot_instellingen.max_munten }}" min="1" max="10" step="1" required>
-      </label>
-      <label style="font-size:0.78rem; color:var(--dimmer);">Budget per nieuwe munt (€)<br>
-        <input type="number" name="budget_per_munt" value="{{ dalpot_instellingen.budget_per_munt }}" min="5" step="0.01" required>
-      </label>
-      <label style="font-size:0.78rem; color:var(--dimmer);">Winstdoel (€)<br>
-        <input type="number" name="winstdoel_eur" value="{{ dalpot_instellingen.winstdoel_eur }}" min="1" step="0.01" required>
-      </label>
-      <label style="font-size:0.78rem; color:var(--dimmer);">Trailing (%)<br>
-        <input type="number" name="trailing_pct" value="{{ dalpot_instellingen.trailing_pct }}" min="0.1" max="10" step="0.1" required>
-      </label>
-      <button type="submit" class="hoofd">Opslaan</button>
-    </form>
-  </div>
-  </div>
-
-  <div class="kolom">
-  <div class="paneel tema-pot" id="sec-pot" data-sectie="pot">
+</div>
+  </section>
+  <section class="ph-tabblad" id="tab-pot" role="tabpanel" aria-labelledby="knop-pot" hidden>
+<div class="paneel tema-pot" id="sec-pot" data-sectie="pot">
     <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot</div>
 
     <div class="groepkop">Geld</div>
@@ -746,7 +645,85 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </form>
     </div>
 
-    <div class="groepkop">Instellingen</div>
+</div>
+  </section>
+  <section class="ph-tabblad" id="tab-dalpot" role="tabpanel" aria-labelledby="knop-dalpot" hidden>
+<div class="paneel tema-dalpot" id="sec-dalpot" data-sectie="dalpot">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot</div>
+
+    <div class="groepkop">Geld</div>
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Storten <span class="tag boeking">boeking</span></div>
+        <div class="actie-uitleg">Boekt vrije cash toe aan de dalpot, zonder dat er iets op Bitvavo verandert.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-storten"
+            data-bevestig-fields="bedrag" data-bevestig-template="€{} storten in de dalpot?">
+        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <button type="submit" class="hoofd">Storten</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Opnemen <span class="tag boeking">boeking</span></div>
+        <div class="actie-uitleg">Haalt niet-belegde dalpot-cash terug naar je vrije cash.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-opnemen"
+            data-bevestig-fields="bedrag" data-bevestig-template="€{} uit de dalpot opnemen?">
+        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <button type="submit">Opnemen</button>
+      </form>
+    </div>
+
+    <div class="groepkop">Munten</div>
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Munt Toevoegen <span class="tag koopt">koopt</span></div>
+        <div class="actie-uitleg">Voeg zelf een munt toe aan de dalpot, in plaats van de bot te laten kiezen.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-munt-toevoegen"
+            data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de dalpot met budget €{}?">
+        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld XRP" autocomplete="off" required>
+        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <button type="submit">Toevoegen</button>
+      </form>
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Munt Verwijderen <span class="tag verkoopt">verkoopt</span></div>
+        <div class="actie-uitleg">Verkoopt deze dalpot-munt volledig en zet de opbrengst terug in dalpot-cash.</div>
+      </div>
+      {% if dalpot_munten %}
+      <form class="actie-form" method="post" action="/beheren/dalpot-munt-verwijderen" data-bevestig-template="{} verwijderen uit de dalpot? Wordt volledig verkocht, de opbrengst blijft in de dalpot-cash.">
+        <select name="munt">
+          {% for m in dalpot_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="gevaar">Verwijderen</button>
+      </form>
+      {% else %}
+      <div class="geenmunten">Geen dalpot-munten.</div>
+      {% endif %}
+    </div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Nu Laten Kiezen <span class="tag koopt">koopt</span></div>
+        <div class="actie-uitleg">Meteen proberen de grootste 24u-daler te kiezen, niet wachten op het uur.</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-kies-nu"
+            data-bevestig="De dalpot meteen laten proberen een nieuwe munt te kiezen (als er ruimte en cash is)?">
+        <button type="submit" class="hoofd">Kies nu</button>
+      </form>
+    </div>
+
+</div>
+  </section>
+  <section class="ph-tabblad ph-instellingen" id="tab-instellingen" role="tabpanel" aria-labelledby="knop-instellingen" hidden>
+  <div class="paneel tema-pot" id="sec-pot-instellingen">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot</div>
+
     <div class="actierij">
       <div>
         <div class="actie-titel">Munt Uitsluiten <span class="tag boeking">boeking</span></div>
@@ -774,17 +751,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
         <button type="submit" class="hoofd">Opslaan</button>
       </form>
     </div>
-  </div>
-
-  <div class="paneel tema-pot" id="sec-pot-instellingen" data-sectie="pot" data-standaard-ingeklapt>
-    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg>Pot-instellingen</div>
-    <div class="actierij">
-      <div>
-        <div class="actie-titel">Algemene instellingen</div>
-        <div class="actie-uitleg">Geldt voor nieuw gekozen munten. Bestaande pot-munten pas je apart aan via
-          "Pot Munt Budget Ophogen" hierboven.</div>
-      </div>
-    </div>
+      <div class="groepkop">Voor nieuw gekozen munten</div>
     <form class="actie-form" method="post" action="/beheren/pot-instellingen"
           data-bevestig-fields="max_munten,budget_per_munt,winstdoel_eur,trailing_pct"
           data-bevestig-template="Pot-instellingen opslaan: max {} munten, €{} budget per nieuwe munt, €{} winstdoel, {}% trailing?"
@@ -804,7 +771,55 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       <button type="submit" class="hoofd">Opslaan</button>
     </form>
   </div>
+
+  <div class="paneel tema-dalpot" id="sec-dalpot-instellingen">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg>Dalpot</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Dalpot Munt Uitsluiten <span class="tag boeking">boeking</span></div>
+        <div class="actie-uitleg">De dalpot mag deze munt nooit meer zelf kiezen (nogmaals typen heft het weer op).</div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/dalpot-munt-uitsluiten"
+            data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de dalpot (of weer toestaan als al uitgesloten)?">
+        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld BTC" autocomplete="off" required>
+        <button type="submit">Uitsluiten</button>
+      </form>
+    </div>
+      <div class="groepkop">Voor nieuw gekozen munten</div>
+    <form class="actie-form" method="post" action="/beheren/dalpot-instellingen"
+          data-bevestig-fields="max_munten,budget_per_munt,winstdoel_eur,trailing_pct"
+          data-bevestig-template="Dalpot-instellingen opslaan: max {} munten, €{} budget per nieuwe munt, €{} winstdoel, {}% trailing?"
+          style="padding:0 18px 18px; display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;">
+      <label style="font-size:0.78rem; color:var(--dimmer);">Max. munten<br>
+        <input type="number" name="max_munten" value="{{ dalpot_instellingen.max_munten }}" min="1" max="10" step="1" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Budget per nieuwe munt (€)<br>
+        <input type="number" name="budget_per_munt" value="{{ dalpot_instellingen.budget_per_munt }}" min="5" step="0.01" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Winstdoel (€)<br>
+        <input type="number" name="winstdoel_eur" value="{{ dalpot_instellingen.winstdoel_eur }}" min="1" step="0.01" required>
+      </label>
+      <label style="font-size:0.78rem; color:var(--dimmer);">Trailing (%)<br>
+        <input type="number" name="trailing_pct" value="{{ dalpot_instellingen.trailing_pct }}" min="0.1" max="10" step="0.1" required>
+      </label>
+      <button type="submit" class="hoofd">Opslaan</button>
+    </form>
   </div>
+
+  <div class="paneel tema-hoofdlijst" id="sec-afgeroomd-instelling">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg>Afgeroomde winst</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Afgeroomde winst</div>
+        <div class="actie-uitleg">De helft van elke afgeroomde winst gaat naar de reserve: BTC, ETH, BNB, SOL en XRP.
+          De verdeling en het herbalanceren regel je op de Afgeroomd-pagina. De volgende oogst gaat naar <b>{{ reserve_munt }}</b>.</div>
+      </div>
+      <div class="actie-form"><a class="plat ph-btn" href="/afgeroomd" style="text-decoration:none;">Naar Afgeroomd &rsaquo;</a></div>
+    </div>
+    </div>
+  </section>
   </div>
 
   <div class="onderbalk">
@@ -1038,75 +1053,30 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
     }
   });
 
-  // ---- inklapbare blokken: onthouden welke dicht staan ----
-  var OPSLAG = "beheren_ingeklapt";
-  var panelen = Array.prototype.slice.call(document.querySelectorAll(".paneel[id]"));
-
-  function leesOpslag() {
-    try {
-      var s = JSON.parse(localStorage.getItem(OPSLAG));
-      return (s && typeof s === "object") ? s : null;
-    } catch (e) { return null; }
+  // ---- tabbladen: één onderdeel tegelijk, de laatste keuze wordt onthouden ----
+  var TAB_OPSLAG = "beheren_tab";
+  var tabs = Array.prototype.slice.call(document.querySelectorAll(".ph-tab"));
+  function kiesTab(knop, focus) {
+    tabs.forEach(function (t) {
+      var aan = t === knop;
+      t.setAttribute("aria-selected", String(aan));
+      t.tabIndex = aan ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !aan;
+    });
+    if (focus) { knop.focus(); }
+    try { localStorage.setItem(TAB_OPSLAG, knop.id); } catch (e) {}
   }
-  function schrijfOpslag() {
-    var staat = {};
-    panelen.forEach(function (p) { staat[p.id] = p.classList.contains("ingeklapt"); });
-    try { localStorage.setItem(OPSLAG, JSON.stringify(staat)); } catch (e) {}
-  }
-  function zetStaat(paneel, ingeklapt) {
-    paneel.classList.toggle("ingeklapt", ingeklapt);
-    var kop = paneel.querySelector(".paneelkop");
-    if (kop) { kop.setAttribute("aria-expanded", String(!ingeklapt)); }
-  }
-
-  var opgeslagen = leesOpslag();
-  panelen.forEach(function (p) {
-    var kop = p.querySelector(".paneelkop");
-    if (!kop) { return; }
-    kop.setAttribute("role", "button");
-    kop.setAttribute("tabindex", "0");
-    kop.insertAdjacentHTML("beforeend",
-      '<svg class="ic chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6,9 12,15 18,9"/></svg>');
-    var ingeklapt = (opgeslagen && p.id in opgeslagen) ? opgeslagen[p.id] : p.hasAttribute("data-standaard-ingeklapt");
-    zetStaat(p, ingeklapt);
-    function wissel() { zetStaat(p, !p.classList.contains("ingeklapt")); schrijfOpslag(); }
-    kop.addEventListener("click", wissel);
-    kop.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); wissel(); }
+  tabs.forEach(function (t, i) {
+    t.addEventListener("click", function () { kiesTab(t, false); });
+    t.addEventListener("keydown", function (e) {
+      var n = e.key === "ArrowRight" ? 1 : (e.key === "ArrowLeft" ? -1 : 0);
+      if (n) { e.preventDefault(); kiesTab(tabs[(i + n + tabs.length) % tabs.length], true); }
     });
   });
-
-  // ---- sprongbalk: naar een onderdeel springen, het blok openen als het dicht staat ----
-  var chips = Array.prototype.slice.call(document.querySelectorAll(".sprong"));
-  chips.forEach(function (chip) {
-    chip.addEventListener("click", function (e) {
-      e.preventDefault();
-      var doel = document.getElementById(chip.dataset.doel);
-      if (!doel) { return; }
-      if (doel.classList.contains("ingeklapt")) { zetStaat(doel, false); schrijfOpslag(); }
-      doel.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  });
-
-  var hoofdPanelen = ["sec-hoofdlijst", "sec-pot", "sec-dalpot"]
-    .map(function (id) { return document.getElementById(id); })
-    .filter(Boolean);
-  function markeerActief() {
-    var actief = null, hoogste = -Infinity;
-    hoofdPanelen.forEach(function (p) {
-      var top = p.getBoundingClientRect().top;
-      if (top <= 160 && top > hoogste) { actief = p.id; hoogste = top; }
-    });
-    chips.forEach(function (c) { c.classList.toggle("actief", c.dataset.doel === actief); });
-  }
-  var wacht = false;
-  window.addEventListener("scroll", function () {
-    if (wacht) { return; }
-    wacht = true;
-    requestAnimationFrame(function () { wacht = false; markeerActief(); });
-  }, { passive: true });
-  markeerActief();
+  var bewaard = null;
+  try { bewaard = localStorage.getItem(TAB_OPSLAG); } catch (e) {}
+  var startKnop = document.getElementById(bewaard || "") || tabs[0];
+  if (startKnop) { kiesTab(startKnop, false); }
 })();
 </script>
 <!-- meldingen -->
