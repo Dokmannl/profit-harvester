@@ -164,7 +164,7 @@ Met Telegram krijg je een melding bij elke oogst en aankoop, en kun je de bot be
 
 1. Open Telegram en zoek **@BotFather**. Stuur `/newbot` en volg de stappen. Je krijgt een **token** (een lange code met een dubbele punt erin).
 2. Zoek **@userinfobot** en stuur een willekeurig bericht. Je krijgt je **chat-ID** (een getal).
-3. Zoek je nieuwe bot op en stuur hem `/start`. Een Telegram-bot kan je pas berichten sturen nadat jij hem eerst een bericht hebt gestuurd.
+3. Zoek je nieuwe bot op en stuur hem `/start`. Een Telegram-bot kan je pas berichten sturen nadat jij hem eerst een bericht hebt gestuurd. Zodra de bot draait, geeft `/start` (of `/help`) een overzicht van alle knoppen.
 4. Vul beide in `.env` in:
    ```
    TELEGRAM_BOT_TOKEN=123456:ABC...

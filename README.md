@@ -46,7 +46,7 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 - Alles te bedienen vanaf de **Beheren**-pagina, met **tabbladen** (Hoofdlijst, Pot, Dalpot, Instellingen) en een bevestiging met de bedragen erbij bij elke actie.
 - **Meldingen op de site**: een belletje in het menu met alle berichten van de bot, en een rode stip bij belangrijke.
 - **Licht of donker** thema, per apparaat onthouden.
-- **Telegram**: meldingen bij elke oogst en aankoop, en bediening met knoppen en commando's.
+- **Telegram**: meldingen bij elke oogst en aankoop, en bediening met knoppen: live stand, Pot en Dalpot (storten, opnemen, munten beheren), Afgeroomd, **Munt opzoeken** (`/zoek BTC`) en **Pauze / Hervat**. Een bericht dat niet aankomt, wordt opnieuw verstuurd.
 - **Dagelijks e-mailrapport** met je hele portefeuille.
 - Een uitgebreide **uitlegpagina** in het dashboard, met inklapbare onderdelen en een zoekfunctie, die de instellingen toont zoals ze bij jou staan.
 
