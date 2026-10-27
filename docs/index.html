@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <title>Profit Harvester: gratis Bitvavo-bot die alleen je winst oogst</title>
 <meta name="description" content="Gratis, open-source tradingbot voor Bitvavo. Laat je munten staan en verkoopt automatisch alleen de winst. Met dashboard, Telegram, demo-modus en een reserve die je zelf verdeelt over BTC, ETH, BNB, SOL en XRP.">
-<meta name="theme-color" content="#0B0E13">
+<meta name="theme-color" content="#16130F" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#FFF7E8" media="(prefers-color-scheme: light)">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="img/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="img/icon-180.png">
@@ -16,223 +17,277 @@
 <meta property="og:image" content="https://dokmannl.github.io/profit-harvester/img/deelbeeld.png">
 <meta property="og:url" content="https://dokmannl.github.io/profit-harvester/">
 <meta name="twitter:card" content="summary_large_image">
+<script>
+  try { var t = localStorage.getItem("thema"); if (t === "licht" || t === "donker") { document.documentElement.setAttribute("data-thema", t); } } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Moestuin: dezelfde kleuren en letters als het dashboard van de bot. */
 :root {
-  --bg:       #0B0E13;
-  --surface:  #11151B;
-  --surface2: #181D25;
-  --line:     #1C222B;
-  --line2:    #2A323D;
-  --text:     #E6EAF0;
-  --dim:      #8B95A3;
-  --dimmer:   #6B7684;
-  --up:       #3FB950;
-  --down:     #FF7B72;
-  --gold:     #F7931A;
-  --gold2:    #FFA53D;
-  --goldsoft: rgba(247,147,26,.12);
-  --blue:     #58A6FF;
-  --mono:     'JetBrains Mono', ui-monospace, Consolas, monospace;
-  --r:        14px;
-  --shadow:   none;
+  --grond:     #16130F;   /* potgrond: achtergrond */
+  --vak:       #221E18;   /* vlakken */
+  --vak2:      #2C271F;
+  --rand:      #352E25;
+  --rand2:     #4A4033;
+  --tekst:     #F5EFE4;
+  --zacht:     #B9AE9C;
+  --stil:      #8F8574;
+  --zon:       #FF9F1C;   /* accent */
+  --zon-zacht: rgba(255,159,28,.15);
+  --blad:      #7BD389;   /* plus, groei */
+  --blad-zacht: rgba(123,211,137,.15);
+  --bes:       #FF8A80;   /* min, risico */
+  --lucht:     #7CC6FE;
+  --plank:     #8A5A32;   /* hout van de bakken */
+  --plank-licht: #A87444;
+  --op-zon:    #1E1405;   /* tekst op oranje */
+  --kop:       'Fredoka', 'Nunito', system-ui, sans-serif;
+  --romp:      'Nunito', system-ui, -apple-system, sans-serif;
+  --code:      ui-monospace, 'Cascadia Mono', Consolas, monospace;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-thema="donker"]) {
+    --grond:     #FFF7E8;
+    --vak:       #FFFFFF;
+    --vak2:      #FFF1D6;
+    --rand:      #F0E2C6;
+    --rand2:     #E2CFA8;
+    --tekst:     #3A2E1F;
+    --zacht:     #6E5F4B;
+    --stil:      #8A7A63;
+    --zon:       #E07F00;
+    --zon-zacht: rgba(255,159,28,.18);
+    --blad:      #2F9447;
+    --blad-zacht: rgba(47,148,71,.12);
+    --bes:       #D64535;
+    --lucht:     #2C7FC0;
+    --plank:     #B07A47;
+    --plank-licht: #C99460;
+  }
+}
+:root[data-thema="licht"] {
+    --grond:     #FFF7E8;
+    --vak:       #FFFFFF;
+    --vak2:      #FFF1D6;
+    --rand:      #F0E2C6;
+    --rand2:     #E2CFA8;
+    --tekst:     #3A2E1F;
+    --zacht:     #6E5F4B;
+    --stil:      #8A7A63;
+    --zon:       #E07F00;
+    --zon-zacht: rgba(255,159,28,.18);
+    --blad:      #2F9447;
+    --blad-zacht: rgba(47,148,71,.12);
+    --bes:       #D64535;
+    --lucht:     #2C7FC0;
+    --plank:     #B07A47;
+    --plank-licht: #C99460;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body {
-  background: radial-gradient(900px 520px at 85% -5%, rgba(247,147,26,.09) 0%, transparent 60%), var(--bg);
-  color: var(--text);
-  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-  font-size: 16px; line-height: 1.65;
-  -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  background: var(--grond); color: var(--tekst);
+  font-family: var(--romp); font-size: 17px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
 }
-a { color: var(--gold); }
+a { color: var(--zon); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid var(--zon); outline-offset: 3px; border-radius: 8px; }
 img { max-width: 100%; height: auto; display: block; }
-.wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-section { padding: 72px 0; scroll-margin-top: 70px; }
-h1, h2, h3 { letter-spacing: -0.025em; line-height: 1.2; }
-h2 { font-size: clamp(1.6rem, 3.4vw, 2.3rem); font-weight: 700; margin-bottom: 12px; }
-.lead { color: var(--dim); font-size: 1.05rem; max-width: 640px; }
-.kicker { color: var(--gold); font-weight: 600; font-size: 0.75rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; font-family: var(--mono); }
-.mid { text-align: center; }
-.mid .lead { margin: 0 auto; }
+b, strong { font-weight: 800; }
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+section { padding: 80px 0; scroll-margin-top: 72px; }
+h1, h2, h3 { font-family: var(--kop); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.75rem, 3.6vw, 2.5rem); margin-bottom: 14px; max-width: 22ch; }
+h3 { font-size: 1.25rem; }
+.inleiding { color: var(--zacht); font-size: 1.08rem; max-width: 60ch; }
 
 /* ---------- navigatie ---------- */
-.nav {
-  position: sticky; top: 0; z-index: 50;
-  background: rgba(11,14,19,.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
-}
-.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 62px; gap: 16px; }
-.merk { display: flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 700; letter-spacing: -0.02em; }
-.merk svg { width: 32px; height: 32px; filter: drop-shadow(0 4px 10px rgba(247,147,26,.45)); }
-.nav ul { list-style: none; display: flex; gap: 22px; }
-.nav ul a { color: var(--dim); text-decoration: none; font-size: 0.92rem; font-weight: 500; }
-.nav ul a:hover { color: var(--text); }
+.nav { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--grond) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--rand); }
+.nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 64px; gap: 16px; }
+.merk { display: flex; align-items: center; gap: 10px; color: var(--tekst); text-decoration: none; font-family: var(--kop); font-weight: 600; font-size: 1.15rem; }
+.merk svg { width: 34px; height: 34px; }
+.nav ul { list-style: none; display: flex; gap: 24px; }
+.nav ul a { color: var(--zacht); text-decoration: none; font-weight: 700; font-size: 0.95rem; }
+.nav ul a:hover { color: var(--tekst); }
 
 /* ---------- knoppen ---------- */
-.knop {
-  display: inline-flex; align-items: center; gap: 9px;
-  padding: 13px 22px; border-radius: 10px; min-height: 48px;
-  font-weight: 600; font-size: 0.97rem; text-decoration: none;
-  border: 1px solid var(--line); color: var(--text); background: var(--surface2);
-  transition: transform .15s, background .15s, border-color .15s;
-}
-.knop:hover { transform: translateY(-1px); border-color: var(--line2); background: #1f252e; }
-.knop.hoofd { background: var(--gold); border-color: var(--gold); color: #0B0E13; box-shadow: 0 10px 30px -12px rgba(247,147,26,.7); }
-.knop.hoofd:hover { background: var(--gold2); border-color: var(--gold2); }
-.knop svg { width: 18px; height: 18px; }
-.knop.klein { padding: 8px 14px; font-size: 0.85rem; border-radius: 9px; min-height: 40px; }
+.knop { display: inline-flex; align-items: center; gap: 9px; padding: 13px 22px; min-height: 50px; border-radius: 999px;
+  font-family: var(--romp); font-weight: 800; font-size: 1rem; text-decoration: none; color: var(--tekst);
+  background: var(--vak); border: 2px solid var(--rand2); transition: border-color .15s, background .15s; }
+.knop:hover { border-color: var(--zon); }
+.knop.hoofd { background: var(--zon); border-color: var(--zon); color: var(--op-zon); }
+.knop.hoofd:hover { background: #FFB347; border-color: #FFB347; }
+.knop svg { width: 19px; height: 19px; }
+.knop.klein { padding: 7px 15px; min-height: 40px; font-size: 0.9rem; }
+.nav-rechts { display: flex; align-items: center; gap: 8px; }
+.themaknop { cursor: pointer; }
+.themaknop .zon, .themaknop .maan { display: none; }
+.themaknop[data-naar="licht"] .zon, .themaknop[data-naar="donker"] .maan { display: block; }
 
-/* ---------- hero ---------- */
-.hero { padding: 64px 0 40px; background-image: linear-gradient(rgba(127,127,127,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(127,127,127,.05) 1px, transparent 1px); background-size: 48px 48px; }
-.hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 48px; align-items: center; }
-.hero h1 { font-size: clamp(2.2rem, 5.2vw, 3.6rem); font-weight: 700; margin-bottom: 18px; letter-spacing: -0.035em; }
-.hero h1 em { font-style: normal; color: var(--gold); }
-.hero p { color: var(--dim); font-size: 1.12rem; margin-bottom: 26px; max-width: 540px; }
+/* ---------- opening ---------- */
+.opening { padding: 64px 0 72px; }
+.opening .wrap { display: grid; grid-template-columns: 1fr 1.08fr; gap: 56px; align-items: center; }
+.opening h1 { font-size: clamp(2.5rem, 5.6vw, 4.1rem); line-height: 1.04; margin-bottom: 22px; letter-spacing: -0.02em; }
+.opening p { color: var(--zacht); font-size: 1.15rem; margin-bottom: 28px; max-width: 46ch; }
 .knoppen { display: flex; gap: 12px; flex-wrap: wrap; }
-.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 26px; }
-.badge { font-size: 0.76rem; font-weight: 500; color: var(--dim); border: 1px solid var(--line2); background: rgba(17,21,27,.8); padding: 5px 11px; border-radius: 6px; font-family: var(--mono); }
-.badge b { color: var(--up); }
-.telefoon {
-  justify-self: center; width: min(310px, 100%);
-  border-radius: 34px; padding: 10px; background: #05080c;
-  border: 1px solid var(--line2); box-shadow: 0 30px 80px -20px rgba(0,0,0,.9), 0 0 60px -10px rgba(247,147,26,.25);
-  transform: rotate(2deg);
-}
-.telefoon img { border-radius: 26px; width: 100%; height: 600px; object-fit: cover; object-position: top; }
+.feitjes { list-style: none; margin-top: 28px; display: grid; gap: 6px; color: var(--zacht); font-size: 0.97rem; }
+.feitjes li { display: flex; gap: 10px; align-items: baseline; }
+.feitjes li::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50% 0; background: var(--blad); transform: rotate(-45deg) translateY(-1px); }
 
-/* ---------- kaarten ---------- */
-.raster { display: grid; gap: 16px; }
-.raster > * { min-width: 0; }
-.r3 { grid-template-columns: repeat(3, 1fr); }
-.r2 { grid-template-columns: repeat(2, 1fr); }
-.kaart {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
-  padding: 24px; box-shadow: var(--shadow);
-}
-.kaart h3 { font-size: 1.12rem; margin: 12px 0 8px; display: flex; align-items: center; gap: 8px; }
-.kaart p { color: var(--dim); font-size: 0.94rem; }
-.kaart ul { color: var(--dim); font-size: 0.92rem; margin: 10px 0 0 18px; }
-.kaart li { margin: 3px 0; }
-.icoon {
-  width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
-  background: var(--goldsoft); color: var(--gold); border: 1px solid rgba(247,147,26,.25);
-}
-.icoon svg { width: 22px; height: 22px; }
-.icoon.blauw { background: rgba(88,166,255,.12); color: var(--blue); border-color: rgba(88,166,255,.3); }
-.icoon.rood { background: rgba(248,81,73,.1); color: var(--down); border-color: rgba(248,81,73,.3); }
-.icoon.groen { background: rgba(63,185,80,.1); color: var(--up); border-color: rgba(63,185,80,.3); }
-.chip { display: inline-block; font-size: 0.68rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; margin-left: 4px; text-transform: uppercase; letter-spacing: .05em; }
-.chip.laag { color: var(--up); background: rgba(63,185,80,.14); }
-.chip.mid { color: var(--gold); background: var(--goldsoft); }
-.chip.hoog { color: var(--down); background: rgba(248,81,73,.14); }
+/* het oogstplaatje: een bak met grond onderin */
+.bak { position: relative; background: var(--vak); border: 2px solid var(--rand); border-radius: 26px; padding: 18px 18px 0; overflow: hidden; }
+.bak::after { content: ""; display: block; height: 16px; margin: 0 -18px; background: var(--plank);
+  box-shadow: inset 0 3px 0 var(--plank-licht); }
+.oogstplaat { width: 100%; height: auto; display: block; }
+.oogstplaat .l-budget { stroke: var(--stil); }
+.oogstplaat .t-budget { fill: var(--zacht); }
+.oogstplaat .l-doel { stroke: var(--blad); }
+.oogstplaat .t-doel { fill: var(--blad); }
+.oogstplaat .koers { stroke: var(--zon); }
+.oogstplaat .vlak { fill: var(--zon); opacity: .14; }
+.oogstplaat .grond { fill: var(--vak2); }
+.oogstplaat .top { fill: var(--vak); stroke: var(--zon); }
+.oogstplaat .t-sterk { fill: var(--tekst); }
+.oogstplaat .t-zon { fill: var(--zon); }
+.oogstplaat .t-zacht { fill: var(--zacht); }
+.oogstplaat .stip-blad { fill: var(--blad); }
+.oogstplaat .stip-zon { fill: var(--zon); }
+.oogstplaat .stip-rustig { fill: var(--vak2); stroke: var(--stil); }
+.oogstplaat .nr { fill: var(--op-zon); }
+.oogstplaat .nr-licht { fill: var(--tekst); }
 
-/* ---------- hoe werkt oogsten ---------- */
-.oogst { display: grid; grid-template-columns: 1.2fr .8fr; gap: 28px; align-items: center; margin-top: 34px; }
-.oogst svg.diagram { width: 100%; height: auto; }
-.stappen { list-style: none; counter-reset: s; }
-.stappen li { counter-increment: s; position: relative; padding: 0 0 18px 46px; color: var(--dim); font-size: 0.95rem; }
-.stappen li b { color: var(--text); display: block; margin-bottom: 2px; }
-.stappen li::before {
-  content: counter(s); position: absolute; left: 0; top: -2px;
-  width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--surface); color: var(--gold); font-weight: 600; font-size: 0.82rem; border: 1.5px solid var(--gold); font-family: var(--mono);
-}
+/* ---------- één oogst in vier stappen ---------- */
+.stappen { list-style: none; counter-reset: s; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 28px; margin-top: 36px; }
+.stappen li { counter-increment: s; position: relative; padding-top: 52px; color: var(--zacht); }
+.stappen li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center; font-family: var(--kop); font-weight: 600; font-size: 1.1rem;
+  background: var(--zon-zacht); color: var(--zon); border: 2px solid var(--zon); }
+.stappen li:not(:last-child)::after { content: ""; position: absolute; left: 50px; right: -16px; top: 19px; border-top: 2px dotted var(--rand2); }
+.stappen h3 { color: var(--tekst); font-size: 1.12rem; margin-bottom: 6px; }
 
-/* ---------- screenshots ---------- */
-.galerij { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-top: 34px; }
-.galerij figure { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 8px; }
-.galerij img { border-radius: 14px; }
-.galerij figcaption { text-align: center; color: var(--dim); font-size: 0.72rem; font-weight: 600; padding: 10px 0 4px; text-transform: uppercase; letter-spacing: .1em; font-family: var(--mono); }
-.desktopshot { margin-top: 26px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 10px; box-shadow: 0 30px 80px -30px rgba(0,0,0,.9); }
-.desktopshot img { border-radius: 12px; width: 100%; }
+/* ---------- drie vakken in één moestuinbak ---------- */
+.moestuinbak { margin-top: 36px; border: 10px solid var(--plank); border-radius: 22px; background: var(--vak);
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  box-shadow: inset 0 0 0 2px var(--plank-licht), 0 18px 40px -26px rgba(0,0,0,.6); }
+.vakje { padding: 26px 26px 30px; min-width: 0; }
+.vakje + .vakje { border-left: 10px solid var(--plank); }
+.vakje h3 { font-size: 1.45rem; }
+.risico { display: inline-flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.92rem; margin: 4px 0 12px; }
+.risico i { width: 10px; height: 10px; border-radius: 50%; }
+.risico.rustig { color: var(--blad); } .risico.rustig i { background: var(--blad); }
+.risico.actief { color: var(--zon); } .risico.actief i { background: var(--zon); }
+.risico.spannend { color: var(--bes); } .risico.spannend i { background: var(--bes); }
+.vakje p { color: var(--zacht); }
+.vakje ul { margin: 12px 0 0 20px; color: var(--zacht); font-size: 0.97rem; }
+.vakje li { margin: 4px 0; }
+.vakje li::marker { color: var(--blad); }
 
-/* ---------- installatie ---------- */
-.stapkaart { position: relative; }
-.stapnr { font-size: 0.72rem; font-weight: 600; color: var(--gold); letter-spacing: .1em; text-transform: uppercase; font-family: var(--mono); }
-pre {
-  background: #080A0E; border: 1px solid var(--line); border-radius: 10px;
-  padding: 12px 14px; margin-top: 12px; overflow-x: auto;
-  font-family: var(--mono); font-size: 0.8rem; color: #D6DDE6; line-height: 1.6;
-}
-pre .c { color: var(--dimmer); }
-code { font-family: var(--mono); font-size: 0.85em; background: var(--surface2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; color: var(--gold); }
+/* ---------- in de schuur: de rest van de functies ---------- */
+.schuur { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 30px 40px; }
+.schuur div { border-top: 2px solid var(--rand); padding-top: 14px; }
+.schuur h3 { font-size: 1.1rem; margin-bottom: 6px; }
+.schuur p { color: var(--zacht); font-size: 0.97rem; }
 
-/* ---------- demo banner ---------- */
-.demo {
-  display: grid; grid-template-columns: auto 1fr auto; gap: 22px; align-items: center;
-  background: var(--goldsoft);
-  border: 1px solid rgba(247,147,26,.45); border-radius: 16px; padding: 28px;
-}
-.demo h3 { font-size: 1.25rem; margin-bottom: 4px; }
-.demo p { color: var(--dim); }
-.demo .icoon { width: 56px; height: 56px; }
+/* ---------- schermen ---------- */
+.schermen { margin-top: 40px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 16px; }
+.schermen figure { min-width: 0; }
+.schermen img { border-radius: 20px; border: 2px solid var(--rand); }
+.schermen figcaption { text-align: center; color: var(--zacht); font-weight: 700; font-size: 0.92rem; padding-top: 10px; }
+.laptop { margin-top: 28px; border-radius: 20px; border: 2px solid var(--rand); overflow: hidden; }
+.verzonnen { text-align: center; color: var(--stil); font-size: 0.88rem; margin-top: 12px; }
 
-/* ---------- veelgesteld ---------- */
-details {
-  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
-  padding: 16px 20px; margin-bottom: 10px;
-}
-details summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+/* ---------- oefenen ---------- */
+.oefenen { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; padding: 30px 32px; border-radius: 26px;
+  background: var(--blad-zacht); border: 2px dashed var(--blad); }
+.oefenen h2 { font-size: clamp(1.4rem, 2.6vw, 1.8rem); margin-bottom: 6px; max-width: none; }
+.oefenen p { color: var(--zacht); max-width: 62ch; }
+
+/* ---------- veiligheid ---------- */
+.veilig { margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 48px; }
+.veilig div { display: grid; grid-template-columns: 40px 1fr; gap: 0 14px; }
+.veilig svg { grid-row: span 2; width: 40px; height: 40px; padding: 9px; border-radius: 12px; color: var(--blad); background: var(--blad-zacht); }
+.veilig h3 { font-size: 1.12rem; margin-bottom: 4px; }
+.veilig p { color: var(--zacht); font-size: 0.97rem; }
+
+/* ---------- installeren ---------- */
+.installeer { list-style: none; counter-reset: i; margin-top: 32px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.installeer li { counter-increment: i; background: var(--vak); border: 2px solid var(--rand); border-radius: 22px; padding: 22px 24px; min-width: 0; }
+.installeer h3 { display: flex; align-items: center; gap: 12px; font-size: 1.15rem; }
+.installeer h3::before { content: counter(i); flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--zon); color: var(--op-zon); font-size: 1rem; }
+.installeer p { color: var(--zacht); margin-top: 10px; font-size: 0.97rem; }
+pre { margin-top: 14px; padding: 13px 15px; border-radius: 14px; overflow-x: auto; background: var(--grond); border: 1px solid var(--rand);
+  font-family: var(--code); font-size: 0.84rem; line-height: 1.6; color: var(--tekst); }
+pre .c { color: var(--stil); }
+code { font-family: var(--code); font-size: 0.86em; background: var(--vak2); border-radius: 6px; padding: 1px 6px; }
+
+/* ---------- vragen ---------- */
+.vragen { max-width: 780px; margin-top: 26px; }
+details { border-bottom: 2px solid var(--rand); }
+details summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 18px 2px; font-family: var(--kop); font-weight: 600; font-size: 1.15rem; }
 details summary::-webkit-details-marker { display: none; }
-details summary::after { content: "+"; color: var(--gold); font-weight: 600; font-size: 1.2rem; line-height: 1; font-family: var(--mono); }
-details[open] summary::after { content: "–"; }
-details p { color: var(--dim); margin-top: 10px; font-size: 0.95rem; }
+details summary::after { content: ""; flex: none; width: 12px; height: 12px; border-right: 3px solid var(--zon); border-bottom: 3px solid var(--zon);
+  transform: rotate(45deg) translateY(-3px); transition: transform .15s; }
+details[open] summary::after { transform: rotate(-135deg) translateY(-3px); }
+details p { color: var(--zacht); padding: 0 2px 20px; max-width: 64ch; }
 
-/* ---------- doneren ---------- */
+/* ---------- steunen ---------- */
+.adressen { margin-top: 28px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.adressen div { background: var(--vak); border: 2px solid var(--rand); border-radius: 22px; padding: 20px; min-width: 0; }
+.adressen h3 { font-size: 1.12rem; }
 .adres { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
-.adres code { flex: 1; min-width: 0; word-break: break-all; font-size: 0.78rem; padding: 8px 10px; color: var(--text); }
-.adres button {
-  font: inherit; font-size: 0.82rem; font-weight: 600; cursor: pointer; min-height: 40px;
-  color: var(--text); background: var(--surface2); border: 1px solid var(--line); border-radius: 9px; padding: 8px 12px;
-  white-space: nowrap;
-}
-.adres button:hover { border-color: var(--line2); }
+.adres code { flex: 1; min-width: 0; word-break: break-all; font-size: 0.78rem; padding: 8px 10px; }
+.adres button { font: inherit; font-weight: 800; font-size: 0.86rem; cursor: pointer; min-height: 40px; white-space: nowrap;
+  color: var(--tekst); background: var(--vak2); border: 2px solid var(--rand2); border-radius: 999px; padding: 6px 14px; }
+.adres button:hover { border-color: var(--zon); }
+.klein-grijs { color: var(--stil); font-size: 0.9rem; margin-top: 14px; }
 
-/* ---------- disclaimer en voet ---------- */
-.letop {
-  background: rgba(248,81,73,.07); border: 1px solid rgba(248,81,73,.3); border-radius: 14px;
-  padding: 22px 24px; color: var(--dim); font-size: 0.92rem;
-}
-.letop b { color: var(--down); }
-footer { border-top: 1px solid var(--line); padding: 30px 0 40px; color: var(--dimmer); font-size: 0.86rem; }
+/* ---------- let op en voet ---------- */
+.letop { border-left: 6px solid var(--bes); background: var(--vak); border-radius: 0 18px 18px 0; padding: 22px 26px; color: var(--zacht); font-size: 0.95rem; }
+.letop b { color: var(--bes); }
+footer { border-top: 1px solid var(--rand); padding: 30px 0 44px; color: var(--stil); font-size: 0.92rem; }
 footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-footer a { color: var(--dim); }
+footer nav { display: flex; gap: 18px; flex-wrap: wrap; }
+footer a { color: var(--zacht); }
 
-.cijfer { font-family: var(--mono); color: var(--text); }
-.kaart h3 .icoonklein { width: 20px; height: 20px; color: var(--gold); flex-shrink: 0; }
-.r4 { grid-template-columns: repeat(4, 1fr); }
-@media (max-width: 900px) {
-  .r4 { grid-template-columns: 1fr 1fr; }
-  .hero .wrap { grid-template-columns: 1fr; gap: 36px; }
-  .telefoon { transform: none; }
-  .telefoon img { height: 520px; }
-  .r3 { grid-template-columns: 1fr 1fr; }
-  .oogst { grid-template-columns: 1fr; }
-  .galerij { grid-template-columns: 1fr 1fr; }
+@media (max-width: 960px) {
+  .opening .wrap { grid-template-columns: 1fr; gap: 40px; }
+  .stappen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stappen li::after { display: none; }
+  .moestuinbak { grid-template-columns: 1fr; }
+  .vakje + .vakje { border-left: 0; border-top: 10px solid var(--plank); }
+  .schuur { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .schermen { grid-template-columns: repeat(5, 62%); overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 8px; }
+  .schermen figure { scroll-snap-align: start; }
   .nav ul { display: none; }
 }
-@media (max-width: 600px) {
-  section { padding: 54px 0; }
+@media (max-width: 620px) {
+  body { font-size: 16px; }
+  section { padding: 58px 0; }
   .wrap { padding: 0 16px; }
-  .r3, .r2 { grid-template-columns: 1fr; }
-  .demo { grid-template-columns: 1fr; text-align: left; }
+  .opening { padding: 40px 0 48px; }
+  .stappen, .schuur, .veilig, .installeer, .adressen { grid-template-columns: 1fr; }
+  .oefenen { grid-template-columns: 1fr; padding: 24px 22px; }
   .knoppen { flex-direction: column; }
   .knoppen .knop { justify-content: center; }
+  .vakje { padding: 22px 20px 24px; }
   .nav .knop.klein span { display: none; }
+  .nav .knop.klein { padding: 7px 11px; }
 }
 </style>
 </head>
 <body>
 
 <!-- ===================== NAVIGATIE ===================== -->
-<nav class="nav">
+<nav class="nav" aria-label="Hoofdmenu">
   <div class="wrap">
-    <a class="merk" href="#top"><svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#F7931A"/><rect x="9" y="27" width="7.5" height="12" rx="2" fill="#0B0E13"/><rect x="20.25" y="21" width="7.5" height="18" rx="2" fill="#0B0E13"/><rect x="31.5" y="17" width="7.5" height="22" rx="2" fill="#0B0E13"/><path d="M35.25 15C35.25 10 38.5 7 43 7c0 4.5-3.25 8-7.75 8z" fill="#0B0E13"/></svg>Profit Harvester</a>
+    <a class="merk" href="#top"><svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="13" fill="#FF9F1C"/><rect x="9" y="27" width="7.5" height="12" rx="2" fill="#1E1405"/><rect x="20.25" y="21" width="7.5" height="18" rx="2" fill="#1E1405"/><rect x="31.5" y="17" width="7.5" height="22" rx="2" fill="#1E1405"/><path d="M35.25 15C35.25 10 38.5 7 43 7c0 4.5-3.25 8-7.75 8z" fill="#1E1405"/></svg>Profit Harvester</a>
     <ul>
       <li><a href="#hoe">Hoe het werkt</a></li>
       <li><a href="#functies">Functies</a></li>
@@ -240,113 +295,100 @@ footer a { color: var(--dim); }
       <li><a href="#vragen">Vragen</a></li>
       <li><a href="#steun">Steunen</a></li>
     </ul>
+    <div class="nav-rechts">
+    <button type="button" class="knop klein themaknop" id="knopThema" data-naar="licht">
+      <svg class="zon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="maan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+      <span id="themaTekst">Licht</span>
+    </button>
     <a class="knop klein" href="https://github.com/Dokmannl/profit-harvester">
-      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.27 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.25-1.28-5.25-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.7 5.38-5.27 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
       <span>GitHub</span>
     </a>
+    </div>
   </div>
 </nav>
 
-<!-- ===================== HERO ===================== -->
-<header class="hero" id="top">
+<!-- ===================== OPENING ===================== -->
+<header class="opening" id="top">
   <div class="wrap">
     <div>
-      <div class="kicker">Gratis &amp; open source · voor Bitvavo</div>
-      <h1>Laat je munten staan.<br><em>Oogst alleen de winst.</em></h1>
-      <p>Profit Harvester is een tradingbot die 24/7 je Bitvavo-portefeuille bewaakt. Stijgt een munt genoeg,
-        dan verkoopt hij automatisch alleen het deel boven je budget. De helft van die winst gaat naar een
-        spaarpot in Bitcoin of Ethereum.</p>
+      <h1>Laat je munten staan. Oogst alleen de winst.</h1>
+      <p>Profit Harvester is een gratis bot die dag en nacht je munten op Bitvavo in de gaten houdt. Stijgt een munt
+        genoeg, dan verkoopt hij alleen het stuk boven je budget. De helft van die winst gaat naar je reserve in grote
+        munten zoals Bitcoin, Ethereum en Solana; de verdeling kies je zelf.</p>
       <div class="knoppen">
         <a class="knop hoofd" href="https://github.com/Dokmannl/profit-harvester">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
           Gratis downloaden
         </a>
-        <a class="knop" href="#hoe">Hoe werkt het?</a>
+        <a class="knop" href="#hoe">Zo werkt een oogst</a>
       </div>
-      <div class="badges">
-        <span class="badge"><b>€0</b> · geen abonnement</span>
-        <span class="badge">Draait op je eigen Raspberry Pi</span>
-        <span class="badge">Demo-modus met nepgeld</span>
-        <span class="badge">MIT-licentie</span>
-      </div>
+      <ul class="feitjes">
+        <li>Gratis en open source, zonder abonnement</li>
+        <li>Draait op je eigen Raspberry Pi of pc</li>
+        <li>Eerst oefenen kan, met nepgeld en echte koersen</li>
+      </ul>
     </div>
-    <div class="telefoon">
-      <img src="img/dashboard-mobiel.webp" width="600" height="1298" alt="Het dashboard van Profit Harvester op een telefoon, met totale waarde, vrije cash, potten, de afgeroomde reserve en een grafiek">
-    </div>
+
+    <figure class="bak">
+      <svg class="oogstplaat" viewBox="0 20 560 270" role="img" aria-label="Eén oogst: de waarde van een munt stijgt van het budget van €250 tot boven het doel van €11 winst, de bot volgt de top, en bij 1% terugval verkoopt hij alleen de winst. Het budget van €250 blijft staan.">
+        <g font-family="Nunito, system-ui, sans-serif">
+          <rect class="grond" x="0" y="215" width="560" height="80"/>
+          <line class="l-budget" x1="0" y1="215" x2="560" y2="215" stroke-width="2"/>
+          <text class="t-budget" x="20" y="244" font-size="17" font-weight="800">Budget €250</text>
+          <line class="l-doel" x1="20" y1="125" x2="540" y2="125" stroke-dasharray="7 7" stroke-width="2"/>
+          <text class="t-doel" x="540" y="114" font-size="17" font-weight="800" text-anchor="end">doel: €11 winst</text>
+          <path class="vlak" d="M20 210 C 70 206, 100 190, 140 176 S 200 132, 236 125 S 290 72, 318 66 S 348 72, 358 80 L 358 215 L 20 215 Z"/>
+          <path class="koers" d="M20 210 C 70 206, 100 190, 140 176 S 200 132, 236 125 S 290 72, 318 66 S 348 72, 358 80 L 358 215 L 540 215"
+                fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle class="top" cx="318" cy="66" r="7" stroke-width="3.5"/>
+          <text class="t-sterk" x="318" y="46" font-size="16" font-weight="800" text-anchor="middle">top</text>
+          <circle cx="66" cy="207" r="14" class="stip-zon"/>
+          <text class="nr" x="66" y="213" font-size="16" font-weight="800" text-anchor="middle">1</text>
+          <circle cx="236" cy="125" r="14" class="stip-blad"/>
+          <text class="nr" x="236" y="131" font-size="16" font-weight="800" text-anchor="middle">2</text>
+          <circle cx="358" cy="80" r="14" class="stip-zon"/>
+          <text class="nr" x="358" y="86" font-size="16" font-weight="800" text-anchor="middle">3</text>
+          <text class="t-zon" x="378" y="150" font-size="19" font-weight="800">winst verkocht</text>
+          <text class="t-zacht" x="378" y="173" font-size="15" font-weight="700">½ naar je reserve</text>
+          <text class="t-zacht" x="378" y="194" font-size="15" font-weight="700">½ vrije cash</text>
+          <circle cx="388" cy="250" r="14" class="stip-rustig" stroke-width="2"/>
+          <text class="nr-licht" x="388" y="256" font-size="16" font-weight="800" text-anchor="middle">4</text>
+          <text class="t-sterk" x="410" y="256" font-size="16" font-weight="800">€250 blijft staan</text>
+        </g>
+      </svg>
+    </figure>
   </div>
 </header>
 
 <!-- ===================== HOE HET WERKT ===================== -->
-<section id="hoe">
+<section id="hoe" style="padding-top:24px">
   <div class="wrap">
-    <div class="kicker">Hoe het werkt</div>
-    <h2>Anders dan andere bots: je positie blijft staan</h2>
-    <p class="lead">De meeste bots kopen een munt en verkopen hem later helemaal. Profit Harvester laat je budget
-      belegd en roomt steeds opnieuw de winst af. Zo werkt één oogst:</p>
-
-    <div class="oogst">
-      <div class="kaart">
-        <svg class="diagram" viewBox="0 30 560 245" role="img" aria-label="Grafiek: de waarde stijgt van het budget van €250 naar boven het doel van €261, volgt de top, en bij 1% terugval wordt de winst verkocht. Daarna staat de positie weer op €250.">
-          <defs>
-            <linearGradient id="vlak" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" stop-color="#F7931A" stop-opacity=".28"/>
-              <stop offset="1" stop-color="#F7931A" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <g font-family="Space Grotesk, system-ui, sans-serif">
-          <!-- lijnen budget en doel -->
-          <line x1="20" y1="215" x2="540" y2="215" stroke="#8B95A3" stroke-dasharray="6 6" stroke-width="1.5"/>
-          <text x="22" y="242" fill="#8B95A3" font-size="17" font-weight="700">Budget €250</text>
-          <line x1="20" y1="125" x2="540" y2="125" stroke="#3FB950" stroke-dasharray="6 6" stroke-width="1.5"/>
-          <text x="540" y="115" fill="#3FB950" font-size="17" font-weight="700" text-anchor="end">Doel: + €11</text>
-          <!-- koersverloop: stijgt, piek, 1% terug, winst eraf, blijft op budget -->
-          <path d="M20 210 C 70 206, 100 190, 140 176 S 200 132, 236 125 S 290 72, 318 66 S 348 72, 358 80 L 358 215 L 540 215"
-                fill="none" stroke="#F7931A" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M20 210 C 70 206, 100 190, 140 176 S 200 132, 236 125 S 290 72, 318 66 S 348 72, 358 80 L 358 215 L 20 215 Z" fill="url(#vlak)"/>
-          <!-- top -->
-          <circle cx="318" cy="66" r="6" fill="#0B0E13" stroke="#F7931A" stroke-width="3"/>
-          <text x="318" y="46" fill="#E6EAF0" font-size="16" font-weight="700" text-anchor="middle">top</text>
-          <!-- stap 2: doel gehaald -->
-          <circle cx="236" cy="125" r="13" fill="#3FB950"/>
-          <text x="236" y="131" fill="#0B0E13" font-size="16" font-weight="800" text-anchor="middle">2</text>
-          <!-- stap 3: 1% terug, verkoop -->
-          <circle cx="358" cy="80" r="13" fill="#F7931A"/>
-          <text x="358" y="86" fill="#0B0E13" font-size="16" font-weight="800" text-anchor="middle">3</text>
-          <!-- winst eraf -->
-          <line x1="358" y1="96" x2="358" y2="208" stroke="#F7931A" stroke-width="2" stroke-dasharray="3 5"/>
-          <text x="374" y="152" fill="#F7931A" font-size="18" font-weight="800">winst verkocht</text>
-          <text x="374" y="174" fill="#8B95A3" font-size="15" font-weight="600">50% → BTC / ETH</text>
-          <text x="374" y="194" fill="#8B95A3" font-size="15" font-weight="600">50% → vrije cash</text>
-          <!-- stap 4: budget blijft -->
-          <circle cx="387" cy="250" r="13" fill="#1C222B" stroke="#8B95A3" stroke-width="1.5"/>
-          <text x="387" y="256" fill="#E6EAF0" font-size="16" font-weight="800" text-anchor="middle">4</text>
-          <text x="408" y="256" fill="#E6EAF0" font-size="16" font-weight="700">€250 blijft staan</text>
-          </g>
-        </svg>
-      </div>
-      <ol class="stappen">
-        <li><b>Jij kiest munten en een budget</b>Bijvoorbeeld SOL met €250. Heb je de munt al, dan telt je saldo gewoon mee.</li>
-        <li><b>Doel gehaald? Dan volgt de bot de top</b>Staat de munt €11 netto in de winst, dan houdt de bot de hoogste koers bij.</li>
-        <li><b>1% terugval: alleen de winst wordt verkocht</b>Je €250 blijft belegd. De winst gaat voor de helft naar je reserve in grote munten. Zakt de winst onderweg terug tot €10,50, dan verkoopt hij meteen: zo is de helft altijd groot genoeg voor je reserve.</li>
-        <li><b>En dat herhaalt zich</b>Elke keer dat de munt weer stijgt, oogst de bot opnieuw.</li>
-      </ol>
-    </div>
+    <h2>Anders dan andere bots: je munt blijft staan</h2>
+    <p class="inleiding">De meeste bots kopen een munt en verkopen hem later helemaal. Profit Harvester laat je budget
+      belegd en roomt steeds opnieuw de winst af. De nummers horen bij het plaatje hierboven.</p>
+    <ol class="stappen">
+      <li><h3>Je kiest een munt en een budget</h3>Bijvoorbeeld SOL met €250. Heb je de munt al, dan telt je saldo gewoon mee.</li>
+      <li><h3>Doel gehaald: de bot volgt de top</h3>Staat de munt €11 netto in de winst, dan houdt de bot de hoogste koers bij.</li>
+      <li><h3>Bij 1% terugval: alleen de winst eraf</h3>De helft gaat naar je reserve. Zakt de winst onderweg tot €10,50, dan verkoopt hij meteen.</li>
+      <li><h3>Je €250 blijft staan</h3>Stijgt de munt weer, dan oogst de bot opnieuw. Zo gaat het steeds door.</li>
+    </ol>
   </div>
 </section>
 
 <!-- ===================== FUNCTIES ===================== -->
-<section id="functies" style="padding-top:24px">
+<section id="functies">
   <div class="wrap">
-    <div class="kicker">Functies</div>
-    <h2>Drie potjes, één dashboard</h2>
-    <p class="lead">Kies zelf hoeveel risico je neemt. De hoofdlijst is rustig; de pot en dalpot laten de bot zelf
-      handelen met een eigen budget.</p>
+    <h2>Drie bakken in één moestuin</h2>
+    <p class="inleiding">Kies zelf hoeveel risico je neemt. De hoofdlijst is rustig; in de pot en de dalpot handelt de
+      bot zelf, alleen met het geld dat jij erin stort.</p>
 
-    <div class="raster r3" style="margin-top:30px">
-      <div class="kaart">
-        <div class="icoon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M2.5 3h2.4l2.4 12.4a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/></svg></div>
-        <h3>Hoofdlijst <span class="chip laag">rustig</span></h3>
-        <p>Jouw eigen munten. De bot oogst automatisch de winst; <b>kopen gebeurt alleen als jij op de knop drukt</b>.</p>
+    <div class="moestuinbak">
+      <div class="vakje">
+        <h3>Hoofdlijst</h3>
+        <div class="risico rustig"><i></i>rustig</div>
+        <p>Jouw eigen munten. De bot oogst de winst; <b>kopen gebeurt alleen als jij op de knop drukt</b>.</p>
         <ul>
           <li>Munt toevoegen koopt meteen voor je budget</li>
           <li>Munt verwijderen verkoopt hem in één keer</li>
@@ -354,9 +396,9 @@ footer a { color: var(--dim); }
           <li>Nooit meer dan 1,5× je budget per munt</li>
         </ul>
       </div>
-      <div class="kaart">
-        <div class="icoon blauw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v6.3L4.7 18.8A1.6 1.6 0 0 0 6.1 21h11.8a1.6 1.6 0 0 0 1.4-2.2L14 9.3V3"/><line x1="7.6" y1="15" x2="16.4" y2="15"/></svg></div>
-        <h3>Pot <span class="chip mid">actief</span></h3>
+      <div class="vakje">
+        <h3>Pot</h3>
+        <div class="risico actief"><i></i>actief</div>
         <p>Een apart potje waarin de bot <b>zelf</b> beweeglijke, goed verhandelde munten kiest, koopt en verkoopt.</p>
         <ul>
           <li>Kiest op volume en dagbeweging</li>
@@ -364,102 +406,86 @@ footer a { color: var(--dim); }
           <li>Noodstop als de pot te ver zakt</li>
         </ul>
       </div>
-      <div class="kaart">
-        <div class="icoon rood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 9,13 13,9 21,17"/><polyline points="21,11 21,17 15,17"/></svg></div>
-        <h3>Dalpot <span class="chip hoog">risicovol</span></h3>
+      <div class="vakje">
+        <h3>Dalpot</h3>
+        <div class="risico spannend"><i></i>risicovol</div>
         <p>De bot koopt de <b>grootste daler van de dag</b> en verkoopt zodra die herstelt. Voor wie van spanning houdt.</p>
         <ul>
-          <li>Eigen cash, losse instellingen</li>
-          <li>Munt 24 uur niet opnieuw na verkoop</li>
+          <li>Eigen cash en eigen instellingen</li>
+          <li>Een verkochte munt 24 uur niet opnieuw</li>
           <li>Eigen noodstop</li>
         </ul>
       </div>
     </div>
 
-    <div class="raster r3" style="margin-top:16px">
-      <div class="kaart">
-        <div class="icoon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M10 7.7v8.6"/><path d="M10 7.7h2.6a2 2 0 0 1 0 4H10m0 0h2.9a2 2 0 0 1 0 4H10"/></svg></div>
+    <h2 style="margin-top:72px">In de schuur</h2>
+    <p class="inleiding">Alles wat je verder nodig hebt om de tuin bij te houden.</p>
+    <div class="schuur">
+      <div>
         <h3>Afgeroomd: je reserve verdelen</h3>
-        <p>De helft van elke oogst gaat naar je spaarpot in grote munten: BTC, ETH, BNB, SOL, XRP of je eigen keuze.
-          Jij kiest de verdeling in procenten; de bot koopt steeds de munt die het verst achterloopt. Met één knop
-          herbalanceer je, en je ziet per munt je resultaat.</p>
+        <p>De helft van elke oogst gaat naar BTC, ETH, BNB, SOL, XRP of je eigen keuze. Jij kiest de verdeling; de bot
+          vult steeds de munt aan die het verst achterloopt. Met één knop herbalanceer je.</p>
       </div>
-      <div class="kaart">
-        <div class="icoon groen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7Z"/></svg></div>
-        <h3>Telegram &amp; e-mail</h3>
-        <p>Een melding bij elke oogst en aankoop, en knoppen voor je pot, dalpot, afgeroomde winst, munt opzoeken
-          en pauzeren. Elke avond een rapport in je mailbox.</p>
+      <div>
+        <h3>Telegram en e-mail</h3>
+        <p>Een melding bij elke oogst en aankoop, en knoppen voor je pot, dalpot, afgeroomde winst, munt opzoeken en
+          pauzeren. Elke avond een rapport in je mailbox.</p>
       </div>
-      <div class="kaart">
-        <div class="icoon blauw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><line x1="11" y1="18" x2="13" y2="18"/></svg></div>
+      <div>
         <h3>Dashboard als app</h3>
-        <p>Totale waarde, grafiek met je aankopen en verkopen, posities, rendement per periode en een
-          sorteerbaar orderlogboek. Op een laptop met een zijbalk, op je telefoon als app op je beginscherm.</p>
+        <p>Totale waarde, een grafiek met je aan- en verkopen, rendement per periode en een sorteerbaar orderlogboek.
+          Op je telefoon zet je hem als app op je beginscherm.</p>
       </div>
-    </div>
-
-    <div class="raster r3" style="margin-top:16px">
-      <div class="kaart">
-        <div class="icoon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg></div>
-        <h3>Meldingen op de site</h3>
-        <p>Alles wat de bot meldt, staat ook achter het belletje in het menu. Belangrijke berichten krijgen een
-          rode stip, ook als je geen Telegram gebruikt.</p>
-      </div>
-      <div class="kaart">
-        <div class="icoon groen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.5 2.5 5-5.6"/></svg></div>
-        <h3>Eerst zien, dan doen</h3>
-        <p>Elke knop vraagt om bevestiging met de bedragen erbij, en waarschuwt als er iets niet klopt, zoals te
-          weinig cash of geen winst om af te romen.</p>
-      </div>
-      <div class="kaart">
-        <div class="icoon"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6.5" y="5" width="3.6" height="14" rx="1"/><rect x="13.9" y="5" width="3.6" height="14" rx="1"/></svg></div>
-        <h3>Status en pauzeknop</h3>
-        <p>Zie of de bot draait, hoe lang al, wanneer hij voor het laatst keek en hoe warm je Pi is. Met één knop
-          zet je hem op pauze: dan wordt er niets gekocht of verkocht.</p>
-      </div>
-    </div>
-
-    <div class="raster r3" style="margin-top:16px">
-      <div class="kaart">
-        <div class="icoon groen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
-        <h3>Vangnet bij het oogsten</h3>
-        <p>Zakt de winst tijdens het volgen van de top terug tot <span class="cijfer">€10,50</span>, dan verkoopt de bot
-          meteen. Zo kan de helft altijd naar je reserve.</p>
-      </div>
-      <div class="kaart">
-        <div class="icoon blauw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><polyline points="7 10 12 15 17 10"/><path d="M5 20h14"/></svg></div>
-        <h3>Export naar CSV</h3>
-        <p>Download al je orders, met je filters, als bestand voor Excel of je boekhouding.</p>
-      </div>
-      <div class="kaart">
-        <div class="icoon blauw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20.5" y2="20.5"/></svg></div>
+      <div>
         <h3>Munt opzoeken</h3>
-        <p>Typ <b>BTC</b> of <b>Bitcoin</b> en zie meteen of een munt op Bitvavo te verhandelen is, met koers en volume. Met één klik voeg je hem toe aan je hoofdlijst.</p>
+        <p>Typ BTC of Bitcoin en zie meteen of een munt op Bitvavo te verhandelen is, met koers en volume. Met één klik
+          zet je hem in je hoofdlijst.</p>
+      </div>
+      <div>
+        <h3>Eerst zien, dan doen</h3>
+        <p>Elke knop vraagt om bevestiging met de bedragen erbij, en waarschuwt als er iets niet klopt, zoals te weinig
+          cash.</p>
+      </div>
+      <div>
+        <h3>Status en pauzeknop</h3>
+        <p>Zie of de bot draait, wanneer hij voor het laatst keek en hoe warm je Pi is. Met één knop zet je hem op pauze.</p>
+      </div>
+      <div>
+        <h3>Vangnet bij het oogsten</h3>
+        <p>Zakt de winst tijdens het volgen van de top terug tot €10,50, dan verkoopt de bot meteen. Zo kan de helft
+          altijd naar je reserve.</p>
+      </div>
+      <div>
+        <h3>Meldingen op de site</h3>
+        <p>Alles wat de bot meldt, staat ook achter het belletje in het menu, ook zonder Telegram.</p>
+      </div>
+      <div>
+        <h3>Export naar CSV</h3>
+        <p>Download al je orders, met je filters, voor Excel of je boekhouding.</p>
       </div>
     </div>
 
-    <div class="galerij">
-      <figure><img src="img/dashboard-mobiel.webp" width="600" height="1298" loading="lazy" alt="Dashboard"><figcaption>Dashboard</figcaption></figure>
+    <div class="schermen">
+      <figure><img src="img/dashboard-mobiel.webp" width="600" height="1298" loading="lazy" alt="Dashboard op een telefoon, met totale waarde, vrije cash, potten, afgeroomd en een grafiek"><figcaption>Dashboard</figcaption></figure>
       <figure><img src="img/potten-mobiel.webp" width="600" height="1298" loading="lazy" alt="Potten-pagina met het totaal van de potten, de pot en de dalpot"><figcaption>Potten</figcaption></figure>
       <figure><img src="img/rendement-mobiel.webp" width="600" height="1298" loading="lazy" alt="Rendement per week met oogsten per dag"><figcaption>Rendement</figcaption></figure>
       <figure><img src="img/afgeroomd-mobiel.webp" width="600" height="1298" loading="lazy" alt="Afgeroomd-pagina met de verdeling van de reserve, doelen en resultaat per munt"><figcaption>Afgeroomd</figcaption></figure>
       <figure><img src="img/beheren-mobiel.webp" width="600" height="1298" loading="lazy" alt="Beheren-pagina met tabbladen voor hoofdlijst, pot, dalpot en instellingen"><figcaption>Beheren</figcaption></figure>
     </div>
-    <div class="desktopshot">
+    <div class="laptop">
       <img src="img/dashboard-desktop.webp" width="1280" height="830" loading="lazy" alt="Het dashboard op een laptop: zijbalk met menu en status links, kaarten met totale waarde, vrije cash, potten en afgeroomd, en een grafiek met stippen voor kopen en verkopen">
     </div>
-    <p class="mid" style="color:var(--dimmer);font-size:.85rem;margin-top:12px">Alle bedragen op deze afbeeldingen zijn verzonnen.</p>
+    <p class="verzonnen">Alle bedragen op deze afbeeldingen zijn verzonnen.</p>
   </div>
 </section>
 
-<!-- ===================== DEMO ===================== -->
-<section style="padding-top:12px">
+<!-- ===================== OEFENEN ===================== -->
+<section style="padding-top:0">
   <div class="wrap">
-    <div class="demo">
-      <div class="icoon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v5L5 19a1.5 1.5 0 0 0 1.4 2h11.2A1.5 1.5 0 0 0 19 19l-5-11V3"/></svg></div>
+    <div class="oefenen">
       <div>
-        <h3>Eerst oefenen? Start in demo-modus.</h3>
-        <p>Echte koersen van Bitvavo, maar met nepgeld. Geen account en geen API-sleutel nodig. Alles werkt precies
+        <h2>Eerst oefenen? Begin in demo-modus.</h2>
+        <p>Echte koersen van Bitvavo, maar met nepgeld. Je hebt geen account en geen API-sleutel nodig. Alles werkt
           zoals echt, en overstappen is één regel in je instellingen.</p>
       </div>
       <a class="knop hoofd" href="#installeren">Zo begin je</a>
@@ -468,28 +494,31 @@ footer a { color: var(--dim); }
 </section>
 
 <!-- ===================== VEILIGHEID ===================== -->
-<section id="veilig">
+<section id="veilig" style="padding-top:24px">
   <div class="wrap">
-    <div class="kicker">Veiligheid</div>
     <h2>Jouw geld, jouw apparaat, jouw sleutels</h2>
-    <div class="raster r2" style="margin-top:26px">
-      <div class="kaart">
-        <h3><svg class="icoonklein" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg>Sleutels blijven bij jou</h3>
+    <div class="veilig">
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/></svg>
+        <h3>Sleutels blijven bij jou</h3>
         <p>De bot draait op je eigen Raspberry Pi of pc. Je Bitvavo-sleutels staan alleen daar, in je eigen
           instellingenbestand. Er gaat niets naar een server van iemand anders.</p>
       </div>
-      <div class="kaart">
-        <h3><svg class="icoonklein" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>Nooit opnemen</h3>
-        <p>Geef je API-sleutel alleen de rechten <b>Bekijken</b> en <b>Handelen</b>. Zonder het recht
-          <b>Opnemen</b> kan niemand via de bot geld van je account halen.</p>
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>
+        <h3>Nooit opnemen</h3>
+        <p>Geef je API-sleutel alleen de rechten <b>Bekijken</b> en <b>Handelen</b>. Zonder het recht <b>Opnemen</b>
+          kan niemand via de bot geld van je account halen.</p>
       </div>
-      <div class="kaart">
-        <h3><svg class="icoonklein" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Beveiligd dashboard</h3>
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        <h3>Beveiligd dashboard</h3>
         <p>Inloggen met een wachtwoord van minimaal 16 tekens, blokkade na 5 foute pogingen, en de Telegram-bot
           reageert alleen op jouw eigen chat.</p>
       </div>
-      <div class="kaart">
-        <h3><svg class="icoonklein" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 7 4 12l4.5 5M15.5 7 20 12l-4.5 5M13.5 5l-3 14"/></svg>Open source</h3>
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7 4 12l4.5 5M15.5 7 20 12l-4.5 5M13.5 5l-3 14"/></svg>
+        <h3>Open source</h3>
         <p>Alle code staat openbaar op GitHub. Iedereen kan controleren wat de bot doet; er zit niets verborgen in.</p>
       </div>
     </div>
@@ -499,49 +528,42 @@ footer a { color: var(--dim); }
 <!-- ===================== INSTALLEREN ===================== -->
 <section id="installeren">
   <div class="wrap">
-    <div class="kicker">Installeren</div>
     <h2>In vier stappen aan de slag</h2>
-    <p class="lead">Je hebt een Raspberry Pi (of een computer die altijd aan staat) met Docker nodig. De volledige
-      uitleg voor beginners, inclusief Telegram, e-mail en je Bitvavo-sleutel, staat in de
+    <p class="inleiding">Je hebt een Raspberry Pi (of een computer die altijd aan staat) met Docker nodig. De volledige
+      uitleg voor beginners, met Telegram, e-mail en je Bitvavo-sleutel, staat in de
       <a href="https://github.com/Dokmannl/profit-harvester/blob/main/INSTALLATIE.md">installatiehandleiding</a>.</p>
-
-    <div class="raster r2" style="margin-top:28px">
-      <div class="kaart stapkaart">
-        <div class="stapnr">Stap 1</div>
+    <ol class="installeer">
+      <li>
         <h3>Docker installeren</h3>
         <pre>curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER</pre>
-        <p style="margin-top:10px">Log daarna één keer uit en weer in.</p>
-      </div>
-      <div class="kaart stapkaart">
-        <div class="stapnr">Stap 2</div>
+        <p>Log daarna één keer uit en weer in.</p>
+      </li>
+      <li>
         <h3>De bot downloaden</h3>
         <pre>git clone https://github.com/Dokmannl/profit-harvester.git
 cd profit-harvester</pre>
-      </div>
-      <div class="kaart stapkaart">
-        <div class="stapnr">Stap 3</div>
+      </li>
+      <li>
         <h3>Instellingen invullen</h3>
         <pre>cp .env.example .env
 nano .env   <span class="c"># vul minimaal DASHBOARD_TOKEN in</span></pre>
-        <p style="margin-top:10px">De bot staat standaard in <b>demo-modus</b>.</p>
-      </div>
-      <div class="kaart stapkaart">
-        <div class="stapnr">Stap 4</div>
+        <p>De bot staat standaard in <b>demo-modus</b>.</p>
+      </li>
+      <li>
         <h3>Starten</h3>
         <pre>docker compose up -d</pre>
-        <p style="margin-top:10px">Open <code>http://&lt;ip-van-je-pi&gt;:5000</code> en log in.</p>
-      </div>
-    </div>
+        <p>Open <code>http://&lt;ip-van-je-pi&gt;:5000</code> en log in.</p>
+      </li>
+    </ol>
   </div>
 </section>
 
 <!-- ===================== VRAGEN ===================== -->
-<section id="vragen">
-  <div class="wrap" style="max-width:820px">
-    <div class="kicker">Veelgestelde vragen</div>
-    <h2>Vragen</h2>
-    <div style="margin-top:22px">
+<section id="vragen" style="padding-top:24px">
+  <div class="wrap">
+    <h2>Veelgestelde vragen</h2>
+    <div class="vragen">
       <details>
         <summary>Wat kost het?</summary>
         <p>Niets. Profit Harvester is gratis en open source (MIT-licentie). Je betaalt alleen de gewone handelskosten
@@ -583,33 +605,30 @@ nano .env   <span class="c"># vul minimaal DASHBOARD_TOKEN in</span></pre>
 </section>
 
 <!-- ===================== STEUN ===================== -->
-<section id="steun">
+<section id="steun" style="padding-top:24px">
   <div class="wrap">
-    <div class="mid">
-      <div class="kicker">Steun dit project</div>
-      <h2>Heb je er iets aan?</h2>
-      <p class="lead">Profit Harvester is gratis. Een kleine donatie helpt om de bot te blijven verbeteren.</p>
-    </div>
-    <div class="raster r3" style="margin-top:28px">
-      <div class="kaart">
-        <h3 style="margin-top:0">₿ Bitcoin <span class="chip mid">BTC</span></h3>
+    <h2>Heb je er iets aan?</h2>
+    <p class="inleiding">Profit Harvester is gratis. Een kleine donatie helpt om de bot te blijven verbeteren.</p>
+    <div class="adressen">
+      <div>
+        <h3>Bitcoin (BTC)</h3>
         <div class="adres"><code id="a-btc">bc1q0sjsskrmmmtm9zj2vaeady8h37w280xxffve6n</code><button type="button" data-doel="a-btc">Kopieer</button></div>
       </div>
-      <div class="kaart">
-        <h3 style="margin-top:0">Ξ Ethereum <span class="chip mid">ETH</span></h3>
+      <div>
+        <h3>Ethereum (ETH)</h3>
         <div class="adres"><code id="a-eth">0x798483b4749654Fa0C1bffb95F27d7C401955c24</code><button type="button" data-doel="a-eth">Kopieer</button></div>
       </div>
-      <div class="kaart">
-        <h3 style="margin-top:0">◎ Solana <span class="chip mid">SOL</span></h3>
+      <div>
+        <h3>Solana (SOL)</h3>
         <div class="adres"><code id="a-sol">6Qe6o5FMQUUMifxAdzE75SsekYsFX6Bgft3JGPdmGJRT</code><button type="button" data-doel="a-sol">Kopieer</button></div>
       </div>
     </div>
-    <p class="mid" style="color:var(--dimmer);font-size:.85rem;margin-top:14px">Stuur elke munt alleen naar het eigen
-      adres en via het eigen netwerk: BTC via Bitcoin, ETH via Ethereum, SOL via Solana.</p>
+    <p class="klein-grijs">Stuur elke munt alleen naar het eigen adres en via het eigen netwerk: BTC via Bitcoin, ETH via
+      Ethereum, SOL via Solana.</p>
   </div>
 </section>
 
-<!-- ===================== DISCLAIMER ===================== -->
+<!-- ===================== LET OP ===================== -->
 <section style="padding-top:0">
   <div class="wrap">
     <div class="letop">
@@ -623,18 +642,49 @@ nano .env   <span class="c"># vul minimaal DASHBOARD_TOKEN in</span></pre>
 
 <footer>
   <div class="wrap">
-    <div>© 2026 Dokman · <a href="https://github.com/Dokmannl/profit-harvester/blob/main/LICENSE">MIT-licentie</a></div>
-    <div><a href="https://github.com/Dokmannl/profit-harvester">GitHub</a> · <a href="https://github.com/Dokmannl/profit-harvester/blob/main/INSTALLATIE.md">Installatie</a> · <a href="https://github.com/Dokmannl/profit-harvester/issues">Fout melden</a></div>
+    <div>© 2026 Dokman, <a href="https://github.com/Dokmannl/profit-harvester/blob/main/LICENSE">MIT-licentie</a></div>
+    <nav aria-label="Links">
+      <a href="https://github.com/Dokmannl/profit-harvester">GitHub</a>
+      <a href="https://github.com/Dokmannl/profit-harvester/blob/main/INSTALLATIE.md">Installatie</a>
+      <a href="https://github.com/Dokmannl/profit-harvester/issues">Fout melden</a>
+    </nav>
   </div>
 </footer>
 
 <script>
+  // Licht of donker: zonder eigen keuze volgt de site het apparaat; een keuze wordt onthouden.
+  (function () {
+    var knop = document.getElementById("knopThema"), tekst = document.getElementById("themaTekst");
+    var apparaatLicht = window.matchMedia("(prefers-color-scheme: light)");
+    function huidig() {
+      var t = document.documentElement.getAttribute("data-thema");
+      return t || (apparaatLicht.matches ? "licht" : "donker");
+    }
+    function toon() {
+      var naar = huidig() === "licht" ? "donker" : "licht";
+      knop.setAttribute("data-naar", naar);
+      tekst.textContent = naar === "licht" ? "Licht" : "Donker";
+      knop.setAttribute("aria-label", naar === "licht" ? "Wissel naar licht" : "Wissel naar donker");
+      document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
+        m.setAttribute("content", huidig() === "licht" ? "#FFF7E8" : "#16130F");
+      });
+    }
+    knop.addEventListener("click", function () {
+      var nieuw = huidig() === "licht" ? "donker" : "licht";
+      document.documentElement.setAttribute("data-thema", nieuw);
+      try { localStorage.setItem("thema", nieuw); } catch (e) {}
+      toon();
+    });
+    apparaatLicht.addEventListener("change", toon);
+    toon();
+  })();
+
   // Kopieerknoppen bij de donatie-adressen
   document.querySelectorAll(".adres button").forEach(function (knop) {
     knop.addEventListener("click", function () {
       var tekst = document.getElementById(knop.dataset.doel).textContent.trim();
       var klaar = function () {
-        knop.textContent = "Gekopieerd ✓";
+        knop.textContent = "Gekopieerd";
         setTimeout(function () { knop.textContent = "Kopieer"; }, 2000);
       };
       if (navigator.clipboard && window.isSecureContext) {
