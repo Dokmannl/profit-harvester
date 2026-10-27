@@ -17,6 +17,9 @@ Nieuw in V6.0 (ten opzichte van V5.7):
     uitgesloten munten.
   - Rendement telt het verwijderen van een munt niet meer als oogst.
   - Uitlegpagina met inklapbare onderdelen en een zoekfunctie.
+  - Telegram: knoppen voor Dalpot, Afgeroomd, Munt opzoeken en Pauze / Hervat,
+    berichten worden opnieuw verstuurd als het even mislukt, en een kort
+    opstartbericht alleen na meer dan een uur uit.
   - Vangnet bij het oogsten van de hoofdlijst.
 
 V5.7 was een gepatchte versie van V5.5 Pro. Belangrijkste wijzigingen ten opzichte van V5.5:
@@ -1082,7 +1085,9 @@ def bereken_verkoop_aantal(market, bedrag_eur, live_koers):
 
 HOOFD_KEYBOARD = [
     [{"text": "📊 LIVE DASHBOARD"}, {"text": "💼 OVERZICHT"}],
-    [{"text": "🧪 POT"}, {"text": "🛒 HANDELEN"}],
+    [{"text": "🧪 POT"}, {"text": "📉 DALPOT"}],
+    [{"text": "💎 AFGEROOMD"}, {"text": "🔍 MUNT OPZOEKEN"}],
+    [{"text": "🛒 HANDELEN"}, {"text": "⏯️ PAUZE / HERVAT"}],
 ]
 
 TERUG_KEYBOARD = [[{"text": "🔙 Terug naar Menu"}]]
@@ -1260,6 +1265,8 @@ def laagste_recent(market, uren=6):
 
 
 MELDINGEN_FILE = DATA_PREFIX + "bot_meldingen.json"
+LAATSTE_START_FILE = DATA_PREFIX + "bot_laatste_start.txt"
+OPSTART_MELDING_NA = 3600            # seconden: korter uit geweest, dan geen opstartbericht
 MELDINGEN_MAX = 100
 _meldingen_lock = threading.Lock()
 _BELANGRIJK_TEKENS = ("🚨", "⚠️", "❌", "🛑", "‼️")
@@ -1304,6 +1311,9 @@ def noteer_melding(text):
         log_error("noteer_melding", e)
 
 
+TELEGRAM_MAX_LENGTE = 4000           # Telegram weigert berichten boven 4096 tekens
+
+
 def send_telegram_message(text, include_keyboard=False, custom_keyboard=None):
     noteer_melding(text)
     if not TELEGRAM_TOKEN or not TELEGRAM_CHAT_ID:
@@ -1312,24 +1322,46 @@ def send_telegram_message(text, include_keyboard=False, custom_keyboard=None):
     if DEMO_MODUS:
         text = "🧪 [DEMO] " + text
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    if len(text) > TELEGRAM_MAX_LENGTE:
+        text = text[:TELEGRAM_MAX_LENGTE - 20] + "\n\n… (ingekort)"
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": text, "parse_mode": "Markdown"}
 
-    if custom_keyboard:
+    toetsenbord = custom_keyboard or (HOOFD_KEYBOARD if include_keyboard else None)
+    if toetsenbord:
+        # Knoppen blijven staan; anders verdwijnt een submenu na één tik.
         payload["reply_markup"] = {
-            "keyboard": custom_keyboard,
-            "resize_keyboard": True,
-            "one_time_keyboard": True,
-        }
-    elif include_keyboard:
-        payload["reply_markup"] = {
-            "keyboard": HOOFD_KEYBOARD,
+            "keyboard": toetsenbord,
             "resize_keyboard": True,
             "one_time_keyboard": False,
         }
-    try:
-        requests.post(url, json=payload, timeout=10)
-    except Exception as e:
-        log_error("send_telegram_message", e)
+
+    # Een melding over een verkoop of noodstop mag niet stil verloren gaan:
+    # bij een netwerkfout of "te snel" nog één keer proberen, en als Telegram
+    # de opmaak weigert (een los _ of * in de tekst) hetzelfde bericht zonder opmaak.
+    for poging in range(2):
+        try:
+            antwoord = requests.post(url, json=payload, timeout=10)
+        except requests.exceptions.RequestException as e:
+            if poging == 0:
+                time.sleep(3)
+                continue
+            log_error("send_telegram_message", e)
+            return
+        if antwoord.ok:
+            return
+        if antwoord.status_code == 429 and poging == 0:
+            try:
+                wacht = int(antwoord.json().get("parameters", {}).get("retry_after", 3))
+            except Exception:
+                wacht = 3
+            time.sleep(min(max(wacht, 1), 30))
+            continue
+        if antwoord.status_code == 400 and "parse_mode" in payload:
+            payload.pop("parse_mode")
+            payload["text"] = text.replace("*", "").replace("_", "").replace("`", "")
+            continue
+        log_info(f"Telegram weigerde een bericht ({antwoord.status_code}): {antwoord.text[:200]}")
+        return
 
 
 # ---------------------------------------------------------------------------
@@ -4305,12 +4337,13 @@ def cmd_live_dashboard():
             )
 
         btc_waarde = reserve_waarde()
+        pauze = "\n⏸️ _Bot staat op pauze: er wordt niets gekocht of verkocht._\n" if not BOT_ACTIVE else ""
         bericht = (
-            f"🤖 *PROFIT HARVESTER V6.0*\n\n"
+            f"🤖 *PROFIT HARVESTER V6.0*\n{pauze}\n"
             f"💼 *Totale waarde:* {euro(vrij_cash + totaal_belegd + btc_waarde + pot['belegd'] + dalpot['belegd'])}\n"
             f"💰 *Vrije cash:* {euro(handelscash(vrij_cash, state))}\n"
-            f"🪙 *Belegd:* {euro(totaal_belegd)}\n"
-            f"₿ *{reserve_label()}:* {euro(btc_waarde)}\n\n"
+            f"🧪 *Potten:* {euro(pot['totaal'] + dalpot['totaal'])}\n"
+            f"💎 *Afgeroomd:* {euro(btc_waarde)}\n\n"
             f"📊 *LIVE POSITIES PER MUNT*:\n" + ("\n".join(regels) if regels else "_Geen actieve munten._")
         )
         send_telegram_message(bericht, include_keyboard=True)
@@ -4419,6 +4452,135 @@ def cmd_pot_status():
     except Exception as e:
         log_error("cmd_pot_status", e)
         send_telegram_message("🚨 Pot-status ophalen mislukt.", include_keyboard=True)
+
+
+def cmd_dalpot_status():
+    """Stand van de dalpot. Alleen lezen; storten en opnemen gaat via Beheren op de site."""
+    try:
+        dalpot = verzamel_dalpot()
+        regels = []
+        for p in dalpot["posities"]:
+            status = "✅" if p["actief"] else "⏸️"
+            teken = "+" if p["winst"] >= 0 else ""
+            regels.append(f"{status} *{p['coin']}*: {euro(p['waarde'], False)} "
+                          f"({teken}{p['rendement']:.1f}%, budget €{p['budget']:.0f})")
+        noodstop = " 🛑 noodstop actief" if dalpot["noodstop"] else ""
+        bericht = (
+            f"📉 *DALPOT*{noodstop}\n\n"
+            + ("\n".join(regels) if regels else "_Geen munten in de dalpot._") +
+            f"\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n"
+            f"💵 Dalpot cash: {euro(dalpot['cash'])}\n"
+            f"🪙 Dalpot belegd: {euro(dalpot['belegd'])}\n"
+            f"💼 Dalpot totaal: {euro(dalpot['totaal'])}\n\n"
+            f"_De dalpot koopt de grootste daler van de dag en verkoopt zodra die herstelt. "
+            f"Storten of opnemen doe je op de Beheren-pagina._"
+        )
+        send_telegram_message(bericht, include_keyboard=True)
+    except Exception as e:
+        log_error("cmd_dalpot_status", e)
+        send_telegram_message("🚨 Dalpot-status ophalen mislukt.", include_keyboard=True)
+
+
+def cmd_afgeroomd():
+    """Stand van de afgeroomde winst per munt, met doel en de volgende munt."""
+    try:
+        a = verzamel_afgeroomd()
+        regels = []
+        for m in a["munten"]:
+            teken = "+" if m["resultaat"] >= 0 else "−"
+            regels.append(f"• *{m['munt']}*: {euro(m['waarde'], False)} "
+                          f"({m['pct']:.0f}% / doel {m['doel_pct']:.0f}%) {teken}{euro(abs(m['resultaat']), False)}")
+        teken = "+" if a["resultaat"] >= 0 else "−"
+        volgende = f"\n➡️ Volgende afroming gaat naar *{a['volgende']}*" if a.get("volgende") else ""
+        bericht = (
+            f"💎 *AFGEROOMD*\n\n"
+            + ("\n".join(regels) if regels else "_Nog niets afgeroomd._") +
+            f"\n▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔\n"
+            f"💼 Totaal: {euro(a['totaal'])}\n"
+            f"📈 Resultaat: `{teken}{euro(abs(a['resultaat']), False)}`" +
+            f"{volgende}\n\n"
+            f"_{a['reserve_pct']:.0f}% van elke oogst gaat hierheen. Herbalanceren en de doelverdeling "
+            f"regel je op de Afgeroomd-pagina._"
+        )
+        send_telegram_message(bericht, include_keyboard=True)
+    except Exception as e:
+        log_error("cmd_afgeroomd", e)
+        send_telegram_message("🚨 Afgeroomd ophalen mislukt.", include_keyboard=True)
+
+
+def cmd_munt_opzoeken(vraag):
+    """Zoekt een munt op code of naam en zegt of hij op Bitvavo te verhandelen is. Alleen lezen."""
+    q = (vraag or "").strip()
+    if not q or len(q) > 30 or not all(ch.isalnum() or ch in " -." for ch in q):
+        send_telegram_message("⚠️ Typ een muntcode of naam, bijvoorbeeld `BTC` of `Bitcoin`.", include_keyboard=True)
+        return
+    try:
+        munten = zoek_munt(q)
+    except Exception as e:
+        log_error("cmd_munt_opzoeken", e)
+        send_telegram_message("🚨 Bitvavo is nu niet bereikbaar. Probeer het zo nog eens.", include_keyboard=True)
+        return
+    if not munten:
+        send_telegram_message(f"🔍 Geen munt gevonden voor *{q}* op Bitvavo.", include_keyboard=True)
+        return
+    regels = []
+    for m in munten[:4]:
+        if m["handelbaar"]:
+            kop = f"✅ *{m['code']}* ({m['naam']}): te verhandelen"
+        elif m["markt"]:
+            kop = f"⏸️ *{m['code']}* ({m['naam']}): staat op Bitvavo, maar handel is gesloten"
+        else:
+            kop = f"❌ *{m['code']}* ({m['naam']}): geen euromarkt op Bitvavo"
+        details = []
+        if m.get("koers"):
+            details.append(f"koers € {m['koers']:.6g}".replace(".", ","))
+        if m.get("verandering_24u") is not None:
+            details.append(f"24u {m['verandering_24u']:+.1f}%".replace(".", ","))
+        if m.get("volume_24u_eur"):
+            details.append(f"volume € {m['volume_24u_eur']/1000:,.0f}k".replace(",", "."))
+        if m.get("in"):
+            details.append("zit al in: " + ", ".join(m["in"]))
+        regels.append(kop + ("\n    " + " · ".join(details) if details else ""))
+    send_telegram_message(
+        "🔍 *Munt opzoeken*\n\n" + "\n\n".join(regels) +
+        "\n\n_Toevoegen aan je hoofdlijst: Handelen → Munt Toevoegen._",
+        include_keyboard=True,
+    )
+
+
+def _actie_munt_opzoeken():
+    global INSTELLINGEN_MODUS
+    INSTELLINGEN_MODUS = "ZOEK_MUNT"
+    send_telegram_message(
+        "🔍 *Welke munt zoek je?*\n\n_Typ een code of naam, bijvoorbeeld_ `BTC` _of_ `Bitcoin`.",
+        custom_keyboard=TERUG_KEYBOARD,
+    )
+
+
+def _actie_pauze_wissel():
+    """Zet de bot op pauze of weer aan, zoals de pauzeknop op het dashboard."""
+    global BOT_ACTIVE
+    BOT_ACTIVE = not BOT_ACTIVE
+    if BOT_ACTIVE:
+        send_telegram_message("▶️ *Bot hervat.* Kopen en verkopen gaan weer gewoon door.", include_keyboard=True)
+    else:
+        send_telegram_message("⏸️ *Bot gepauzeerd.* Er wordt niets gekocht of verkocht tot je opnieuw op "
+                              "Pauze / Hervat tikt (of de bot herstart).", include_keyboard=True)
+
+
+def cmd_help():
+    send_telegram_message(
+        "ℹ️ *Wat kan ik hier?*\n\n"
+        "📊 *Live dashboard*: totale waarde, cash, potten, afgeroomd en je munten\n"
+        "💼 *Overzicht*: saldo en winst\n"
+        "🧪 *Pot* en 📉 *Dalpot*: wat erin zit en hoeveel cash er is\n"
+        "💎 *Afgeroomd*: je reserve per munt en welke de volgende is\n"
+        "🔍 *Munt opzoeken*: staat een munt op Bitvavo? Ook als `/zoek BTC`\n"
+        "🛒 *Handelen*: aanvullen, afromen en munten beheren\n"
+        "⏯️ *Pauze / Hervat*: alles stilzetten of weer aanzetten\n\n"
+        "_Losse commando's: /status /overzicht /pot /dalpot /afgeroomd /zoek /pauze /mail /menu_",
+        include_keyboard=True,
+    )
 
 
 def cmd_handelen_menu():
@@ -4688,13 +4850,36 @@ MENU_ACTIES = {
     "🔄 pot nu laten kiezen": _actie_pot_kies_nu,
     "pot nu laten kiezen": _actie_pot_kies_nu,
     "/potkiezen": _actie_pot_kies_nu,
+
+    "📉 dalpot": cmd_dalpot_status,
+    "dalpot": cmd_dalpot_status,
+    "/dalpot": cmd_dalpot_status,
+
+    "💎 afgeroomd": cmd_afgeroomd,
+    "afgeroomd": cmd_afgeroomd,
+    "/afgeroomd": cmd_afgeroomd,
+    "/reserve": cmd_afgeroomd,
+
+    "🔍 munt opzoeken": _actie_munt_opzoeken,
+    "munt opzoeken": _actie_munt_opzoeken,
+    "/zoek": _actie_munt_opzoeken,
+
+    "⏯️ pauze / hervat": _actie_pauze_wissel,
+    "pauze / hervat": _actie_pauze_wissel,
+    "/pauze": _actie_pauze_wissel,
+    "/hervat": _actie_pauze_wissel,
+
+    "/help": cmd_help,
+    "/start": cmd_help,
+    "help": cmd_help,
 }
 
 # Acties die zelf een modus zetten, mogen de modus niet direct daarna gewist krijgen.
 MODUS_SETTERS = {_actie_handmatig_afromen, _actie_munt_toevoegen, _actie_munt_verwijderen,
                  _actie_budget_wijzigen,
                  _actie_pot_munt_toevoegen, _actie_pot_munt_verwijderen,
-                 _actie_pot_storten, _actie_pot_opnemen, _actie_pot_munt_uitsluiten}
+                 _actie_pot_storten, _actie_pot_opnemen, _actie_pot_munt_uitsluiten,
+                 _actie_munt_opzoeken}
 
 MODUS_HANDLERS = {
     "MANUAL_HARVEST": voer_handmatige_oogst_uit,
@@ -4706,6 +4891,7 @@ MODUS_HANDLERS = {
     "POT_DEPOSIT": verwerk_pot_storten,
     "POT_WITHDRAW": verwerk_pot_opnemen,
     "POT_EXCLUDE_COIN": verwerk_pot_munt_uitsluiten,
+    "ZOEK_MUNT": cmd_munt_opzoeken,
 }
 
 
@@ -4715,6 +4901,18 @@ def zoek_menu_actie(text):
 
 def verwerk_bericht(text):
     global INSTELLINGEN_MODUS
+
+    # "/zoek BTC" in één bericht: meteen zoeken.
+    if text.lower().startswith("/zoek "):
+        INSTELLINGEN_MODUS = None
+        cmd_munt_opzoeken(text[6:])
+        return
+    # /pauze en /hervat zetten de bot in een vaste stand in plaats van om te wisselen.
+    if text.strip().lower() in ("/pauze", "/hervat") and BOT_ACTIVE == (text.strip().lower() == "/hervat"):
+        INSTELLINGEN_MODUS = None
+        stand = "loopt al" if BOT_ACTIVE else "staat al op pauze"
+        send_telegram_message(f"ℹ️ De bot {stand}.", include_keyboard=True)
+        return
 
     # Stap 1: is het een menuknop? Dan wint die altijd van de invoermodus.
     actie = zoek_menu_actie(text)
@@ -5879,17 +6077,24 @@ def main():
         demo_regel = "🧪 *Demo-modus*: nep-saldo, echte koersen, geen echte orders.\n\n"
         print(f"DEMO-MODUS actief. Nep-saldo in {DemoExchange.SALDO_FILE}, data in demo_*.json")
     print(f"Profit Harvester V6.0 gestart. Dashboard op http://{DASHBOARD_HOST}:{DASHBOARD_PORT}")
-    send_telegram_message(
-        f"🤖 *Profit Harvester V6.0 Live!* 🚀\n\n"
-        f"{demo_regel}"
-        f"🌐 Dashboard: `{DASHBOARD_HOST}:{DASHBOARD_PORT}`\n"
-        f"⏱️ Check interval: `{poll_interval:.0f}s`\n"
-        f"₿ {reserve_label()}: {euro(reserve_waarde())}\n"
-        f"🧪 Pot cash: {euro(laad_state().get('pot_cash_eur', 0.0))}\n\n"
-        f"_Hoofdlijst: verkopen automatisch, kopen alleen op jouw knop.\n"
-        f"Pot: koopt en verkoopt zelf, binnen zijn eigen grenzen._",
-        include_keyboard=True,
-    )
+    # Kort opstartbericht, alleen als de bot een tijd uit is geweest. Bij een
+    # herstart na een aanpassing (binnen een uur) geen bericht: dat werden er
+    # anders tientallen per week.
+    vorige_start = 0.0
+    try:
+        with open(LAATSTE_START_FILE, "r", encoding="utf-8") as f:
+            vorige_start = float(f.read().strip() or 0)
+    except Exception:
+        pass
+    try:
+        with open(LAATSTE_START_FILE, "w", encoding="utf-8") as f:
+            f.write(str(time.time()))
+    except Exception as e:
+        log_error("laatste_start", e)
+    if DEMO_MODUS or time.time() - vorige_start > OPSTART_MELDING_NA:
+        send_telegram_message(f"🤖 *Profit Harvester V6.0 gestart* 🚀\n\n{demo_regel}".rstrip(), include_keyboard=True)
+    else:
+        log_info("Opstartbericht overgeslagen: de bot was minder dan een uur uit.")
 
     # Uit bot_state.json lezen i.p.v. altijd leeg beginnen — anders denkt de
     # bot na elke herstart dat hij nog niet gemaild heeft, en stuurt hij
