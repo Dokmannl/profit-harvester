@@ -10,6 +10,17 @@ Draait 24/7 op een Raspberry Pi of een gewone pc, met een eigen webdashboard (oo
 
 > 🧪 **Eerst oefenen zonder risico:** de bot heeft een demo-modus met echte koersen en nepgeld. Geen Bitvavo-account nodig om te proberen.
 
+<details>
+<summary><b>🇬🇧 In English</b></summary>
+
+Profit Harvester is a free, open-source, self-hosted trading bot for the Dutch exchange **Bitvavo**. Instead of buying a coin and later selling all of it, it keeps your position: you pick coins and a budget per coin, and once a coin is up by a set amount, the bot follows the price up and sells **only the profit above your budget** after a 1% pullback. Half of each harvest goes into a reserve of large coins (BTC, ETH, BNB, SOL, XRP) split the way you choose.
+
+It runs 24/7 in Docker on a Raspberry Pi or any PC, with its own web dashboard (installable as a phone app), Telegram notifications and controls, and a **demo mode** with real prices and fake money. Your API keys never leave your own machine. There is **no stop-loss**: a coin below its budget is held until it recovers.
+
+The bot, dashboard and docs are in Dutch. Try the interactive demo on the [project site](https://dokmannl.github.io/profit-harvester/#kas). Not financial advice; use at your own risk.
+
+</details>
+
 ---
 
 ## Wat doet hij?
