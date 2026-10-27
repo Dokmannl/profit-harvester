@@ -170,6 +170,44 @@ h3 { font-size: 1.25rem; }
 .stappen li:not(:last-child)::after { content: ""; position: absolute; left: 50px; right: -16px; top: 19px; border-top: 2px dotted var(--rand2); }
 .stappen h3 { color: var(--tekst); font-size: 1.12rem; margin-bottom: 6px; }
 
+
+/* ---------- probeer het zelf: de kas ---------- */
+.kas { margin-top: 32px; background: var(--vak); border: 2px solid var(--rand); border-radius: 26px; padding: 24px; }
+.kas-boven { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
+.keuze { border: 0; }
+.keuze legend, .budget label { display: block; font-weight: 800; color: var(--zacht); font-size: 0.92rem; margin-bottom: 8px; }
+.segment { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 4px; border-radius: 999px; background: var(--grond); border: 2px solid var(--rand); }
+.segment input { position: absolute; opacity: 0; pointer-events: none; }
+.segment label { padding: 8px 15px; border-radius: 999px; cursor: pointer; font-weight: 800; font-size: 0.95rem; color: var(--zacht); }
+.segment input:checked + label { background: var(--zon); color: var(--op-zon); }
+.segment input:focus-visible + label { outline: 3px solid var(--zon); outline-offset: 2px; }
+.budget { flex: 1 1 240px; min-width: 220px; max-width: 340px; }
+.budget-rij { display: flex; align-items: center; gap: 14px; }
+.budget input[type=range] { flex: 1; accent-color: var(--zon); }
+.budget output { font-family: var(--kop); font-weight: 600; font-size: 1.3rem; min-width: 4.4ch; text-align: right; }
+.speel { font: inherit; font-weight: 800; font-size: 1rem; cursor: pointer; border: 2px solid var(--zon); border-radius: 999px;
+  padding: 12px 24px; min-height: 50px; background: var(--zon); color: var(--op-zon); }
+.speel:hover { background: #FFB347; border-color: #FFB347; }
+.grafiek { width: 100%; height: auto; display: block; background: var(--grond); border-radius: 18px; }
+.grafiek .rooster { stroke: var(--rand); }
+.grafiek .budgetlijn { stroke: var(--stil); }
+.grafiek .doellijn { stroke: var(--blad); }
+.grafiek .waarde { stroke: var(--zon); }
+.grafiek .label { fill: var(--zacht); font: 700 13px var(--romp); }
+.grafiek .label-zaad { fill: var(--blad); font: 800 13px var(--romp); }
+.grafiek .label-glas { fill: var(--zacht); font: 800 13px var(--romp); }
+.grafiek .oogst circle { fill: var(--blad); }
+.grafiek .oogst text { fill: var(--blad); font: 800 12px var(--romp); }
+.oogstbak { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.oogstbak div { padding: 2px 0 0 14px; border-left: 3px solid var(--rand2); min-width: 0; }
+.oogstbak span { display: block; color: var(--zacht); font-size: 0.92rem; font-weight: 700; }
+.oogstbak b { display: block; font-family: var(--kop); font-weight: 600; font-size: clamp(1.4rem, 3vw, 1.9rem); }
+.oogstbak .geoogst { border-color: var(--blad); } .oogstbak .geoogst b { color: var(--blad); }
+.oogstbak b.onder { color: var(--bes); }
+.verloop { margin-top: 14px; color: var(--zacht); min-height: 3.2em; max-width: 70ch; }
+.verloop strong { color: var(--tekst); }
+.eerlijk { margin-top: 8px; font-size: 0.9rem; color: var(--stil); }
+
 /* ---------- drie vakken in één moestuinbak ---------- */
 .moestuinbak { margin-top: 36px; border: 10px solid var(--plank); border-radius: 22px; background: var(--vak);
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -274,6 +312,10 @@ footer a { color: var(--zacht); }
   .opening { padding: 40px 0 48px; }
   .stappen, .schuur, .veilig, .installeer, .adressen { grid-template-columns: 1fr; }
   .oefenen { grid-template-columns: 1fr; padding: 24px 22px; }
+  .kas { padding: 16px; }
+  .speel { width: 100%; }
+  .budget { max-width: none; }
+  .oogstbak { grid-template-columns: 1fr; gap: 10px; }
   .knoppen { flex-direction: column; }
   .knoppen .knop { justify-content: center; }
   .vakje { padding: 22px 20px 24px; }
@@ -290,6 +332,7 @@ footer a { color: var(--zacht); }
     <a class="merk" href="#top"><svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="13" fill="#FF9F1C"/><rect x="9" y="27" width="7.5" height="12" rx="2" fill="#1E1405"/><rect x="20.25" y="21" width="7.5" height="18" rx="2" fill="#1E1405"/><rect x="31.5" y="17" width="7.5" height="22" rx="2" fill="#1E1405"/><path d="M35.25 15C35.25 10 38.5 7 43 7c0 4.5-3.25 8-7.75 8z" fill="#1E1405"/></svg>Profit Harvester</a>
     <ul>
       <li><a href="#hoe">Hoe het werkt</a></li>
+      <li><a href="#kas">Probeer het</a></li>
       <li><a href="#functies">Functies</a></li>
       <li><a href="#installeren">Installeren</a></li>
       <li><a href="#vragen">Vragen</a></li>
@@ -374,6 +417,48 @@ footer a { color: var(--zacht); }
       <li><h3>Bij 1% terugval: alleen de winst eraf</h3>De helft gaat naar je reserve. Zakt de winst onderweg tot €10,50, dan verkoopt hij meteen.</li>
       <li><h3>Je €250 blijft staan</h3>Stijgt de munt weer, dan oogst de bot opnieuw. Zo gaat het steeds door.</li>
     </ol>
+  </div>
+</section>
+
+<!-- ===================== PROBEER HET ===================== -->
+<section id="kas" style="padding-top:24px">
+  <div class="wrap">
+    <h2>Probeer het zelf</h2>
+    <p class="inleiding">Kies een soort munt en een budget en speel drie maanden af. Je ziet wanneer de bot oogst, en
+      wanneer hij gewoon wacht.</p>
+    <div class="kas">
+    <div class="kas-boven">
+      <fieldset class="keuze">
+        <legend>Soort munt</legend>
+        <div class="segment">
+          <input type="radio" name="soort" id="s-rustig" value="rustig" checked><label for="s-rustig">Groeit rustig</label>
+          <input type="radio" name="soort" id="s-wild" value="wild"><label for="s-wild">Schiet heen en weer</label>
+          <input type="radio" name="soort" id="s-daalt" value="daalt"><label for="s-daalt">Zakt weg</label>
+        </div>
+      </fieldset>
+      <div class="budget">
+        <label for="budget">Budget</label>
+        <div class="budget-rij">
+          <input type="range" id="budget" min="50" max="500" step="25" value="250">
+          <output id="budgetUit" for="budget">€ 250</output>
+        </div>
+      </div>
+      <button type="button" class="speel" id="speel">Speel drie maanden af</button>
+    </div>
+
+    <svg class="grafiek" id="grafiek" viewBox="0 0 720 330" role="img" aria-labelledby="grafiekUitleg">
+      <title id="grafiekUitleg">De waarde van je munt door de tijd, met je budget en het oogstdoel. Gele stippen zijn oogsten.</title>
+    </svg>
+
+    <div class="oogstbak" aria-live="polite">
+      <div class="geoogst"><span>Geoogst</span><b id="uGeoogst">€ 0</b></div>
+      <div><span>Daarvan naar je reserve</span><b id="uReserve">€ 0</b></div>
+      <div><span>Je munt is nu waard</span><b id="uWaarde">€ 250</b></div>
+    </div>
+    <p class="verloop" id="verloop">Druk op <strong>Speel drie maanden af</strong>.</p>
+    <p class="eerlijk">De koersen hier zijn verzonnen. Dit laat zien hoe de bot werkt, niet wat hij gaat opleveren.
+      Liever op een hele pagina? <a href="proef/">Open de kas los</a>.</p>
+    </div>
   </div>
 </section>
 
@@ -651,6 +736,7 @@ nano .env   <span class="c"># vul minimaal DASHBOARD_TOKEN in</span></pre>
   </div>
 </footer>
 
+<script src="kas.js"></script>
 <script>
   // Licht of donker: zonder eigen keuze volgt de site het apparaat; een keuze wordt onthouden.
   (function () {

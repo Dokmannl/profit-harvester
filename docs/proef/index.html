@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Profit Harvester: probeer het zelf</title>
+<meta name="description" content="Zet een munt in de kas en kijk wat Profit Harvester doet: de top volgen, alleen de winst oogsten en je budget laten staan. Met verzonnen koersen.">
+<meta name="theme-color" content="#123524">
+<link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<style>
+/* Kas: glas, blad en zaad. */
+:root {
+  --kas:     #123524;   /* achtergrond */
+  --mos:     #1F4D36;   /* vlakken */
+  --mos2:    #2A6146;
+  --nerf:    #3F7A5C;   /* lijnen */
+  --kalk:    #EEF3E8;   /* tekst */
+  --dauw:    #B9CDBF;   /* zachte tekst */
+  --zaad:    #F2C14E;   /* oogst, accent */
+  --tomaat:  #FF7A57;   /* min */
+  --glas:    #9CC9C2;   /* budgetlijn */
+  --op-zaad: #1C1A06;
+  --kop:  'Bricolage Grotesque', system-ui, sans-serif;
+  --romp: 'Atkinson Hyperlegible', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--kas); color: var(--kalk); font-family: var(--romp); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--zaad); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--zaad); outline-offset: 3px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+h1, h2, h3 { font-family: var(--kop); line-height: 1.05; }
+
+/* ---------- kop ---------- */
+.balk { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 0; }
+.merk { display: flex; align-items: center; gap: 10px; color: var(--kalk); text-decoration: none; font-family: var(--kop); font-weight: 700; font-size: 1.1rem; }
+.merk img { width: 32px; height: 32px; }
+.balk nav { display: flex; gap: 20px; }
+.balk nav a { color: var(--dauw); text-decoration: none; font-weight: 700; font-size: 0.95rem; }
+.balk nav a:hover { color: var(--kalk); }
+
+/* ---------- opening ---------- */
+.opening { padding: 34px 0 20px; }
+.opening h1 { font-size: clamp(2.6rem, 7vw, 5.4rem); font-weight: 800; letter-spacing: -0.035em; max-width: 13ch; }
+.opening p { margin-top: 20px; color: var(--dauw); font-size: 1.18rem; max-width: 52ch; }
+
+/* ---------- de kas (speelveld) ---------- */
+.kas { margin: 40px 0 0; background: var(--mos); border-radius: 28px; padding: 26px; position: relative;
+  box-shadow: inset 0 0 0 1px var(--nerf); }
+.kas-boven { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: flex-end; justify-content: space-between; margin-bottom: 18px; }
+.keuze legend, .budget label { display: block; font-weight: 700; color: var(--dauw); font-size: 0.92rem; margin-bottom: 8px; }
+.keuze { border: 0; }
+.segment { display: inline-flex; background: var(--kas); border-radius: 999px; padding: 4px; gap: 2px; flex-wrap: wrap; }
+.segment input { position: absolute; opacity: 0; pointer-events: none; }
+.segment label { padding: 9px 16px; border-radius: 999px; cursor: pointer; font-weight: 700; font-size: 0.95rem; color: var(--dauw); }
+.segment input:checked + label { background: var(--kalk); color: var(--kas); }
+.segment input:focus-visible + label { outline: 3px solid var(--zaad); outline-offset: 2px; }
+.budget { min-width: 240px; flex: 1 1 240px; max-width: 340px; }
+.budget-rij { display: flex; align-items: center; gap: 14px; }
+.budget input[type=range] { flex: 1; accent-color: var(--zaad); }
+.budget output { font-family: var(--kop); font-weight: 700; font-size: 1.3rem; min-width: 4.2ch; text-align: right; }
+.speel { font: inherit; font-weight: 700; font-size: 1.02rem; cursor: pointer; border: 0; border-radius: 999px; padding: 13px 26px;
+  background: var(--zaad); color: var(--op-zaad); min-height: 50px; }
+.speel:hover { background: #F7CF6E; }
+
+.grafiek { width: 100%; height: auto; display: block; background: var(--kas); border-radius: 18px; }
+.grafiek .rooster { stroke: var(--mos2); }
+.grafiek .budgetlijn { stroke: var(--glas); }
+.grafiek .doellijn { stroke: var(--zaad); }
+.grafiek .waarde { stroke: var(--kalk); }
+.grafiek .label { fill: var(--dauw); font: 700 13px var(--romp); }
+.grafiek .label-zaad { fill: var(--zaad); font: 700 13px var(--romp); }
+.grafiek .label-glas { fill: var(--glas); font: 700 13px var(--romp); }
+.grafiek .oogst circle { fill: var(--zaad); }
+.grafiek .oogst text { fill: var(--zaad); font: 700 12px var(--romp); }
+.grafiek .volgt { fill: none; stroke: var(--zaad); stroke-width: 2; stroke-dasharray: 3 4; }
+
+.oogstbak { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.oogstbak div { padding: 4px 0 0 16px; border-left: 3px solid var(--nerf); min-width: 0; }
+.oogstbak span { display: block; color: var(--dauw); font-size: 0.92rem; font-weight: 700; }
+.oogstbak b { display: block; font-family: var(--kop); font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 700; margin-top: 2px; }
+.oogstbak .geoogst { border-color: var(--zaad); } .oogstbak .geoogst b { color: var(--zaad); }
+.oogstbak b.onder { color: var(--tomaat); }
+.verloop { margin-top: 16px; color: var(--dauw); min-height: 3.2em; max-width: 70ch; }
+.verloop strong { color: var(--kalk); }
+.eerlijk { margin-top: 10px; font-size: 0.88rem; color: var(--dauw); opacity: .85; }
+
+/* ---------- onder de kas ---------- */
+.blok { padding: 84px 0 0; }
+.blok h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; max-width: 20ch; margin-bottom: 26px; }
+.drie { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; }
+.drie h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 8px; }
+.drie p { color: var(--dauw); }
+.nodig { list-style: none; display: grid; gap: 14px; max-width: 64ch; }
+.nodig li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; color: var(--dauw); }
+.nodig li::before { content: ""; width: 14px; height: 14px; margin-top: 6px; border-radius: 0 50%; background: var(--zaad); }
+.nodig strong { color: var(--kalk); }
+.verder { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.knop { display: inline-flex; align-items: center; min-height: 50px; padding: 12px 24px; border-radius: 999px; font-weight: 700; text-decoration: none; }
+.knop.hoofd { background: var(--zaad); color: var(--op-zaad); }
+.knop.rand { color: var(--kalk); box-shadow: inset 0 0 0 2px var(--nerf); }
+.knop.rand:hover { box-shadow: inset 0 0 0 2px var(--kalk); }
+.risico { margin-top: 84px; padding: 24px 26px; border-radius: 22px; background: color-mix(in srgb, var(--tomaat) 12%, var(--kas));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tomaat) 45%, transparent); color: var(--dauw); max-width: 80ch; }
+.risico strong { color: var(--tomaat); }
+footer { margin-top: 60px; padding: 28px 0 44px; border-top: 1px solid var(--mos2); color: var(--dauw); font-size: 0.92rem; }
+footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+footer a { color: var(--dauw); }
+
+@media (max-width: 760px) {
+  .wrap { padding: 0 16px; }
+  .balk nav { display: none; }
+  .kas { padding: 16px; border-radius: 22px; margin-top: 28px; }
+  .budget { max-width: none; }
+  .speel { width: 100%; }
+  .oogstbak { grid-template-columns: 1fr; gap: 10px; }
+  .drie { grid-template-columns: 1fr; gap: 26px; }
+  .blok { padding-top: 60px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="balk">
+    <a class="merk" href="../"><img src="../img/favicon.svg" alt="">Profit Harvester</a>
+    <nav aria-label="Hoofdmenu">
+      <a href="#kas">Probeer het</a>
+      <a href="#nodig">Wat je nodig hebt</a>
+      <a href="https://github.com/Dokmannl/profit-harvester">GitHub</a>
+    </nav>
+  </header>
+
+  <section class="opening">
+    <h1>Zet een munt in de kas en kijk wat de bot doet.</h1>
+    <p>Profit Harvester laat je munt staan en oogst alleen wat erboven groeit. Kies hieronder een soort munt en een
+      budget, en speel een paar maanden af.</p>
+  </section>
+
+  <!-- ===================== DE KAS ===================== -->
+  <section class="kas" id="kas" aria-labelledby="kas-titel">
+    <h2 id="kas-titel" class="ph-verborgen" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Probeer het zelf</h2>
+    <div class="kas-boven">
+      <fieldset class="keuze">
+        <legend>Soort munt</legend>
+        <div class="segment">
+          <input type="radio" name="soort" id="s-rustig" value="rustig" checked><label for="s-rustig">Groeit rustig</label>
+          <input type="radio" name="soort" id="s-wild" value="wild"><label for="s-wild">Schiet heen en weer</label>
+          <input type="radio" name="soort" id="s-daalt" value="daalt"><label for="s-daalt">Zakt weg</label>
+        </div>
+      </fieldset>
+      <div class="budget">
+        <label for="budget">Budget</label>
+        <div class="budget-rij">
+          <input type="range" id="budget" min="50" max="500" step="25" value="250">
+          <output id="budgetUit" for="budget">€ 250</output>
+        </div>
+      </div>
+      <button type="button" class="speel" id="speel">Speel drie maanden af</button>
+    </div>
+
+    <svg class="grafiek" id="grafiek" viewBox="0 0 720 330" role="img" aria-labelledby="grafiekUitleg">
+      <title id="grafiekUitleg">De waarde van je munt door de tijd, met je budget en het oogstdoel. Gele stippen zijn oogsten.</title>
+    </svg>
+
+    <div class="oogstbak" aria-live="polite">
+      <div class="geoogst"><span>Geoogst</span><b id="uGeoogst">€ 0</b></div>
+      <div><span>Daarvan naar je reserve</span><b id="uReserve">€ 0</b></div>
+      <div><span>Je munt is nu waard</span><b id="uWaarde">€ 250</b></div>
+    </div>
+    <p class="verloop" id="verloop">Druk op <strong>Speel drie maanden af</strong>.</p>
+    <p class="eerlijk">De koersen hier zijn verzonnen. Dit laat zien hoe de bot werkt, niet wat hij gaat opleveren.</p>
+  </section>
+
+  <!-- ===================== WAT JE ZAG ===================== -->
+  <section class="blok">
+    <h2>Wat je net zag</h2>
+    <div class="drie">
+      <div>
+        <h3>Je budget blijft staan</h3>
+        <p>De bot verkoopt nooit je hele munt. Na een oogst staat er weer precies je budget in, klaar om opnieuw te
+          groeien.</p>
+      </div>
+      <div>
+        <h3>Hij wacht op de top</h3>
+        <p>Is het doel gehaald, dan verkoopt hij niet meteen. Hij volgt de koers omhoog en oogst pas als die 1% terugvalt.</p>
+      </div>
+      <div>
+        <h3>Zakt de munt, dan wacht hij</h3>
+        <p>Er is geen stop-loss. Een munt onder je budget blijft gewoon staan tot hij herstelt. Dat kan lang duren.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NODIG ===================== -->
+  <section class="blok" id="nodig">
+    <h2>Wat je nodig hebt</h2>
+    <ul class="nodig">
+      <li><span><strong>Een Raspberry Pi of een pc die altijd aan staat.</strong> De bot draait bij jou thuis; je sleutels
+        gaan nergens anders heen.</span></li>
+      <li><span><strong>Een Bitvavo-account</strong> met een API-sleutel die alleen mag bekijken en handelen, nooit
+        opnemen.</span></li>
+      <li><span><strong>Een kwartiertje.</strong> Met Docker staat hij in vier stappen. Je begint in demo-modus, met
+        nepgeld en echte koersen.</span></li>
+    </ul>
+    <div class="verder">
+      <a class="knop hoofd" href="https://github.com/Dokmannl/profit-harvester">Gratis downloaden</a>
+      <a class="knop rand" href="../#installeren">Zo installeer je hem</a>
+    </div>
+
+    <div class="risico">
+      <strong>Geen financieel advies.</strong> Profit Harvester voert jouw eigen instellingen uit. Handelen in crypto is
+      risicovol: koersen kunnen hard dalen en je kunt (een deel van) je inleg verliezen. De bot heeft geen stop-loss.
+      Je gebruikt hem op eigen risico. Dit project is niet verbonden aan Bitvavo.
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div>Gratis en open source, <a href="https://github.com/Dokmannl/profit-harvester/blob/main/LICENSE">MIT-licentie</a></div>
+    <div><a href="../">Alles over Profit Harvester</a></div>
+  </div>
+</footer>
+
+<script src="../kas.js"></script>
+</body>
+</html>
