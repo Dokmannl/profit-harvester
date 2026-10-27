@@ -1106,6 +1106,13 @@ POT_KEYBOARD = [
     [{"text": "🔙 Terug naar Menu"}],
 ]
 
+DALPOT_KEYBOARD = [
+    [{"text": "➕ Dalpot Munt Toevoegen"}, {"text": "➖ Dalpot Munt Verwijderen"}],
+    [{"text": "💶 Dalpot Storten"}, {"text": "💶 Dalpot Opnemen"}],
+    [{"text": "🚫 Dalpot Munt Uitsluiten"}, {"text": "🔄 Dalpot Nu Laten Kiezen"}],
+    [{"text": "🔙 Terug naar Menu"}],
+]
+
 
 # ---------------------------------------------------------------------------
 # Volatiliteit
@@ -4462,8 +4469,9 @@ def cmd_dalpot_status():
         for p in dalpot["posities"]:
             status = "✅" if p["actief"] else "⏸️"
             teken = "+" if p["winst"] >= 0 else ""
+            pct = f"{teken}{p['rendement']:.1f}%".replace(".", ",")
             regels.append(f"{status} *{p['coin']}*: {euro(p['waarde'], False)} "
-                          f"({teken}{p['rendement']:.1f}%, budget €{p['budget']:.0f})")
+                          f"({pct}, budget €{p['budget']:.0f})")
         noodstop = " 🛑 noodstop actief" if dalpot["noodstop"] else ""
         bericht = (
             f"📉 *DALPOT*{noodstop}\n\n"
@@ -4472,10 +4480,9 @@ def cmd_dalpot_status():
             f"💵 Dalpot cash: {euro(dalpot['cash'])}\n"
             f"🪙 Dalpot belegd: {euro(dalpot['belegd'])}\n"
             f"💼 Dalpot totaal: {euro(dalpot['totaal'])}\n\n"
-            f"_De dalpot koopt de grootste daler van de dag en verkoopt zodra die herstelt. "
-            f"Storten of opnemen doe je op de Beheren-pagina._"
+            f"_De dalpot koopt de grootste daler van de dag en verkoopt zodra die herstelt._"
         )
-        send_telegram_message(bericht, include_keyboard=True)
+        send_telegram_message(bericht, custom_keyboard=DALPOT_KEYBOARD)
     except Exception as e:
         log_error("cmd_dalpot_status", e)
         send_telegram_message("🚨 Dalpot-status ophalen mislukt.", include_keyboard=True)
@@ -4548,6 +4555,71 @@ def cmd_munt_opzoeken(vraag):
     )
 
 
+def _actie_dalpot_munt_toevoegen():
+    global INSTELLINGEN_MODUS
+    INSTELLINGEN_MODUS = "DALPOT_ADD_COIN"
+    send_telegram_message(
+        "➕ *Voeg dalpot-munt & budget toe*\n\n_Typ munt en budget, bijvoorbeeld_ `XRP 25`_:_",
+        custom_keyboard=TERUG_KEYBOARD,
+    )
+
+
+def _actie_dalpot_munt_verwijderen():
+    global INSTELLINGEN_MODUS
+    coins = laad_config().get("dalpot_coins", {})
+    if not coins:
+        send_telegram_message("ℹ️ De dalpot heeft nu geen munten.", custom_keyboard=DALPOT_KEYBOARD)
+        return
+    INSTELLINGEN_MODUS = "DALPOT_REMOVE_COIN"
+    lijst = [f"• *{c}*" for c in coins.keys()]
+    send_telegram_message(
+        "➖ *Kies een dalpot-munt om te verwijderen*\n_(hij wordt helemaal verkocht)_:\n\n"
+        + "\n".join(lijst) + "\n\n_Typ de afkorting:_",
+        custom_keyboard=TERUG_KEYBOARD,
+    )
+
+
+def _actie_dalpot_storten():
+    global INSTELLINGEN_MODUS
+    INSTELLINGEN_MODUS = "DALPOT_DEPOSIT"
+    send_telegram_message(
+        "💶 *Hoeveel euro naar de dalpot?*\n\n_Typ een bedrag, bijvoorbeeld_ `50`_:_",
+        custom_keyboard=TERUG_KEYBOARD,
+    )
+
+
+def _actie_dalpot_opnemen():
+    global INSTELLINGEN_MODUS
+    state = laad_state()
+    INSTELLINGEN_MODUS = "DALPOT_WITHDRAW"
+    send_telegram_message(
+        f"💶 *Hoeveel euro uit de dalpot?*\n\n"
+        f"Er staat {euro(state.get('dalpot_cash_eur', 0.0))} vrij in de dalpot.\n"
+        f"_Typ een bedrag:_",
+        custom_keyboard=TERUG_KEYBOARD,
+    )
+
+
+def _actie_dalpot_munt_uitsluiten():
+    global INSTELLINGEN_MODUS
+    INSTELLINGEN_MODUS = "DALPOT_EXCLUDE_COIN"
+    gs = laad_config().get("global_settings", {})
+    uitgesloten = gs.get("dalpot_uitgesloten", STANDAARD_DALPOT_UITGESLOTEN)
+    huidig = f"\n\nAl uitgesloten: {', '.join(uitgesloten)}" if uitgesloten else ""
+    send_telegram_message(
+        f"🚫 *Welke munt wil je uitsluiten van de dalpot?*\n\n"
+        f"_Typ de afkorting, bijvoorbeeld_ `SOL`_. Typ dezelfde afkorting nogmaals om de uitsluiting "
+        f"weer op te heffen.{huidig}_",
+        custom_keyboard=TERUG_KEYBOARD,
+    )
+
+
+def _actie_dalpot_kies_nu():
+    """Directe actie, zoals 'Pot Nu Laten Kiezen'."""
+    send_telegram_message("🔄 Dalpot zoekt de grootste daler van vandaag...", custom_keyboard=DALPOT_KEYBOARD)
+    threading.Thread(target=kies_dalpot_munten, kwargs={"handmatig": True}, daemon=True).start()
+
+
 def _actie_munt_opzoeken():
     global INSTELLINGEN_MODUS
     INSTELLINGEN_MODUS = "ZOEK_MUNT"
@@ -4573,7 +4645,7 @@ def cmd_help():
         "ℹ️ *Wat kan ik hier?*\n\n"
         "📊 *Live dashboard*: totale waarde, cash, potten, afgeroomd en je munten\n"
         "💼 *Overzicht*: saldo en winst\n"
-        "🧪 *Pot* en 📉 *Dalpot*: wat erin zit en hoeveel cash er is\n"
+        "🧪 *Pot* en 📉 *Dalpot*: wat erin zit, storten, opnemen en munten beheren\n"
         "💎 *Afgeroomd*: je reserve per munt en welke de volgende is\n"
         "🔍 *Munt opzoeken*: staat een munt op Bitvavo? Ook als `/zoek BTC`\n"
         "🛒 *Handelen*: aanvullen, afromen en munten beheren\n"
@@ -4855,6 +4927,25 @@ MENU_ACTIES = {
     "dalpot": cmd_dalpot_status,
     "/dalpot": cmd_dalpot_status,
 
+    "➕ dalpot munt toevoegen": _actie_dalpot_munt_toevoegen,
+    "dalpot munt toevoegen": _actie_dalpot_munt_toevoegen,
+
+    "➖ dalpot munt verwijderen": _actie_dalpot_munt_verwijderen,
+    "dalpot munt verwijderen": _actie_dalpot_munt_verwijderen,
+
+    "💶 dalpot storten": _actie_dalpot_storten,
+    "dalpot storten": _actie_dalpot_storten,
+
+    "💶 dalpot opnemen": _actie_dalpot_opnemen,
+    "dalpot opnemen": _actie_dalpot_opnemen,
+
+    "🚫 dalpot munt uitsluiten": _actie_dalpot_munt_uitsluiten,
+    "dalpot munt uitsluiten": _actie_dalpot_munt_uitsluiten,
+
+    "🔄 dalpot nu laten kiezen": _actie_dalpot_kies_nu,
+    "dalpot nu laten kiezen": _actie_dalpot_kies_nu,
+    "/dalpotkiezen": _actie_dalpot_kies_nu,
+
     "💎 afgeroomd": cmd_afgeroomd,
     "afgeroomd": cmd_afgeroomd,
     "/afgeroomd": cmd_afgeroomd,
@@ -4879,7 +4970,9 @@ MODUS_SETTERS = {_actie_handmatig_afromen, _actie_munt_toevoegen, _actie_munt_ve
                  _actie_budget_wijzigen,
                  _actie_pot_munt_toevoegen, _actie_pot_munt_verwijderen,
                  _actie_pot_storten, _actie_pot_opnemen, _actie_pot_munt_uitsluiten,
-                 _actie_munt_opzoeken}
+                 _actie_munt_opzoeken,
+                 _actie_dalpot_munt_toevoegen, _actie_dalpot_munt_verwijderen,
+                 _actie_dalpot_storten, _actie_dalpot_opnemen, _actie_dalpot_munt_uitsluiten}
 
 MODUS_HANDLERS = {
     "MANUAL_HARVEST": voer_handmatige_oogst_uit,
@@ -4892,6 +4985,11 @@ MODUS_HANDLERS = {
     "POT_WITHDRAW": verwerk_pot_opnemen,
     "POT_EXCLUDE_COIN": verwerk_pot_munt_uitsluiten,
     "ZOEK_MUNT": cmd_munt_opzoeken,
+    "DALPOT_ADD_COIN": verwerk_dalpot_munt_toevoegen,
+    "DALPOT_REMOVE_COIN": verwerk_dalpot_munt_verwijderen,
+    "DALPOT_DEPOSIT": verwerk_dalpot_storten,
+    "DALPOT_WITHDRAW": verwerk_dalpot_opnemen,
+    "DALPOT_EXCLUDE_COIN": verwerk_dalpot_munt_uitsluiten,
 }
 
 
