@@ -37,11 +37,12 @@
     return uit;
   }
 
-  // Zelfde regels als de bot voor de hoofdlijst: doel gehaald, top volgen,
-  // 1% terugval of winst terug tot 95% van het doel: alleen de winst verkopen.
+  // Zelfde regels als de bot voor de hoofdlijst: vast doel van €11 winst, top volgen,
+  // 1% terugval of winst terug tot €10,50 (vangnet): alleen de winst verkopen.
+  var DOEL_EUR = 11, VANGNET_EUR = 10.5;
   function speelAf(soort, budget) {
     var k = koersen(soort);
-    var doel = Math.max(5.5, budget * 0.044), vangnet = doel * 0.955;
+    var doel = DOEL_EUR, vangnet = VANGNET_EUR;
     var aantal = budget / k[0], volgt = false, top = 0;
     var geoogst = 0, punten = [], oogsten = [], volgDagen = [];
     for (var d = 0; d <= DAGEN; d++) {
@@ -148,8 +149,10 @@
           (eind >= budget ? "Je budget van " + geld.format(budget) + " staat er nog in." :
             "Aan het eind zakte de munt onder je budget; de bot wacht nu tot hij herstelt.");
       } else {
-        verloop.innerHTML = "De munt kwam nooit boven het oogstdoel, dus de bot verkocht <strong>niets</strong>. " +
-          "Je munt is nu " + geld.format(eind) + " waard. Zonder stop-loss wacht hij gewoon tot de munt herstelt.";
+        verloop.innerHTML = "De munt kwam nooit " + geld.format(DOEL_EUR) + " boven je budget, dus de bot verkocht <strong>niets</strong>. " +
+          "Je munt is nu " + geld.format(eind) + " waard. " + (eind >= budget
+            ? "Hij wacht tot de winst het oogstdoel haalt."
+            : "Zonder stop-loss wacht hij gewoon tot de munt herstelt.");
       }
     }
 
