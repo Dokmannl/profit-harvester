@@ -4227,9 +4227,9 @@ def controleer_reserve_afwijking():
 UITSCHIETER_FILE = DATA_PREFIX + "bot_uitschieters.json"
 UITSCHIETER_INTERVAL_SEC = 60
 # (seconden terug, minimale stijging in %). Gemeten op uurkoersen van 60 dagen; zie de melding zelf voor het risico.
-UITSCHIETER_VENSTERS = ((3600, 15.0), (7200, 20.0))
+UITSCHIETER_VENSTERS = ((3600, 5.0), (7200, 8.0))
 UITSCHIETER_MIN_OMZET_EUR = 1_000_000.0
-UITSCHIETER_MAX_PER_DAG = 6
+UITSCHIETER_MAX_PER_DAG = 10
 UITSCHIETER_WACHT_SEC = 6 * 3600          # dezelfde munt niet vaker dan eens per 6 uur melden
 UITSCHIETER_DOEL_PCT = 5.5
 UITSCHIETER_TERUGVAL_PCT = 1.0
@@ -4387,7 +4387,7 @@ def _actie_uitschieters_wissel():
     data["gestart"] = False
     _bewaar_uitschieters(data)
     send_telegram_message(
-        ("🚀 *Uitschieter-meldingen staan aan.* Je krijgt bericht bij munten die 15% in 1 uur of 20% in 2 uur "
+        ("🚀 *Uitschieter-meldingen staan aan.* Je krijgt bericht bij munten die 5% in 1 uur of 8% in 2 uur "
          "stijgen. De eerste meldingen kunnen pas na een uur komen. De bot koopt en verkoopt hier zelf niets."
          if aan else "🔕 *Uitschieter-meldingen staan uit.*"),
         include_keyboard=True,
