@@ -2416,6 +2416,20 @@ DALPOT_MAX_MISLUKTE_KOPEN = 8    # per keuzerun, tegen eindeloos proberen op dun
 STANDAARD_DALPOT_HERKOOP_UUR = 24.0   # een verkochte of verwijderde munt wordt zo lang niet opnieuw gekozen
 
 
+def pas_pot_budget_aan(config, coin, besteed, winstdoel_eur):
+    """
+    De pot had te weinig cash voor het volle budget. Zonder deze aanpassing
+    blijft het hogere budget staan: de munt moet dan veel harder stijgen voor
+    een verkoop, en de winst en het verlies worden tegen geld gerekend dat er
+    nooit in heeft gezeten. Past de meegegeven config aan, zodat een aanroeper
+    die hem daarna opnieuw bewaart dit niet overschrijft.
+    """
+    budget = round(besteed, 2)
+    config["pot_coins"][coin]["budget_eur"] = budget
+    config["pot_coins"][coin]["take_profit_pct"] = round(winstdoel_eur / budget * 100, 2)
+    bewaar_config(config)
+
+
 def kies_pot_munten(handmatig=False):
     """
     Kiest zelf nieuwe munten voor de pot, als daar ruimte voor is.
@@ -2573,6 +2587,7 @@ def kies_pot_munten(handmatig=False):
                 # kost alleen tijd waarin de pot met werkloze cash zit.
                 bedrag = round(min(budget_per_munt, cash_over), 2)
                 kocht_tekst = ""
+                budget_getoond = budget_per_munt
                 if bedrag >= MIN_ORDER_EUR:
                     try:
                         besteed, _ = plaats_marktorder("buy", market, bedrag, "aankoop")
@@ -2581,6 +2596,9 @@ def kies_pot_munten(handmatig=False):
                             log_trade(market, "koop", None, None, besteed, besteed * fee, "pot-automatisch")
                             registreer_pot_koop(coin, besteed)
                             cash_over = round(cash_over - besteed, 2)
+                            if bedrag < budget_per_munt - 0.01:
+                                pas_pot_budget_aan(verse_config, coin, besteed, winstdoel_eur)
+                                budget_getoond = round(besteed, 2)
                             kocht_tekst = f", meteen gekocht voor {euro(besteed)}"
                         else:
                             kocht_tekst = ", order niet gevuld (de pot koopt later zelf bij)"
@@ -2588,7 +2606,7 @@ def kies_pot_munten(handmatig=False):
                         log_error(f"kies_pot_munten.koop.{coin}", koop_e)
 
                 regels.append(
-                    f"• *{coin}*: budget {euro(budget_per_munt)}{kocht_tekst}, "
+                    f"• *{coin}*: budget {euro(budget_getoond)}{kocht_tekst}, "
                     f"24u omzet {euro(volume, False)}, dagrange {atr:.1f}%"
                 )
 
@@ -3082,6 +3100,9 @@ def verwerk_pot_munt_toevoegen(invoer_tekst):
                 if besteed > 0:
                     log_trade(market, "koop", None, None, besteed, besteed * fee, "pot-automatisch")
                     registreer_pot_koop(coin, besteed)
+                    if bedrag < nieuw_budget - 0.01:
+                        pas_pot_budget_aan(config, coin, besteed, winstdoel_eur)
+                        nieuw_budget = round(besteed, 2)
                     kocht_tekst = f"• Meteen gekocht: {euro(besteed)}\n"
                 else:
                     kocht_tekst = "• De order is niet gevuld (te dun orderboek?), de pot koopt later zelf bij.\n"
