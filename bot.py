@@ -4228,7 +4228,7 @@ UITSCHIETER_FILE = DATA_PREFIX + "bot_uitschieters.json"
 UITSCHIETER_INTERVAL_SEC = 60
 # (seconden terug, minimale stijging in %). Gemeten op uurkoersen van 60 dagen; zie de melding zelf voor het risico.
 UITSCHIETER_VENSTERS = ((3600, 5.0), (7200, 8.0))
-UITSCHIETER_MIN_OMZET_EUR = 1_000_000.0
+UITSCHIETER_MIN_OMZET_EUR = 250_000.0
 UITSCHIETER_MAX_PER_DAG = 10
 UITSCHIETER_WACHT_SEC = 6 * 3600          # dezelfde munt niet vaker dan eens per 6 uur melden
 UITSCHIETER_DOEL_PCT = 5.5
