@@ -4225,16 +4225,33 @@ def controleer_reserve_afwijking():
 # ---------------------------------------------------------------------------
 
 UITSCHIETER_FILE = DATA_PREFIX + "bot_uitschieters.json"
-UITSCHIETER_INTERVAL_SEC = 300
-UITSCHIETER_MIN_STIJGING_PCT = 20.0
+UITSCHIETER_INTERVAL_SEC = 60
+# (seconden terug, minimale stijging in %). Gemeten op uurkoersen van 60 dagen; zie de melding zelf voor het risico.
+UITSCHIETER_VENSTERS = ((3600, 15.0), (7200, 20.0))
 UITSCHIETER_MIN_OMZET_EUR = 1_000_000.0
 UITSCHIETER_MAX_PER_DAG = 6
-UITSCHIETER_WACHT_SEC = 24 * 3600         # dezelfde munt niet vaker dan eens per dag melden
+UITSCHIETER_WACHT_SEC = 6 * 3600          # dezelfde munt niet vaker dan eens per 6 uur melden
 UITSCHIETER_DOEL_PCT = 5.5
 UITSCHIETER_TERUGVAL_PCT = 1.0
-UITSCHIETER_STOP_PCT = 15.0
-UITSCHIETER_VOLG_SEC = 7 * 86400
+UITSCHIETER_STOP_PCT = 10.0
+UITSCHIETER_VOLG_SEC = 24 * 3600
 UITSCHIETER_STABIEL = {"USDT", "USDC", "EURC", "DAI", "EURT", "EURS", "TUSD", "FDUSD", "PYUSD"}
+_uitschieter_koersen = {}   # munt -> [(tijd, koers), ...] van de laatste 2 uur; na een herstart bouwt dit zich opnieuw op
+
+
+def _beste_stijging(coin, koers, nu):
+    """Geeft (stijging in %, uren) als een van de vensters zijn drempel haalt, anders None."""
+    reeks = _uitschieter_koersen.setdefault(coin, [])
+    beste = None
+    for sec, drempel in UITSCHIETER_VENSTERS:
+        oud = [k for t, k in reeks if t <= nu - sec]
+        if oud and oud[-1] > 0:
+            pct = (koers / oud[-1] - 1) * 100
+            if pct >= drempel and (beste is None or pct > beste[0]):
+                beste = (pct, sec // 3600)
+    reeks.append((nu, koers))
+    _uitschieter_koersen[coin] = [(t, k) for t, k in reeks if t >= nu - max(s for s, _ in UITSCHIETER_VENSTERS) - 180]
+    return beste
 
 
 def _laad_uitschieters():
@@ -4289,7 +4306,7 @@ def _volg_uitschieters(data, tickers, balans, eigen, nu):
         elif koers <= volg["koers"] * (1 - UITSCHIETER_STOP_PCT / 100):
             reden = f"Meer dan {UITSCHIETER_STOP_PCT:.0f}% onder de koers van de melding"
         if reden is None and nu - volg["t"] > UITSCHIETER_VOLG_SEC:
-            reden = "Na 7 dagen geen verkoopmoment bereikt"
+            reden = "Na 24 uur geen verkoopmoment bereikt"
         if reden:
             del data["volg"][coin]
             if (balans["total"].get(coin, 0.0) or 0.0) * koers >= 1.0:
@@ -4314,17 +4331,19 @@ def controleer_uitschieters():
     for market, ticker in tickers.items():
         if not market.endswith("/EUR") or market[:-4] in UITSCHIETER_STABIEL:
             continue
-        pct = ticker.get("percentage")
         omzet = ticker.get("quoteVolume") or 0.0
         koers = ticker.get("last")
-        if pct is not None and koers and pct >= UITSCHIETER_MIN_STIJGING_PCT and omzet >= UITSCHIETER_MIN_OMZET_EUR:
-            kandidaten.append((pct, market[:-4], koers, omzet))
+        if not koers:
+            continue
+        stijging = _beste_stijging(market[:-4], koers, nu)
+        if stijging and omzet >= UITSCHIETER_MIN_OMZET_EUR:
+            kandidaten.append((stijging[0], market[:-4], koers, omzet, stijging[1]))
     kandidaten.sort(reverse=True)
 
     boven_oud = set(data["boven"])
     # De eerste ronde alleen onthouden wat er al hoog staat, anders krijg je bij het aanzetten een hele lijst.
     if data["gestart"]:
-        for pct, coin, koers, omzet in kandidaten:
+        for pct, coin, koers, omzet, uren in kandidaten:
             if coin in boven_oud or coin in eigen or data["aantal"] >= UITSCHIETER_MAX_PER_DAG:
                 continue
             if nu - data["laatst"].get(coin, 0) < UITSCHIETER_WACHT_SEC:
@@ -4334,13 +4353,13 @@ def controleer_uitschieters():
             data["volg"][coin] = {"koers": koers, "t": nu, "piek": None}
             send_telegram_message(
                 f"🚀 *UITSCHIETER: {coin}*\n\n"
-                f"• 24 uur: {pct:+.1f}%\n".replace(".", ",") +
+                f"• In {uren} uur: {pct:+.1f}%\n".replace(".", ",") +
                 f"• Koers: {_koers_tekst(koers)}\n"
                 f"• Omzet 24 uur: {euro(omzet, False)}\n\n"
                 f"_Alleen een melding: de bot koopt niets. Munten die zo hard stijgen, kunnen ook hard terugvallen._",
                 include_keyboard=True,
             )
-    data["boven"] = [c for _, c, _, _ in kandidaten]
+    data["boven"] = [k[1] for k in kandidaten]
     data["gestart"] = True
     _volg_uitschieters(data, tickers, balans, eigen, nu)
     _bewaar_uitschieters(data)
@@ -4368,8 +4387,8 @@ def _actie_uitschieters_wissel():
     data["gestart"] = False
     _bewaar_uitschieters(data)
     send_telegram_message(
-        ("🚀 *Uitschieter-meldingen staan aan.* Je krijgt bericht bij munten die in 24 uur "
-         f"{UITSCHIETER_MIN_STIJGING_PCT:.0f}% of meer stijgen. De bot koopt en verkoopt hier zelf niets."
+        ("🚀 *Uitschieter-meldingen staan aan.* Je krijgt bericht bij munten die 15% in 1 uur of 20% in 2 uur "
+         "stijgen. De eerste meldingen kunnen pas na een uur komen. De bot koopt en verkoopt hier zelf niets."
          if aan else "🔕 *Uitschieter-meldingen staan uit.*"),
         include_keyboard=True,
     )
