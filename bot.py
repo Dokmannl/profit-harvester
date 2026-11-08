@@ -4216,6 +4216,165 @@ def controleer_reserve_afwijking():
     )
 
 
+# ---------------------------------------------------------------------------
+# Uitschieters: alleen meldingen
+#
+# Meldt via Telegram munten die hard stijgen, en wanneer zo'n munt die je zelf
+# hebt gekocht een verkoopmoment bereikt. Dit deel plaatst nooit een order en
+# raakt de lijsten, de potten en de boekhouding niet.
+# ---------------------------------------------------------------------------
+
+UITSCHIETER_FILE = DATA_PREFIX + "bot_uitschieters.json"
+UITSCHIETER_INTERVAL_SEC = 300
+UITSCHIETER_MIN_STIJGING_PCT = 20.0
+UITSCHIETER_MIN_OMZET_EUR = 1_000_000.0
+UITSCHIETER_MAX_PER_DAG = 6
+UITSCHIETER_WACHT_SEC = 24 * 3600         # dezelfde munt niet vaker dan eens per dag melden
+UITSCHIETER_DOEL_PCT = 5.5
+UITSCHIETER_TERUGVAL_PCT = 1.0
+UITSCHIETER_STOP_PCT = 15.0
+UITSCHIETER_VOLG_SEC = 7 * 86400
+UITSCHIETER_STABIEL = {"USDT", "USDC", "EURC", "DAI", "EURT", "EURS", "TUSD", "FDUSD", "PYUSD"}
+
+
+def _laad_uitschieters():
+    leeg = {"gestart": False, "boven": [], "laatst": {}, "dag": "", "aantal": 0, "volg": {}}
+    if os.path.exists(UITSCHIETER_FILE):
+        try:
+            with open(UITSCHIETER_FILE, "r", encoding="utf-8") as f:
+                return {**leeg, **json.load(f)}
+        except Exception as e:
+            log_error("laad_uitschieters", e)
+    return leeg
+
+
+def _bewaar_uitschieters(data):
+    tijdelijk = UITSCHIETER_FILE + ".nieuw"
+    with open(tijdelijk, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+    os.replace(tijdelijk, UITSCHIETER_FILE)
+
+
+def _koers_tekst(koers):
+    return f"€ {koers:.6g}".replace(".", ",")
+
+
+def _verkoop_melding(coin, volg, koers, reden):
+    verschil = (koers / volg["koers"] - 1) * 100
+    return (
+        f"🔔 *VERKOOPMOMENT: {coin}*\n\n"
+        f"• {reden}\n"
+        f"• Koers bij de melding: {_koers_tekst(volg['koers'])}\n"
+        f"• Koers nu: {_koers_tekst(koers)} ({f'{verschil:+.1f}'.replace('.', ',')}%)\n\n"
+        f"_Alleen een melding: de bot verkoopt deze munt niet. Verkopen doe je zelf op Bitvavo._"
+    )
+
+
+def _volg_uitschieters(data, tickers, balans, eigen, nu):
+    """Verkoopmeldingen, alleen voor munten die je bezit en die de bot niet zelf beheert."""
+    for coin, volg in list(data["volg"].items()):
+        if coin in eigen:              # toch in een lijst gezet: de bot neemt het over
+            del data["volg"][coin]
+            continue
+        koers = koers_van(tickers, f"{coin}/EUR")
+        if koers is None:
+            continue
+        reden = None
+        if volg.get("piek") is not None:
+            volg["piek"] = max(volg["piek"], koers)
+            if koers <= volg["piek"] * (1 - UITSCHIETER_TERUGVAL_PCT / 100):
+                reden = f"Eerst boven +{UITSCHIETER_DOEL_PCT:.1f}%, nu {UITSCHIETER_TERUGVAL_PCT:.0f}% terug vanaf de top".replace(".", ",")
+        elif koers >= volg["koers"] * (1 + UITSCHIETER_DOEL_PCT / 100):
+            volg["piek"] = koers
+        elif koers <= volg["koers"] * (1 - UITSCHIETER_STOP_PCT / 100):
+            reden = f"Meer dan {UITSCHIETER_STOP_PCT:.0f}% onder de koers van de melding"
+        if reden is None and nu - volg["t"] > UITSCHIETER_VOLG_SEC:
+            reden = "Na 7 dagen geen verkoopmoment bereikt"
+        if reden:
+            del data["volg"][coin]
+            if (balans["total"].get(coin, 0.0) or 0.0) * koers >= 1.0:
+                send_telegram_message(_verkoop_melding(coin, volg, koers, reden), include_keyboard=True)
+
+
+def controleer_uitschieters():
+    """Eén ronde: nieuwe uitschieters melden en eerder gemelde munten volgen."""
+    config = laad_config()
+    if not config.get("global_settings", {}).get("uitschieters_aan", False):
+        return
+    tickers = cache.tickers()
+    balans = cache.balans()
+    data = _laad_uitschieters()
+    nu = time.time()
+    dag = nu_nl().strftime("%Y-%m-%d")
+    if data["dag"] != dag:
+        data["dag"], data["aantal"] = dag, 0
+    eigen = set(config.get("coins", {})) | set(config.get("pot_coins", {})) | set(config.get("dalpot_coins", {})) | set(reserve_lijst(config))
+
+    kandidaten = []
+    for market, ticker in tickers.items():
+        if not market.endswith("/EUR") or market[:-4] in UITSCHIETER_STABIEL:
+            continue
+        pct = ticker.get("percentage")
+        omzet = ticker.get("quoteVolume") or 0.0
+        koers = ticker.get("last")
+        if pct is not None and koers and pct >= UITSCHIETER_MIN_STIJGING_PCT and omzet >= UITSCHIETER_MIN_OMZET_EUR:
+            kandidaten.append((pct, market[:-4], koers, omzet))
+    kandidaten.sort(reverse=True)
+
+    boven_oud = set(data["boven"])
+    # De eerste ronde alleen onthouden wat er al hoog staat, anders krijg je bij het aanzetten een hele lijst.
+    if data["gestart"]:
+        for pct, coin, koers, omzet in kandidaten:
+            if coin in boven_oud or coin in eigen or data["aantal"] >= UITSCHIETER_MAX_PER_DAG:
+                continue
+            if nu - data["laatst"].get(coin, 0) < UITSCHIETER_WACHT_SEC:
+                continue
+            data["laatst"][coin] = nu
+            data["aantal"] += 1
+            data["volg"][coin] = {"koers": koers, "t": nu, "piek": None}
+            send_telegram_message(
+                f"🚀 *UITSCHIETER: {coin}*\n\n"
+                f"• 24 uur: {pct:+.1f}%\n".replace(".", ",") +
+                f"• Koers: {_koers_tekst(koers)}\n"
+                f"• Omzet 24 uur: {euro(omzet, False)}\n\n"
+                f"_Alleen een melding: de bot koopt niets. Munten die zo hard stijgen, kunnen ook hard terugvallen._",
+                include_keyboard=True,
+            )
+    data["boven"] = [c for _, c, _, _ in kandidaten]
+    data["gestart"] = True
+    _volg_uitschieters(data, tickers, balans, eigen, nu)
+    _bewaar_uitschieters(data)
+
+
+def uitschieter_loop():
+    time.sleep(90)
+    while True:
+        try:
+            controleer_uitschieters()
+        except Exception as e:
+            log_error("uitschieter_loop", e)
+        time.sleep(UITSCHIETER_INTERVAL_SEC)
+
+
+@met_lock
+def _actie_uitschieters_wissel():
+    """Zet de meldingen aan of uit. De eerste ronde na het aanzetten blijft stil."""
+    config = laad_config()
+    gs = config.setdefault("global_settings", {})
+    aan = not gs.get("uitschieters_aan", False)
+    gs["uitschieters_aan"] = aan
+    bewaar_config(config)
+    data = _laad_uitschieters()
+    data["gestart"] = False
+    _bewaar_uitschieters(data)
+    send_telegram_message(
+        ("🚀 *Uitschieter-meldingen staan aan.* Je krijgt bericht bij munten die in 24 uur "
+         f"{UITSCHIETER_MIN_STIJGING_PCT:.0f}% of meer stijgen. De bot koopt en verkoopt hier zelf niets."
+         if aan else "🔕 *Uitschieter-meldingen staan uit.*"),
+        include_keyboard=True,
+    )
+
+
 def reserve_bewaak_loop():
     """Kijkt elk half uur of de reserve scheef loopt."""
     time.sleep(120)
@@ -4671,7 +4830,7 @@ def cmd_help():
         "🔍 *Munt opzoeken*: staat een munt op Bitvavo? Ook als `/zoek BTC`\n"
         "🛒 *Handelen*: aanvullen, afromen en munten beheren\n"
         "⏯️ *Pauze / Hervat*: alles stilzetten of weer aanzetten\n\n"
-        "_Losse commando's: /status /overzicht /pot /dalpot /afgeroomd /zoek /pauze /mail /menu_",
+        "_Losse commando's: /status /overzicht /pot /dalpot /afgeroomd /zoek /pauze /uitschieters /mail /menu_",
         include_keyboard=True,
     )
 
@@ -4981,6 +5140,7 @@ MENU_ACTIES = {
     "/pauze": _actie_pauze_wissel,
     "/hervat": _actie_pauze_wissel,
 
+    "/uitschieters": _actie_uitschieters_wissel,
     "/help": cmd_help,
     "/start": cmd_help,
     "help": cmd_help,
@@ -6190,6 +6350,7 @@ def main():
     threading.Thread(target=dalpot_kies_loop, daemon=True).start()
     threading.Thread(target=markten_ververs_loop, daemon=True).start()
     threading.Thread(target=reserve_bewaak_loop, daemon=True).start()
+    threading.Thread(target=uitschieter_loop, daemon=True).start()
 
     demo_regel = ""
     if DEMO_MODUS:
