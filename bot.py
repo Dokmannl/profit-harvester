@@ -4309,6 +4309,13 @@ def _volg_uitschieters(data, tickers, balans, eigen, nu):
             reden = "Na 24 uur geen verkoopmoment bereikt"
         if reden:
             del data["volg"][coin]
+            # Proef: vastleggen hoe de melding zou zijn afgelopen (na 2x 0,25% kosten). Alleen een registratie.
+            netto = (koers / volg["koers"]) * (1 - 0.0025) ** 2 - 1
+            soort = "tijd" if reden.startswith("Na 24") else ("doel" if volg.get("piek") is not None else "stop")
+            data.setdefault("uitslagen", []).append({
+                "munt": coin, "t_in": volg["t"], "t_uit": nu, "in": volg["koers"],
+                "uit": koers, "netto_pct": round(netto * 100, 2), "soort": soort})
+            data["uitslagen"] = data["uitslagen"][-300:]
             if (balans["total"].get(coin, 0.0) or 0.0) * koers >= 1.0:
                 send_telegram_message(_verkoop_melding(coin, volg, koers, reden), include_keyboard=True)
 
@@ -4390,6 +4397,43 @@ def _actie_uitschieters_wissel():
         ("🚀 *Uitschieter-meldingen staan aan.* Je krijgt bericht bij munten die 5% in 1 uur of 8% in 2 uur "
          "stijgen. De eerste meldingen kunnen pas na een uur komen. De bot koopt en verkoopt hier zelf niets."
          if aan else "🔕 *Uitschieter-meldingen staan uit.*"),
+        include_keyboard=True,
+    )
+
+
+def cmd_proef():
+    """Overzicht van hoe de uitschieter-meldingen zouden zijn afgelopen. Alleen lezen, plaatst niets."""
+    data = _laad_uitschieters()
+    uitslagen = data.get("uitslagen", [])
+    lopend = len(data.get("volg", {}))
+    if not uitslagen:
+        send_telegram_message(
+            f"🧪 *PROEF UITSCHIETERS*\n\nNog geen afgeronde meldingen. Nog lopend: {lopend}.\n\n"
+            f"_Een melding is afgerond als het doel gehaald is en de koers 1% terugvalt, "
+            f"bij 10% verlies, of na 24 uur._",
+            include_keyboard=True,
+        )
+        return
+    pcts = [u["netto_pct"] for u in uitslagen]
+    winst = sum(1 for p in pcts if p > 0)
+    gem = sum(pcts) / len(pcts)
+    totaal_50 = sum(50 * p / 100 for p in pcts)
+    sinds = datetime.fromtimestamp(uitslagen[0]["t_in"], NL_TZ).strftime("%d-%m")
+    teken = {"doel": "✅", "stop": "❌", "tijd": "➖"}
+    uitleg = {"doel": "doel gehaald, 1% terug", "stop": "stop", "tijd": "24 uur voorbij"}
+    regels = []
+    for u in reversed(uitslagen[-5:]):
+        soort = u.get("soort", "tijd")
+        pct = f"{u['netto_pct']:+.1f}".replace(".", ",")
+        regels.append(f"  {teken.get(soort, '➖')} {u['munt']}  {pct}%  {uitleg.get(soort, '')}")
+    send_telegram_message(
+        f"🧪 *PROEF UITSCHIETERS* (sinds {sinds})\n\n"
+        f"• Afgerond: {len(pcts)} meldingen · {winst} winst, {len(pcts) - winst} verlies\n"
+        f"• Gemiddeld per melding: " + f"{gem:+.1f}".replace(".", ",") + "% (na kosten)\n"
+        f"• Met €50 per melding: " + ("−" if totaal_50 < 0 else "+") + euro(abs(totaal_50), False) + " totaal\n"
+        f"• Nog lopend: {lopend}\n\n"
+        f"Laatste {len(regels)}:\n" + "\n".join(regels) + "\n\n"
+        f"_Alleen een proefberekening: de bot heeft niets gekocht of verkocht._",
         include_keyboard=True,
     )
 
@@ -4849,7 +4893,7 @@ def cmd_help():
         "🔍 *Munt opzoeken*: staat een munt op Bitvavo? Ook als `/zoek BTC`\n"
         "🛒 *Handelen*: aanvullen, afromen en munten beheren\n"
         "⏯️ *Pauze / Hervat*: alles stilzetten of weer aanzetten\n\n"
-        "_Losse commando's: /status /overzicht /pot /dalpot /afgeroomd /zoek /pauze /uitschieters /mail /menu_",
+        "_Losse commando's: /status /overzicht /pot /dalpot /afgeroomd /zoek /pauze /uitschieters /proef /mail /menu_",
         include_keyboard=True,
     )
 
@@ -5160,6 +5204,7 @@ MENU_ACTIES = {
     "/hervat": _actie_pauze_wissel,
 
     "/uitschieters": _actie_uitschieters_wissel,
+    "/proef": cmd_proef,
     "/help": cmd_help,
     "/start": cmd_help,
     "help": cmd_help,
