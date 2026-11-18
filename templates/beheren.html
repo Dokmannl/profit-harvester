@@ -848,6 +848,34 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       <div class="actie-form"><a class="plat ph-btn" href="/afgeroomd" style="text-decoration:none;">Naar Afgeroomd &rsaquo;</a></div>
     </div>
     </div>
+
+  <div class="paneel tema-hoofdlijst" id="sec-echt-resultaat">
+    <div class="paneelkop"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="20" y2="20"/><rect x="6" y="11" width="3" height="7"/><rect x="11" y="7" width="3" height="11"/><rect x="16" y="13" width="3" height="5"/></svg>Echt resultaat</div>
+
+    <div class="actierij">
+      <div>
+        <div class="actie-titel">Netto ingelegd <span class="tag boeking">instelling</span></div>
+        <div class="actie-uitleg">
+          {% if inleg %}
+          Euro gestort (Bitvavo): <b>&euro; {{ "{:,.2f}".format(inleg.gestort).replace(",", "X").replace(".", ",").replace("X", ".") }}</b><br>
+          Euro opgenomen (Bitvavo): <b>&minus; &euro; {{ "{:,.2f}".format(inleg.opgenomen).replace(",", "X").replace(".", ",").replace("X", ".") }}</b><br>
+          Correctie (eigen): <b>&euro; {{ "{:,.2f}".format(inleg.correctie).replace(",", "X").replace(".", ",").replace("X", ".") }}</b><br>
+          Netto ingelegd: <b>&euro; {{ "{:,.2f}".format(inleg.netto).replace(",", "X").replace(".", ",").replace("X", ".") }}</b><br><br>
+          {% else %}
+          De stortingsgeschiedenis van Bitvavo is nu niet op te halen; het dashboard laat dan alleen "Geoogst" zien.<br><br>
+          {% endif %}
+          Het dashboard zet de totale waarde af tegen dit bedrag. Munten die je naar Bitvavo hebt gestuurd, tel je
+          met de correctie erbij (+); munten die je hebt weggehaald, trek je eraf (&minus;). Nieuwe stortingen komen er binnen een uur vanzelf bij.
+        </div>
+      </div>
+      <form class="actie-form" method="post" action="/beheren/inleg-correctie"
+            data-bevestig-fields="bedrag" data-bevestig-template="Correctie op netto ingelegd instellen op €{}?">
+        <input type="text" name="bedrag" inputmode="decimal" value="{{ ('%.2f' % inleg_correctie).replace('.', ',') }}"
+               title="Correctie in euro, bijvoorbeeld 250 of -100" autocomplete="off" required aria-label="Correctie in euro">
+        <button type="submit" class="hoofd">Opslaan</button>
+      </form>
+    </div>
+  </div>
   </section>
   </div>
 

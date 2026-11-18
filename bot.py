@@ -5493,6 +5493,8 @@ def beheren():
         pot_uitgesloten=sorted(gs.get("pot_uitgesloten", [])),
         dalpot_uitgesloten=sorted(gs.get("dalpot_uitgesloten", STANDAARD_DALPOT_UITGESLOTEN)),
         reserve_munten=reserve_lijst(config),
+        inleg=inleg_overzicht(),
+        inleg_correctie=float(gs.get("inleg_correctie_eur", 0.0) or 0.0),
         verwerkt=request.args.get("verwerkt"),
         fout=session.pop("beheren_fout", None),
     )
@@ -6323,6 +6325,63 @@ def activiteit_pagina():
     return render_template("activiteit.html")
 
 
+_inleg_cache = {"tijd": 0.0, "data": None}
+
+
+def inleg_overzicht():
+    """
+    Netto ingelegd = euro gestort min euro opgenomen (uit de Bitvavo-geschiedenis)
+    plus een eigen correctie voor overgeboekte munten. Alleen lezen; hooguit eens
+    per uur opnieuw opgehaald. Lukt het ophalen niet, dan blijft de vorige waarde staan.
+    """
+    if DEMO_MODUS:
+        return None
+    if time.time() - _inleg_cache["tijd"] > 3600:
+        _inleg_cache["tijd"] = time.time()
+        try:
+            gestort = sum(x.get("amount") or 0.0 for x in exchange.fetch_deposits("EUR", None, 1000)
+                          if x.get("status") in (None, "ok"))
+            opgenomen = sum(x.get("amount") or 0.0 for x in exchange.fetch_withdrawals("EUR", None, 1000)
+                            if x.get("status") in (None, "ok"))
+            _inleg_cache["data"] = {"gestort": round(gestort, 2), "opgenomen": round(opgenomen, 2)}
+        except Exception as e:
+            log_error("inleg_overzicht", e)
+    if _inleg_cache["data"] is None:
+        return None
+    correctie = float(laad_config().get("global_settings", {}).get("inleg_correctie_eur", 0.0) or 0.0)
+    d = dict(_inleg_cache["data"], correctie=correctie)
+    d["netto"] = round(d["gestort"] - d["opgenomen"] + correctie, 2)
+    return d
+
+
+def wijzig_inleg_correctie(invoer):
+    """Eigen correctie op 'netto ingelegd' (bijv. waarde van overgeboekte munten). Raakt geen saldo of orders."""
+    try:
+        bedrag = round(float(str(invoer).strip().replace("€", "").replace(" ", "").replace(",", ".")), 2)
+    except ValueError:
+        return False, "Ongeldig bedrag."
+    config = laad_config()
+    config.setdefault("global_settings", {})["inleg_correctie_eur"] = bedrag
+    bewaar_config(config)
+    send_telegram_message(
+        f"📊 *Correctie ingelegd: {'−' if bedrag < 0 else ''}{euro(abs(bedrag), False)}*\n"
+        f"Het echte resultaat op het dashboard rekent hier nu mee.",
+        include_keyboard=True,
+    )
+    return True, "Correctie opgeslagen."
+
+
+@app.route("/beheren/inleg-correctie", methods=["POST"])
+def beheren_inleg_correctie():
+    try:
+        ok, melding = wijzig_inleg_correctie(request.form.get("bedrag", ""))
+        if not ok:
+            session["beheren_fout"] = melding
+    except Exception as e:
+        log_error("beheren_inleg_correctie", e)
+    return redirect(url_for("beheren", verwerkt="1"))
+
+
 @app.route("/api/data")
 def api_data():
     """
@@ -6335,11 +6394,18 @@ def api_data():
         btc_waarde = reserve_waarde()
         pot = verzamel_pot()
         dalpot = verzamel_dalpot()
+        totaal = vrij_cash + totaal_belegd + btc_waarde + pot["belegd"] + dalpot["belegd"]
+        inleg = inleg_overzicht()
         return jsonify({
             "tijd": nu_nl().strftime("%H:%M:%S"),
             "bot_actief": BOT_ACTIVE,
             "portfolio": {
-                "totaal": vrij_cash + totaal_belegd + btc_waarde + pot["belegd"] + dalpot["belegd"],
+                "totaal": totaal,
+                "resultaat": None if not inleg or inleg["netto"] <= 0 else {
+                    "ingelegd": inleg["netto"],
+                    "eur": round(totaal - inleg["netto"], 2),
+                    "pct": round((totaal / inleg["netto"] - 1) * 100, 1),
+                },
                 "cash": handelscash(vrij_cash, state),
                 "belegd": totaal_belegd,
                 "reserve": btc_waarde,

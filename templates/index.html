@@ -815,6 +815,7 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
     <div class="kaart" id="kaartTotaal">
       <div class="etiket"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="12" rx="2"/><path d="M8 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="3" y1="13" x2="21" y2="13"/></svg>Totale waarde</div>
       <div class="groot" id="totaal">&euro; 0,00</div>
+      <div class="bij" id="totaalResultaat" hidden></div>
       <div class="bij" id="totaalBij" hidden></div>
     </div>
     <div class="kaart" id="kaartVrij">
@@ -946,7 +947,7 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
   }
 
   var el = {};
-  ["leeft", "leeftTekst", "totaal", "totaalBij", "cash", "cashBij", "cashBijDalpot", "belegd", "belegdBij", "belegdBijDalpot",
+  ["leeft", "leeftTekst", "totaal", "totaalResultaat", "totaalBij", "cash", "cashBij", "cashBijDalpot", "belegd", "belegdBij", "belegdBijDalpot",
    "lijst",
    "klaarChip", "voetRechts",
    "reserveRijen", "zoek", "zoekWis",
@@ -1093,6 +1094,15 @@ a.reservekaart:hover { border-color: rgba(247,147,26,.55); }
     el.totaal.textContent = geld.format(totaal);
     el.totaalBij.hidden = false;
     el.totaalBij.textContent = "Geoogst " + geld.format(pf.gerealiseerd || 0);
+    // Echt resultaat: totale waarde tegenover netto ingelegd (euro gestort − opgenomen + correctie)
+    var res = pf.resultaat;
+    el.totaalResultaat.hidden = !res;
+    if (res) {
+      var teken = res.eur < 0 ? "−" : "+";
+      el.totaalResultaat.textContent = "Resultaat " + teken + geld.format(Math.abs(res.eur)) +
+        " (" + teken + pct.format(Math.abs(res.pct)) + "%) · ingelegd " + geld.format(res.ingelegd);
+      el.totaalResultaat.style.color = res.eur < 0 ? "var(--down)" : "var(--up)";
+    }
     el.cash.textContent = geld.format(pf.cash || 0);
     tekenReserve(pf.reserve_verdeling || { BTC: pf.reserve || 0 }, pf.reserve_actief || "BTC");
 
