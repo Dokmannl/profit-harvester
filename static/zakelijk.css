@@ -1,0 +1,188 @@
+/* Profit Harvester: zakelijke stijl (voorstel A).
+   Wordt NA ph.css geladen, in plaats van speels.css. Alleen uiterlijk: ID's en scripts blijven gelijk.
+   Rustig: geen emoji, geen verloop of gloed, effen vlakken, één accentkleur, strakke cijfers. */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --ph-bg: #0E1116;
+  --ph-sidebar: #12161C;
+  --ph-card: #151A21;
+  --ph-inner: #1B2129;
+  --ph-border: #232A33;
+  --ph-border-2: #303945;
+  --ph-text: #E7EAEE;
+  --ph-text-hi: #F5F7FA;
+  --ph-muted: #9AA4B1;
+  --ph-dim: #7D8794;
+  --ph-accent: #F7931A;
+  --ph-accent-ink: #14100A;
+  --ph-accent-soft: rgba(247,147,26,.12);
+  --ph-green: #3FB950;
+  --ph-red: #F0706A;
+  --ph-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ph-mono: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --r: 12px;
+}
+html[data-thema="licht"] {
+  --ph-bg: #F5F6F8;
+  --ph-sidebar: #FFFFFF;
+  --ph-card: #FFFFFF;
+  --ph-inner: #F0F2F5;
+  --ph-border: #E3E6EB;
+  --ph-border-2: #CDD3DB;
+  --ph-text: #161B22;
+  --ph-text-hi: #0D1117;
+  --ph-muted: #57606A;
+  --ph-dim: #6E7781;
+  --ph-accent: #D97706;
+  --ph-accent-ink: #FFFFFF;
+  --ph-accent-soft: rgba(217,119,6,.10);
+}
+
+/* ---------------- basis: effen achtergrond, geen verloop ---------------- */
+body, html[data-thema="licht"] body { background: var(--ph-bg) !important; font-family: var(--ph-font); font-weight: 400; }
+body::before { content: none !important; }
+* { text-shadow: none !important; }
+.ph-overlay, .overlay, .meldpaneel, .navbalk, dialog { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.ph-overlay, .overlay { background: rgba(8,10,14,.78) !important; }
+html[data-thema="licht"] .ph-overlay, html[data-thema="licht"] .overlay { background: rgba(16,24,40,.5) !important; }
+
+/* ---------------- cijfers: strak, vaste cijferbreedte ---------------- */
+.ph-num, .kaart .groot, .kaart .klein, .grafiekwaarde strong, .rij .bedrag, .rij .winst,
+.spoorregel span:last-child, .voet b, .ballon b, .ph-budget, .ph-stat-rij b, .ph-stat-kop span,
+.potcijfers strong, .sk-waarde, .sk-sub, td, .ph-kopcijfers b {
+  font-family: var(--ph-font) !important; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+}
+.kaart .groot { font-weight: 600; letter-spacing: -0.025em; color: var(--ph-text-hi); }
+.kaart .klein { font-weight: 600; }
+.aslabel { font-family: var(--ph-font) !important; font-size: 11px !important; }
+
+/* labels: gewone hoofdletter, leesbaar formaat (12px) */
+.kaart .etiket, .grafiekkop .etiket, .potcijfers .etiket, .ph-label, .rijkop, .navbalk .ph-zijlabel, table.orders th,
+.strategiekaart .sk-naam, .groepkop {
+  font-size: 12px !important; font-weight: 500 !important; letter-spacing: 0 !important; text-transform: none !important; color: var(--ph-muted) !important;
+}
+.kaart .etiket .ic { display: none; }
+
+/* ---------------- kaarten en panelen: vlak, dunne rand ---------------- */
+.kaart, .paneel, .grafiekkaart, .strategiekaart, .ph-statusbalk, .ph-zijstatus, .actierij {
+  background: var(--ph-card) !important; border: 1px solid var(--ph-border) !important; border-radius: 12px; box-shadow: none !important;
+}
+.actierij { border: 0 !important; border-top: 1px solid var(--ph-border) !important; border-radius: 0; }
+#kaartTotaal { background: var(--ph-card) !important; border-color: var(--ph-border) !important; }
+.reservekaart { border-color: var(--ph-border) !important; }
+.reservekaart .klein { color: var(--ph-text-hi) !important; }
+.kaart:hover { transform: none; }
+
+/* ---------------- knoppen: één accentkleur, effen ---------------- */
+button, .ph-btn { border-radius: 8px; font-weight: 500; }
+button.hoofd, html[data-thema="licht"] button.hoofd,
+.weergavekaart button[aria-pressed="true"], html[data-thema="licht"] .weergavekaart button[aria-pressed="true"] {
+  background: var(--ph-accent) !important; border-color: var(--ph-accent) !important; color: var(--ph-accent-ink) !important; box-shadow: none !important;
+}
+button.hoofd:hover:not(:disabled), .weergavekaart button[aria-pressed="true"]:hover { filter: brightness(1.08); }
+.sorteer, .tabs, .segment { border-radius: 8px; }
+.sorteer button, .tabs button, .segment button { border-radius: 6px; }
+.merk .mark, .ph-merkje, html[data-thema="licht"] .merk .mark { background: var(--ph-accent) !important; box-shadow: none !important; transform: none !important; border-radius: 9px; }
+input, select, textarea { border-radius: 8px !important; }
+
+/* ---------------- posities ---------------- */
+.rij { border-radius: 0; margin: 0; }
+.rij.klaar, html[data-thema="licht"] .rij.klaar { background: var(--ph-accent-soft) !important; box-shadow: inset 3px 0 0 var(--ph-accent) !important; }
+.naam { font-weight: 600; }
+.logo, .valtterug { box-shadow: none; }
+.spoor { height: 4px; border-radius: 2px; overflow: hidden; }
+.spoor i { border-radius: 2px; background: var(--ph-green) !important; }
+.spoor i.vol { background: var(--ph-accent) !important; }
+.spoor i::after { content: none !important; }
+.klaarchip { border-radius: 6px !important; }
+.ph-badge { border-radius: 4px; font-size: 11.5px; letter-spacing: .02em; text-transform: none; font-weight: 600; padding: 2px 8px; }
+.ph-badge::before, .soort::before, .klaarchip::before { content: none !important; }
+.soort { border-radius: 4px !important; font-size: 12px !important; font-weight: 500; }
+
+/* ---------------- kop ---------------- */
+.kop h1, .merk h1 { font-family: var(--ph-font); font-weight: 600; letter-spacing: -0.02em; }
+.sp-groet { display: none !important; }
+.ph-stip { box-shadow: none; animation: none; }
+.ph-volgende .ph-muntrond { width: 18px !important; height: 18px !important; font-size: 11px !important; }
+
+/* ---------------- grafiek: dunne lijn ---------------- */
+.lijn { stroke-width: 2; }
+
+/* ---------------- telefoon (uit speels.css overgenomen, zonder emoji) ---------------- */
+@media (max-width: 899px) { .navbalk button.navknop { display: none !important; } }
+.ph-zoekknop { display: none; }
+@media (max-width: 899px) {
+  .ph-zoekknop { display: grid; place-items: center; width: 44px; height: 44px; flex: none; padding: 0;
+    border-radius: 10px; border: 1px solid var(--ph-border); background: var(--ph-card); color: var(--ph-text); }
+  .ph-zoekknop svg { width: 20px; height: 20px; }
+  .kop { flex-wrap: nowrap !important; align-items: center !important; margin-bottom: 12px !important; }
+  .kop .ph-kopblok { min-width: 0; flex: 1 1 auto; }
+  .kop .koprechts { display: none; }
+  .kop .ph-merkje { width: 40px; height: 40px; }
+  .ph-sub { font-size: 0.78rem !important; margin-bottom: 0 !important; }
+  .ph-zoekknop { margin-left: 8px; }
+  #kaarten { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; grid-template-areas: "totaal totaal totaal" "vrij belegd reserve" !important; gap: 8px !important; margin-bottom: 12px; }
+  #kaarten .kaart { padding: 12px !important; }
+  #kaartTotaal { padding: 14px 16px !important; }
+  #kaartTotaal .groot { font-size: 1.9rem !important; margin-top: 2px; }
+  #kaartVrij > .etiket, #kaartBelegd > .etiket, #kaartReserve > .etiket { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+  #kaartVrij .klein, #kaartBelegd .klein, #kaartReserve .klein { font-size: 0.98rem !important; white-space: nowrap; }
+  #kaartVrij .bij, #kaartBelegd .bij { display: none !important; }
+  #kaartReserve { display: block !important; }
+  #kaartReserve .ph-naarpagina { display: none; }
+  #kaartReserve .ph-reservekop { margin-bottom: 6px !important; justify-content: flex-start !important; gap: 0 !important; }
+  #kaartReserve .ph-volgende { font-size: 0.75rem; margin-top: 3px; gap: 4px; }
+  #grafiekNu { display: none; }
+  .grafiekkaart { padding: 14px 12px 10px !important; }
+  .bereik { padding: 3px !important; }
+  .bereik button { min-height: 32px !important; padding: 4px 6px !important; font-size: 0.84rem !important; }
+  #positiesPaneel .paneelkop { gap: 8px; padding: 14px 12px 10px; }
+  #positiesPaneel .zoekdoos input { min-height: 40px; padding: 8px 14px; font-size: 16px !important; }
+  #sorteer { padding: 3px !important; }
+  #sorteer button { min-height: 32px !important; padding: 4px 6px !important; font-size: 0.84rem !important; }
+  .kop:has(.tabs) { flex-wrap: wrap !important; row-gap: 10px; }
+  .kop .ph-zoekknop { order: 2; }
+  .kop .tabs { order: 3; flex: 1 1 100% !important; margin: 0 !important; }
+  .kop:has(.ph-kopcijfers) { flex-wrap: wrap !important; row-gap: 10px; }
+  .kop .ph-kopcijfers { order: 3; flex: 1 1 100% !important; }
+  .strategiekaarten { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 8px !important; margin-bottom: 12px !important; }
+  .strategiekaart { padding: 11px !important; }
+  .strategiekaart .sk-naam { font-size: 0.72rem !important; letter-spacing: 0 !important; text-transform: none !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .strategiekaart .sk-waarde { font-size: 1rem !important; margin: 4px 0 2px !important; white-space: nowrap; }
+  .strategiekaart .sk-sub { font-size: 0.72rem !important; }
+  .strategiekaart .sk-munten { display: none !important; }
+  .potcijfers > div:first-child { display: none; }
+  .potcijfers { padding: 8px 14px 10px !important; }
+  table.orders th, table.orders td { padding-left: 6px !important; padding-right: 6px !important; }
+}
+
+/* zoekvenster "Munt opzoeken" (uit speels.css, rustiger) */
+.ph-verborgen { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ph-zoekmodaal { max-width: 460px; max-height: calc(100vh - 40px); overflow-y: auto; }
+.ph-zoekform { display: flex; gap: 8px; margin: 4px 0 14px; }
+.ph-zoekform input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 8px; border: 1px solid var(--ph-border-2); background: var(--ph-bg); color: var(--ph-text); font: inherit; }
+.ph-zoekform button { padding: 0 18px; min-height: 46px; }
+.ph-zoekuitslag { display: grid; gap: 10px; margin-bottom: 14px; }
+.ph-zoekkaart { border: 1px solid var(--ph-border); border-radius: 10px; padding: 12px 14px; background: var(--ph-inner); }
+.ph-zoekkop { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ph-zoeknaam b { font-size: 1.05rem; margin-right: 8px; color: var(--ph-text-hi); }
+.ph-zoeknaam span { color: var(--ph-muted); font-size: 0.88rem; }
+.ph-zoekcijfers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.ph-zoekcijfers small { display: block; font-size: 0.75rem; color: var(--ph-dim); }
+.ph-zoekcijfers b { font-size: 0.92rem; color: var(--ph-text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ph-zoeknoot { margin: 8px 0 0 !important; font-size: 0.84rem !important; color: var(--ph-muted); }
+.ph-toevoegwrap { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ph-border); }
+.ph-toevoeg { display: flex; align-items: center; gap: 8px; }
+.ph-toevoeg input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--ph-border-2); background: var(--ph-bg); color: var(--ph-text); font: inherit; }
+.ph-toevoeg button { padding: 0 14px; min-height: 44px; white-space: nowrap; }
+.ph-toevoeguit { margin: 8px 0 0 !important; font-size: 0.86rem !important; }
+.ph-toevoeguit.goed { color: var(--ph-green); }
+.ph-toevoeguit.fout { color: var(--ph-red); }
+
+/* ---------------- invulvelden met zichtbaar label (Beheren) ---------------- */
+.zk-veld { display: inline-flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ph-muted); font-weight: 500; }
+
+/* ---------------- minder beweging ---------------- */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

@@ -63,6 +63,7 @@ portfolio = {
     "reserve_verdeling": {"BTC": 40.00, "ETH": 15.00, "BNB": 0.0, "SOL": 0.0, "XRP": 0.0},
     "reserve_actief": "ETH",
     "gerealiseerd": 66.30,
+    "resultaat": {"ingelegd": 1500.00, "eur": 67.18, "pct": 4.5},
 }
 
 pot = {

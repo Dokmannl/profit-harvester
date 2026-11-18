@@ -338,8 +338,7 @@ html[data-thema="licht"] .tag.koopt { background: rgba(154,100,0,.12); }
 html[data-thema="licht"] .navbalk { box-shadow: 0 -6px 20px -12px rgba(16,24,40,.25); }
 </style>
 <link rel="stylesheet" href="/static/ph.css?v=1">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/static/speels.css?v=1">
+<link rel="stylesheet" href="/static/zakelijk.css?v=1">
 <style>
 /* ---- nieuw ontwerp: alleen beheren ---- */
 .wrap { position: relative; }
@@ -524,8 +523,8 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/munt-toevoegen"
             data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de hoofdlijst en meteen kopen voor €{}?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld SOL" autocomplete="off" required>
-        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <label class="zk-veld">Munt<input type="text" name="munt" title="Muntafkorting, bijvoorbeeld SOL" autocomplete="off" required></label>
+        <label class="zk-veld">Budget €<input type="number" name="budget" min="5" step="0.01" required></label>
         <button type="submit">Toevoegen</button>
       </form>
     </div>
@@ -558,7 +557,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
         <select name="munt">
           {% for m in hoofdlijst_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
         </select>
-        <input type="number" name="bedrag" placeholder="Nieuw €" min="5" step="0.01" required>
+        <label class="zk-veld">Nieuw €<input type="number" name="bedrag" min="5" step="0.01" required></label>
         <button type="submit">Opslaan</button>
       </form>
       {% else %}
@@ -580,7 +579,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/pot-storten"
             data-bevestig-fields="bedrag" data-bevestig-template="€{} storten in de pot?">
-        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <label class="zk-veld">Bedrag €<input type="number" name="bedrag" min="0.01" step="0.01" required></label>
         <button type="submit" class="hoofd">Storten</button>
       </form>
     </div>
@@ -592,7 +591,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/pot-opnemen"
             data-bevestig-fields="bedrag" data-bevestig-template="€{} uit de pot opnemen?">
-        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <label class="zk-veld">Bedrag €<input type="number" name="bedrag" min="0.01" step="0.01" required></label>
         <button type="submit">Opnemen</button>
       </form>
     </div>
@@ -605,8 +604,8 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/pot-munt-toevoegen"
             data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de pot met budget €{}?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld AVAX" autocomplete="off" required>
-        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <label class="zk-veld">Munt<input type="text" name="munt" title="Muntafkorting, bijvoorbeeld AVAX" autocomplete="off" required></label>
+        <label class="zk-veld">Budget €<input type="number" name="budget" min="5" step="0.01" required></label>
         <button type="submit">Toevoegen</button>
       </form>
     </div>
@@ -622,7 +621,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
         <select name="munt">
           {% for m in pot_munten %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
         </select>
-        <input type="number" name="budget" placeholder="Nieuw €" min="5" step="0.01" required>
+        <label class="zk-veld">Nieuw €<input type="number" name="budget" min="5" step="0.01" required></label>
         <button type="submit" class="hoofd">Ophogen</button>
       </form>
       {% else %}
@@ -672,7 +671,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/dalpot-storten"
             data-bevestig-fields="bedrag" data-bevestig-template="€{} storten in de dalpot?">
-        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <label class="zk-veld">Bedrag €<input type="number" name="bedrag" min="0.01" step="0.01" required></label>
         <button type="submit" class="hoofd">Storten</button>
       </form>
     </div>
@@ -684,7 +683,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/dalpot-opnemen"
             data-bevestig-fields="bedrag" data-bevestig-template="€{} uit de dalpot opnemen?">
-        <input type="number" name="bedrag" placeholder="Bedrag €" min="0.01" step="0.01" required>
+        <label class="zk-veld">Bedrag €<input type="number" name="bedrag" min="0.01" step="0.01" required></label>
         <button type="submit">Opnemen</button>
       </form>
     </div>
@@ -697,8 +696,8 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/dalpot-munt-toevoegen"
             data-bevestig-fields="munt,budget" data-bevestig-template="{} toevoegen aan de dalpot met budget €{}?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld XRP" autocomplete="off" required>
-        <input type="number" name="budget" placeholder="Budget €" min="5" step="0.01" required>
+        <label class="zk-veld">Munt<input type="text" name="munt" title="Muntafkorting, bijvoorbeeld XRP" autocomplete="off" required></label>
+        <label class="zk-veld">Budget €<input type="number" name="budget" min="5" step="0.01" required></label>
         <button type="submit">Toevoegen</button>
       </form>
     </div>
@@ -752,7 +751,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/munt-uitsluiten"
             data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de pot (of weer toestaan als al uitgesloten)?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld XRP" autocomplete="off" required>
+        <label class="zk-veld">Munt<input type="text" name="munt" title="Muntafkorting, bijvoorbeeld XRP" autocomplete="off" required></label>
         <button type="submit">Uitsluiten</button>
       </form>
     </div>
@@ -811,7 +810,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/dalpot-munt-uitsluiten"
             data-bevestig-fields="munt" data-bevestig-template="{} uitsluiten voor de dalpot (of weer toestaan als al uitgesloten)?">
-        <input type="text" name="munt" placeholder="Munt" title="Muntafkorting, bijvoorbeeld BTC" autocomplete="off" required>
+        <label class="zk-veld">Munt<input type="text" name="munt" title="Muntafkorting, bijvoorbeeld BTC" autocomplete="off" required></label>
         <button type="submit">Uitsluiten</button>
       </form>
     </div>
@@ -870,7 +869,7 @@ html[data-thema="licht"] .sprongbalk { background: rgba(243,245,248,.92); }
       </div>
       <form class="actie-form" method="post" action="/beheren/inleg-correctie"
             data-bevestig-fields="bedrag" data-bevestig-template="Correctie op netto ingelegd instellen op €{}?">
-        <input type="text" name="bedrag" inputmode="decimal" value="{{ ('%.2f' % inleg_correctie).replace('.', ',') }}"
+        <input type="text" name="bedrag" inputmode="decimal" value="{{ ('%.2f' % (inleg_correctie|default(0))).replace('.', ',') }}"
                title="Correctie in euro, bijvoorbeeld 250 of -100" autocomplete="off" required aria-label="Correctie in euro">
         <button type="submit" class="hoofd">Opslaan</button>
       </form>
