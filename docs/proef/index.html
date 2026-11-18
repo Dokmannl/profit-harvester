@@ -5,27 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 <title>Profit Harvester: probeer het zelf</title>
-<meta name="description" content="Zet een munt in de kas en kijk wat Profit Harvester doet: de top volgen, alleen de winst oogsten en je budget laten staan. Met verzonnen koersen.">
-<meta name="theme-color" content="#123524">
+<meta name="description" content="Kies een munt en kijk wat Profit Harvester doet: de top volgen, alleen de winst oogsten en je budget laten staan. Met verzonnen koersen.">
+<meta name="theme-color" content="#0E1116">
 <link rel="icon" href="../img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Kas: glas, blad en zaad. */
+/* Zakelijk: dezelfde kleuren als de hoofdpagina. */
 :root {
-  --kas:     #123524;   /* achtergrond */
-  --mos:     #1F4D36;   /* vlakken */
-  --mos2:    #2A6146;
-  --nerf:    #3F7A5C;   /* lijnen */
-  --kalk:    #EEF3E8;   /* tekst */
-  --dauw:    #B9CDBF;   /* zachte tekst */
-  --zaad:    #F2C14E;   /* oogst, accent */
-  --tomaat:  #FF7A57;   /* min */
-  --glas:    #9CC9C2;   /* budgetlijn */
-  --op-zaad: #1C1A06;
-  --kop:  'Bricolage Grotesque', system-ui, sans-serif;
-  --romp: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --kas:     #0E1116;
+  --mos:     #151A21;
+  --mos2:    #232A33;
+  --nerf:    #303945;
+  --kalk:    #E7EAEE;
+  --dauw:    #9AA4B1;
+  --zaad:    #F7931A;
+  --tomaat:  #F0706A;
+  --glas:    #7D8794;
+  --op-zaad: #14100A;
+  --kop:  'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --romp: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--kas); color: var(--kalk); font-family: var(--romp); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
@@ -88,7 +88,7 @@ h1, h2, h3 { font-family: var(--kop); line-height: 1.05; }
 .verloop strong { color: var(--kalk); }
 .eerlijk { margin-top: 10px; font-size: 0.88rem; color: var(--dauw); opacity: .85; }
 
-/* ---------- onder de kas ---------- */
+/* ---------- onder de simulator ---------- */
 .blok { padding: 84px 0 0; }
 .blok h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; letter-spacing: -0.02em; max-width: 20ch; margin-bottom: 26px; }
 .drie { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; }
@@ -120,6 +120,27 @@ footer a { color: var(--dauw); }
   .drie { grid-template-columns: 1fr; gap: 26px; }
   .blok { padding-top: 60px; }
 }
+
+/* ---------- zakelijke stijl ---------- */
+body { font-size: 16px; }
+.opening h1 { font-weight: 700; }
+.blok h2, .drie h3 { font-weight: 600; }
+.balk nav a, .keuze legend, .budget label, .segment label, .oogstbak span { font-weight: 500; }
+.kas { border-radius: 12px; }
+.segment { border-radius: 8px; } .segment label { border-radius: 6px; }
+.segment input:checked + label { background: var(--zaad); color: var(--op-zaad); }
+.speel, .knop { border-radius: 8px; font-weight: 600; }
+.speel:hover { background: var(--zaad); filter: brightness(1.08); }
+.grafiek { border-radius: 8px; }
+.grafiek .waarde { stroke: var(--zaad); }
+.grafiek .doellijn { stroke: #3FB950; }
+.grafiek .label-zaad, .grafiek .oogst circle, .grafiek .oogst text { fill: #3FB950; }
+.oogstbak .geoogst { border-color: #3FB950; } .oogstbak .geoogst b { color: #3FB950; }
+.oogstbak b, .budget output { font-variant-numeric: tabular-nums; font-weight: 600; }
+.oogstbak div { border-left-width: 2px; }
+.nodig li::before { border-radius: 50%; width: 6px; height: 6px; margin-top: 10px; background: var(--dauw); }
+.risico { border-radius: 12px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -135,7 +156,7 @@ footer a { color: var(--dauw); }
   </header>
 
   <section class="opening">
-    <h1>Zet een munt in de kas en kijk wat de bot doet.</h1>
+    <h1>Kies een munt en kijk wat de bot doet.</h1>
     <p>Profit Harvester laat je munt staan en oogst alleen wat erboven groeit. Kies hieronder een soort munt en een
       budget, en speel een paar maanden af.</p>
   </section>

@@ -6,8 +6,8 @@
 <meta name="color-scheme" content="dark light">
 <title>Profit Harvester: gratis Bitvavo-bot die alleen je winst oogst</title>
 <meta name="description" content="Gratis, open-source tradingbot voor Bitvavo. Laat je munten staan en verkoopt automatisch alleen de winst. Met dashboard, Telegram, demo-modus en een reserve die je zelf verdeelt over BTC, ETH, BNB, SOL en XRP.">
-<meta name="theme-color" content="#16130F" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#FFF7E8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#F5F6F8" media="(prefers-color-scheme: light)">
 <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="img/icon-192.png" sizes="192x192">
 <link rel="apple-touch-icon" href="img/icon-180.png">
@@ -22,68 +22,70 @@
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Moestuin: dezelfde kleuren en letters als het dashboard van de bot. */
+/* Zakelijk: dezelfde kleuren en letters als het dashboard van de bot. */
 :root {
-  --grond:     #16130F;   /* potgrond: achtergrond */
-  --vak:       #221E18;   /* vlakken */
-  --vak2:      #2C271F;
-  --rand:      #352E25;
-  --rand2:     #4A4033;
-  --tekst:     #F5EFE4;
-  --zacht:     #B9AE9C;
-  --stil:      #8F8574;
-  --zon:       #FF9F1C;   /* accent */
-  --zon-zacht: rgba(255,159,28,.15);
-  --blad:      #7BD389;   /* plus, groei */
-  --blad-zacht: rgba(123,211,137,.15);
-  --bes:       #FF8A80;   /* min, risico */
-  --lucht:     #7CC6FE;
-  --plank:     #8A5A32;   /* hout van de bakken */
-  --plank-licht: #A87444;
-  --op-zon:    #1E1405;   /* tekst op oranje */
-  --kop:       'Fredoka', 'Nunito', system-ui, sans-serif;
-  --romp:      'Nunito', system-ui, -apple-system, sans-serif;
+  --grond:     #0E1116;
+  --vak:       #151A21;
+  --vak2:      #1B2129;
+  --rand:      #232A33;
+  --rand2:     #303945;
+  --tekst:     #E7EAEE;
+  --zacht:     #9AA4B1;
+  --stil:      #7D8794;
+  --zon:       #F7931A;
+  --zon-zacht: rgba(247,147,26,.12);
+  --blad:      #3FB950;
+  --blad-zacht: rgba(63,185,80,.12);
+  --bes:       #F0706A;
+  --lucht:     #58A6FF;
+  --plank:     #303945;
+  --plank-licht: #303945;
+  --op-zon:    #14100A;
+  --kop:       'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --romp:      'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --code:      ui-monospace, 'Cascadia Mono', Consolas, monospace;
 }
 @media (prefers-color-scheme: light) {
   :root:not([data-thema="donker"]) {
-    --grond:     #FFF7E8;
+    --grond:     #F5F6F8;
     --vak:       #FFFFFF;
-    --vak2:      #FFF1D6;
-    --rand:      #F0E2C6;
-    --rand2:     #E2CFA8;
-    --tekst:     #3A2E1F;
-    --zacht:     #6E5F4B;
-    --stil:      #8A7A63;
-    --zon:       #E07F00;
-    --zon-zacht: rgba(255,159,28,.18);
-    --blad:      #2F9447;
-    --blad-zacht: rgba(47,148,71,.12);
-    --bes:       #D64535;
-    --lucht:     #2C7FC0;
-    --plank:     #B07A47;
-    --plank-licht: #C99460;
+    --vak2:      #F0F2F5;
+    --rand:      #E3E6EB;
+    --rand2:     #CDD3DB;
+    --tekst:     #161B22;
+    --zacht:     #57606A;
+    --stil:      #6E7781;
+    --zon:       #D97706;
+    --zon-zacht: rgba(217,119,6,.10);
+    --blad:      #1A7F37;
+    --blad-zacht: rgba(26,127,55,.08);
+    --bes:       #CF222E;
+    --lucht:     #0969DA;
+    --plank:     #CDD3DB;
+    --plank-licht: #CDD3DB;
+    --op-zon:    #FFFFFF;
   }
 }
 :root[data-thema="licht"] {
-    --grond:     #FFF7E8;
+    --grond:     #F5F6F8;
     --vak:       #FFFFFF;
-    --vak2:      #FFF1D6;
-    --rand:      #F0E2C6;
-    --rand2:     #E2CFA8;
-    --tekst:     #3A2E1F;
-    --zacht:     #6E5F4B;
-    --stil:      #8A7A63;
-    --zon:       #E07F00;
-    --zon-zacht: rgba(255,159,28,.18);
-    --blad:      #2F9447;
-    --blad-zacht: rgba(47,148,71,.12);
-    --bes:       #D64535;
-    --lucht:     #2C7FC0;
-    --plank:     #B07A47;
-    --plank-licht: #C99460;
+    --vak2:      #F0F2F5;
+    --rand:      #E3E6EB;
+    --rand2:     #CDD3DB;
+    --tekst:     #161B22;
+    --zacht:     #57606A;
+    --stil:      #6E7781;
+    --zon:       #D97706;
+    --zon-zacht: rgba(217,119,6,.10);
+    --blad:      #1A7F37;
+    --blad-zacht: rgba(26,127,55,.08);
+    --bes:       #CF222E;
+    --lucht:     #0969DA;
+    --plank:     #CDD3DB;
+    --plank-licht: #CDD3DB;
+    --op-zon:    #FFFFFF;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -322,6 +324,45 @@ footer a { color: var(--zacht); }
   .nav .knop.klein span { display: none; }
   .nav .knop.klein { padding: 7px 11px; }
 }
+
+/* ---------- zakelijke stijl: effen, rustig, één accentkleur ---------- */
+body { font-size: 16px; line-height: 1.65; }
+b, strong { font-weight: 600; }
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.025em; }
+.opening h1 { font-weight: 700; letter-spacing: -0.035em; }
+.nav { background: var(--grond); backdrop-filter: none; -webkit-backdrop-filter: none; }
+.nav ul a, .knop, .speel, .segment label, .keuze legend, .budget label, .risico, .oogstbak span, .schermen figcaption, .adres button { font-weight: 500; }
+.knop, .speel, .adres button { border-radius: 8px; border-width: 1px; }
+.knop.hoofd, .speel { font-weight: 600; }
+.knop.hoofd:hover, .speel:hover { background: var(--zon); border-color: var(--zon); filter: brightness(1.08); }
+.segment { border-radius: 8px; border-width: 1px; }
+.segment label { border-radius: 6px; }
+.feitjes li::before { border-radius: 50%; width: 6px; height: 6px; transform: none; background: var(--zacht); }
+.bak, .kas, .installeer li, .adressen div { border-radius: 12px; border-width: 1px; }
+.bak::after { content: none; }
+.bak { padding-bottom: 18px; }
+.grafiek { border-radius: 8px; }
+.stappen li::before { border-width: 1px; font-size: 0.95rem; width: 32px; height: 32px; }
+.stappen li { padding-top: 46px; }
+.stappen li:not(:last-child)::after { top: 16px; left: 44px; border-top: 1px solid var(--rand); }
+.moestuinbak { border: 1px solid var(--rand); border-radius: 12px; box-shadow: none; }
+.vakje + .vakje { border-left: 1px solid var(--rand); }
+.vakje h3 { font-size: 1.3rem; }
+.vakje li::marker { color: var(--stil); }
+.schuur div { border-top: 1px solid var(--rand); }
+.schermen img, .laptop { border-radius: 12px; border-width: 1px; }
+.oefenen { border-radius: 12px; border: 1px solid var(--rand); background: var(--vak); }
+.veilig svg { border-radius: 8px; color: var(--zacht); background: var(--vak2); }
+.installeer h3::before { width: 28px; height: 28px; font-size: 0.9rem; border-radius: 6px; }
+details { border-bottom: 1px solid var(--rand); }
+details summary { font-size: 1.05rem; font-weight: 500; }
+details summary::after { border-width: 0 2px 2px 0; width: 9px; height: 9px; border-color: var(--zacht); }
+.letop { border-left-width: 3px; border-radius: 0 12px 12px 0; }
+.oogstbak div { border-left-width: 2px; }
+.oogstbak b, .budget output { font-variant-numeric: tabular-nums; font-weight: 600; }
+.grafiek .label, .grafiek .label-zaad, .grafiek .label-glas, .grafiek .oogst text { font-family: var(--romp); font-weight: 500; }
+@media (max-width: 960px) { .vakje + .vakje { border-left: 0; border-top: 1px solid var(--rand); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -376,7 +417,7 @@ footer a { color: var(--zacht); }
 
     <figure class="bak">
       <svg class="oogstplaat" viewBox="0 20 560 270" role="img" aria-label="Eén oogst: de waarde van een munt stijgt van het budget van €250 tot boven het doel van €11 winst, de bot volgt de top, en bij 1% terugval verkoopt hij alleen de winst. Het budget van €250 blijft staan.">
-        <g font-family="Nunito, system-ui, sans-serif">
+        <g font-family="Inter, system-ui, sans-serif">
           <rect class="grond" x="0" y="215" width="560" height="80"/>
           <line class="l-budget" x1="0" y1="215" x2="560" y2="215" stroke-width="2"/>
           <text class="t-budget" x="20" y="244" font-size="17" font-weight="800">Budget €250</text>
@@ -457,7 +498,7 @@ footer a { color: var(--zacht); }
     </div>
     <p class="verloop" id="verloop">Druk op <strong>Speel drie maanden af</strong>.</p>
     <p class="eerlijk">De koersen hier zijn verzonnen. Dit laat zien hoe de bot werkt, niet wat hij gaat opleveren.
-      Liever op een hele pagina? <a href="proef/">Open de kas los</a>.</p>
+      Liever op een hele pagina? <a href="proef/">Open de simulator los</a>.</p>
     </div>
   </div>
 </section>
@@ -465,7 +506,7 @@ footer a { color: var(--zacht); }
 <!-- ===================== FUNCTIES ===================== -->
 <section id="functies">
   <div class="wrap">
-    <h2>Drie bakken in één moestuin</h2>
+    <h2>Drie onderdelen, drie risiconiveaus</h2>
     <p class="inleiding">Kies zelf hoeveel risico je neemt. De hoofdlijst is rustig; in de pot en de dalpot handelt de
       bot zelf, alleen met het geld dat jij erin stort.</p>
 
@@ -503,8 +544,8 @@ footer a { color: var(--zacht); }
       </div>
     </div>
 
-    <h2 style="margin-top:72px">In de schuur</h2>
-    <p class="inleiding">Alles wat je verder nodig hebt om de tuin bij te houden.</p>
+    <h2 style="margin-top:72px">Alle functies</h2>
+    <p class="inleiding">Alles wat je verder nodig hebt om de bot te volgen en te beheren.</p>
     <div class="schuur">
       <div>
         <h3>Afgeroomd: je reserve verdelen</h3>
@@ -752,7 +793,7 @@ nano .env   <span class="c"># vul minimaal DASHBOARD_TOKEN in</span></pre>
       tekst.textContent = naar === "licht" ? "Licht" : "Donker";
       knop.setAttribute("aria-label", naar === "licht" ? "Wissel naar licht" : "Wissel naar donker");
       document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) {
-        m.setAttribute("content", huidig() === "licht" ? "#FFF7E8" : "#16130F");
+        m.setAttribute("content", huidig() === "licht" ? "#F5F6F8" : "#0E1116");
       });
     }
     knop.addEventListener("click", function () {
